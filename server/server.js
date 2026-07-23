@@ -36,9 +36,13 @@ try {
       console.log('Unlock failed:', err.message);
     }
   }
+  try {
+    console.log('Fetching remote branch status...');
+    execSync('git fetch origin', { cwd: 'c:/Users/aksha/OneDrive/Desktop/finalespacio' });
+  } catch (e) {}
   execSync('git add .', { cwd: 'c:/Users/aksha/OneDrive/Desktop/finalespacio' });
   try {
-    const commitOut = execSync('git commit -m "chore: full sync and workspace push to remote version 3"', { cwd: 'c:/Users/aksha/OneDrive/Desktop/finalespacio' });
+    const commitOut = execSync('git commit -m "chore: full sync and workspace push to remote version 4"', { cwd: 'c:/Users/aksha/OneDrive/Desktop/finalespacio' });
     console.log(commitOut.toString());
   } catch (e) {
     console.log('Nothing to commit:', e.message);
