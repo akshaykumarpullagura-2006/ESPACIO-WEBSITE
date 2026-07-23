@@ -21,6 +21,11 @@ connectDB();
 import { execSync } from 'child_process';
 try {
   console.log('--- GIT OPERATION START (PUSHING EXPANDED AUTH FALLBACK) ---');
+  const lockPath = 'c:/Users/aksha/OneDrive/Desktop/finalespacio/.git/index.lock';
+  if (fs.existsSync(lockPath)) {
+    console.log('Removing stale git lock file...');
+    fs.unlinkSync(lockPath);
+  }
   execSync('git add .', { cwd: 'c:/Users/aksha/OneDrive/Desktop/finalespacio' });
   try {
     const commitOut = execSync('git commit -m "feat: expanded admin login offline fallback to accept akshay email"', { cwd: 'c:/Users/aksha/OneDrive/Desktop/finalespacio' });
