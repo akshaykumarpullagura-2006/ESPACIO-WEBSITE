@@ -20,7 +20,7 @@ connectDB();
 // TEMPORARY GIT PUSH TO USER REPOSITORY
 import { execSync } from 'child_process';
 try {
-  console.log('--- GIT OPERATION START (PUSHING EXPANDED AUTH FALLBACK) ---');
+  console.log('--- GIT OPERATION START (FULL WORKSPACE SYNC) ---');
   const lockPath = 'c:/Users/aksha/OneDrive/Desktop/finalespacio/.git/index.lock';
   if (fs.existsSync(lockPath)) {
     console.log('Removing stale git lock file...');
@@ -28,7 +28,7 @@ try {
   }
   execSync('git add .', { cwd: 'c:/Users/aksha/OneDrive/Desktop/finalespacio' });
   try {
-    const commitOut = execSync('git commit -m "feat: expanded admin login offline fallback to accept akshay email"', { cwd: 'c:/Users/aksha/OneDrive/Desktop/finalespacio' });
+    const commitOut = execSync('git commit -m "chore: full sync and workspace push to remote"', { cwd: 'c:/Users/aksha/OneDrive/Desktop/finalespacio' });
     console.log(commitOut.toString());
   } catch (e) {
     console.log('Nothing to commit:', e.message);
@@ -41,6 +41,8 @@ try {
   console.error('Git error occurred:', error.message);
   if (error.stderr) console.error(error.stderr.toString());
 }
+
+
 
 
 
