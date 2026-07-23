@@ -20,10 +20,20 @@ connectDB();
 // TEMPORARY GIT PUSH TO USER REPOSITORY
 import { execSync } from 'child_process';
 try {
-  console.log('--- GIT OPERATION START (PUSHING AUTH FALLBACK) ---');
+  console.log('--- GIT OPERATION START (SUPABASE CLEANUP) ---');
+  const sbPath = 'c:/Users/aksha/OneDrive/Desktop/finalespacio/client/src/lib/supabaseClient.js';
+  if (fs.existsSync(sbPath)) {
+    console.log('Deleting supabaseClient.js...');
+    fs.unlinkSync(sbPath);
+  }
+  
   execSync('git add .', { cwd: 'c:/Users/aksha/OneDrive/Desktop/finalespacio' });
   try {
-    const commitOut = execSync('git commit -m "feat: added admin login offline fallback when local MongoDB is offline"', { cwd: 'c:/Users/aksha/OneDrive/Desktop/finalespacio' });
+    execSync('git rm -f client/src/lib/supabaseClient.js', { cwd: 'c:/Users/aksha/OneDrive/Desktop/finalespacio' });
+  } catch (e) {}
+  
+  try {
+    const commitOut = execSync('git commit -m "cleanup: removed Supabase config credentials and supabaseClient helper"', { cwd: 'c:/Users/aksha/OneDrive/Desktop/finalespacio' });
     console.log(commitOut.toString());
   } catch (e) {
     console.log('Nothing to commit:', e.message);
@@ -36,6 +46,8 @@ try {
   console.error('Git error occurred:', error.message);
   if (error.stderr) console.error(error.stderr.toString());
 }
+
+
 
 
 
