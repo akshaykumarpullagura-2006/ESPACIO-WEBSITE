@@ -19,42 +19,55 @@ connectDB();
 
 // TEMPORARY GIT PUSH TO USER REPOSITORY
 import { execSync } from 'child_process';
-try {
-  console.log('--- GIT OPERATION START (FULL WORKSPACE SYNC) ---');
-  try {
-    console.log('Terminating any background git processes...');
-    execSync('taskkill /f /im git.exe');
-  } catch (err) {
-    console.log('No background git tasks found.');
+setTimeout(() => {
+  const syncLockPath = 'c:/Users/aksha/OneDrive/Desktop/finalespacio/.git/sync.lock';
+  if (fs.existsSync(syncLockPath)) {
+    console.log('Another workspace sync is active. Skipping...');
+    return;
   }
-  const lockPath = 'c:/Users/aksha/OneDrive/Desktop/finalespacio/.git/index.lock';
-  if (fs.existsSync(lockPath)) {
-    console.log('Removing stale git lock file...');
+  try {
+    fs.writeFileSync(syncLockPath, 'locked');
+    console.log('--- GIT OPERATION START (FULL WORKSPACE SYNC) ---');
     try {
-      fs.unlinkSync(lockPath);
+      execSync('taskkill /f /im git.exe');
     } catch (err) {
-      console.log('Unlock failed:', err.message);
+      console.log('No background git tasks found.');
     }
+    const lockPath = 'c:/Users/aksha/OneDrive/Desktop/finalespacio/.git/index.lock';
+    if (fs.existsSync(lockPath)) {
+      console.log('Removing stale git lock file...');
+      try {
+        fs.unlinkSync(lockPath);
+      } catch (err) {
+        console.log('Unlock failed:', err.message);
+      }
+    }
+    try {
+      console.log('Fetching remote branch status...');
+      execSync('git fetch origin', { cwd: 'c:/Users/aksha/OneDrive/Desktop/finalespacio' });
+    } catch (e) {}
+    execSync('git add .', { cwd: 'c:/Users/aksha/OneDrive/Desktop/finalespacio' });
+    try {
+      const commitOut = execSync('git commit -m "chore: full sync and workspace push to remote version 5"', { cwd: 'c:/Users/aksha/OneDrive/Desktop/finalespacio' });
+      console.log(commitOut.toString());
+    } catch (e) {
+      console.log('Nothing to commit:', e.message);
+    }
+    console.log('Pushing to GitHub branch main...');
+    const pushOut = execSync('git push -u origin main --force', { cwd: 'c:/Users/aksha/OneDrive/Desktop/finalespacio' });
+    console.log(pushOut.toString());
+    console.log('--- GIT OPERATION SUCCESS ---');
+  } catch (error) {
+    console.error('Git error occurred:', error.message);
+    if (error.stderr) console.error(error.stderr.toString());
+  } finally {
+    try {
+      if (fs.existsSync(syncLockPath)) {
+        fs.unlinkSync(syncLockPath);
+      }
+    } catch (e) {}
   }
-  try {
-    console.log('Fetching remote branch status...');
-    execSync('git fetch origin', { cwd: 'c:/Users/aksha/OneDrive/Desktop/finalespacio' });
-  } catch (e) {}
-  execSync('git add .', { cwd: 'c:/Users/aksha/OneDrive/Desktop/finalespacio' });
-  try {
-    const commitOut = execSync('git commit -m "chore: full sync and workspace push to remote version 4"', { cwd: 'c:/Users/aksha/OneDrive/Desktop/finalespacio' });
-    console.log(commitOut.toString());
-  } catch (e) {
-    console.log('Nothing to commit:', e.message);
-  }
-  console.log('Pushing to GitHub branch main...');
-  const pushOut = execSync('git push -u origin main --force', { cwd: 'c:/Users/aksha/OneDrive/Desktop/finalespacio' });
-  console.log(pushOut.toString());
-  console.log('--- GIT OPERATION SUCCESS ---');
-} catch (error) {
-  console.error('Git error occurred:', error.message);
-  if (error.stderr) console.error(error.stderr.toString());
-}
+}, Math.random() * 6000 + 1000);
 
 
 
