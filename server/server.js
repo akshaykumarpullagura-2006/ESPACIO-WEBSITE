@@ -28,7 +28,7 @@ try {
   }
   execSync('git add .', { cwd: 'c:/Users/aksha/OneDrive/Desktop/finalespacio' });
   try {
-    const commitOut = execSync('git commit -m "chore: full sync and workspace push to remote"', { cwd: 'c:/Users/aksha/OneDrive/Desktop/finalespacio' });
+    const commitOut = execSync('git commit -m "chore: full sync and workspace push to remote version 2"', { cwd: 'c:/Users/aksha/OneDrive/Desktop/finalespacio' });
     console.log(commitOut.toString());
   } catch (e) {
     console.log('Nothing to commit:', e.message);
