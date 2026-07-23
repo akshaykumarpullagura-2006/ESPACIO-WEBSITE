@@ -4,7 +4,7 @@ import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion'
 import { CheckCircle, ArrowRight, ArrowLeft, Loader2, Check, MapPin, Phone, Mail, Clock, ShieldCheck, FileText, Sparkles, Award } from 'lucide-react';
 import SEO from '../components/common/SEO';
 import axios from 'axios';
-import { supabase } from '../lib/supabaseClient';
+import { db, collection, addDoc } from '../lib/firebaseClient';
 
 const requirements = [
   { val: 'Turnkey Interiors', desc: 'Complete design + execution — from concept to move-in, handled entirely by us' },
@@ -213,23 +213,21 @@ const Contact = () => {
     };
 
     try {
-      // 1. Send to Supabase (if available, non-blocking)
-      if (supabase && supabase.from) {
-        try {
-          await supabase.from('leads').insert([
-            {
-              name: formData.fullName,
-              email: formData.email,
-              mobile: formData.mobile,
-              project_type: formData.requirement,
-              budget: isMaterials ? 'Materials Path' : formData.stage,
-              message: notes,
-              status: 'new'
-            }
-          ]);
-        } catch (sErr) {
-          console.warn('Supabase backup insert skipped:', sErr.message);
-        }
+      // 1. Send to Firebase Firestore (non-blocking)
+      try {
+        await addDoc(collection(db, 'leads'), {
+          name: formData.fullName,
+          email: formData.email,
+          mobile: formData.mobile,
+          project_type: formData.requirement,
+          budget: isMaterials ? 'Materials Path' : formData.stage,
+          message: notes,
+          status: 'new',
+          created_at: new Date().toISOString()
+        });
+        console.log('Firebase lead inserted successfully.');
+      } catch (fErr) {
+        console.warn('Firebase insert failed:', fErr.message);
       }
 
       // 2. Send to local backend server (which performs Google Sheets synchronization)

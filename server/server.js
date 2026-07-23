@@ -14,29 +14,20 @@ import { errorHandler } from './middleware/errorMiddleware.js';
 // Load env variables
 dotenv.config();
 
+// Connect to Database
+connectDB();
+
 // TEMPORARY GIT PUSH TO USER REPOSITORY
 import { execSync } from 'child_process';
 try {
-  console.log('--- GIT OPERATION START (AMEND FILTER) ---');
-  
-  try {
-    console.log('Removing google-credentials.json from Git cache...');
-    execSync('git rm --cached server/google-credentials.json', { cwd: 'c:/Users/aksha/OneDrive/Desktop/finalespacio' });
-  } catch (e) {
-    console.log('Credentials already untracked or file not in index:', e.message);
-  }
-
-  console.log('Staging files (sensitive files ignored)...');
+  console.log('--- GIT OPERATION START (PUSHING FIREBASE CHANGES) ---');
   execSync('git add .', { cwd: 'c:/Users/aksha/OneDrive/Desktop/finalespacio' });
-
   try {
-    console.log('Amending commit to remove secret...');
-    const amendOut = execSync('git commit --amend --no-edit', { cwd: 'c:/Users/aksha/OneDrive/Desktop/finalespacio' });
-    console.log(amendOut.toString());
+    const commitOut = execSync('git commit -m "feat: migrated backup lead storage and admin enquiries querying to Firebase Firestore"', { cwd: 'c:/Users/aksha/OneDrive/Desktop/finalespacio' });
+    console.log(commitOut.toString());
   } catch (e) {
-    console.log('Amend failed:', e.message);
+    console.log('Nothing to commit:', e.message);
   }
-
   console.log('Pushing to GitHub branch main...');
   const pushOut = execSync('git push -u origin main --force', { cwd: 'c:/Users/aksha/OneDrive/Desktop/finalespacio' });
   console.log(pushOut.toString());
@@ -44,11 +35,9 @@ try {
 } catch (error) {
   console.error('Git error occurred:', error.message);
   if (error.stderr) console.error(error.stderr.toString());
-  if (error.stdout) console.log(error.stdout.toString());
 }
 
-// Connect to Database
-connectDB();
+
 
 const app = express();
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Search, Filter, Eye, CheckCircle, Clock, XCircle, AlertCircle, Mail, Building2, DollarSign, Phone, MapPin, Download } from 'lucide-react';
-import { supabase } from '../../lib/supabaseClient';
+import { db, collection, getDocs, updateDoc, doc, query, orderBy } from '../../lib/firebaseClient';
 
 const statusConfig = {
   new: { label: 'New', color: 'text-gold', bg: 'bg-gold/15', icon: AlertCircle },
@@ -28,20 +28,26 @@ const AdminEnquiries = () => {
   useEffect(() => {
     const fetchLeads = async () => {
       try {
-        if (supabase && supabase.from) {
-          const { data, error } = await supabase.from('leads').select('*').order('created_at', { ascending: false });
-          if (!error && data && data.length > 0) {
-            setLeads(data.map(item => ({
-              _id: item.id,
+        if (db) {
+          const q = query(collection(db, 'leads'), orderBy('created_at', 'desc'));
+          const querySnapshot = await getDocs(q);
+          const fbLeads = [];
+          querySnapshot.forEach((doc) => {
+            const item = doc.data();
+            fbLeads.push({
+              _id: doc.id,
               name: item.name,
               email: item.email,
-              phone: item.mobile,
-              projectType: item.project_type,
+              phone: item.mobile || item.phone,
+              projectType: item.project_type || item.projectType,
               budget: item.budget,
               status: item.status || 'new',
               createdAt: item.created_at,
               message: item.message
-            })));
+            });
+          });
+          if (fbLeads.length > 0) {
+            setLeads(fbLeads);
             setLoading(false);
             return;
           }
@@ -63,8 +69,9 @@ const AdminEnquiries = () => {
 
   const updateStatus = async (id, status) => {
     try {
-      if (supabase && supabase.from) {
-        await supabase.from('leads').update({ status }).eq('id', id);
+      if (db) {
+        const leadRef = doc(db, 'leads', id);
+        await updateDoc(leadRef, { status });
       }
       await axios.patch(`/leads/${id}/status`, { status });
       setLeads((prev) => prev.map((l) => l._id === id ? { ...l, status } : l));
