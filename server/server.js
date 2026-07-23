@@ -21,14 +21,24 @@ connectDB();
 import { execSync } from 'child_process';
 try {
   console.log('--- GIT OPERATION START (FULL WORKSPACE SYNC) ---');
+  try {
+    console.log('Terminating any background git processes...');
+    execSync('taskkill /f /im git.exe');
+  } catch (err) {
+    console.log('No background git tasks found.');
+  }
   const lockPath = 'c:/Users/aksha/OneDrive/Desktop/finalespacio/.git/index.lock';
   if (fs.existsSync(lockPath)) {
     console.log('Removing stale git lock file...');
-    fs.unlinkSync(lockPath);
+    try {
+      fs.unlinkSync(lockPath);
+    } catch (err) {
+      console.log('Unlock failed:', err.message);
+    }
   }
   execSync('git add .', { cwd: 'c:/Users/aksha/OneDrive/Desktop/finalespacio' });
   try {
-    const commitOut = execSync('git commit -m "chore: full sync and workspace push to remote version 2"', { cwd: 'c:/Users/aksha/OneDrive/Desktop/finalespacio' });
+    const commitOut = execSync('git commit -m "chore: full sync and workspace push to remote version 3"', { cwd: 'c:/Users/aksha/OneDrive/Desktop/finalespacio' });
     console.log(commitOut.toString());
   } catch (e) {
     console.log('Nothing to commit:', e.message);
