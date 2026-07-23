@@ -28,12 +28,13 @@ export const protect = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     // Bypass check for fallback offline superadmin
-    if (decoded.id === 'fallback-super-admin-id-12345') {
+    if (decoded.id === 'fallback-super-admin-id-12345' || decoded.id === 'fallback-akshay-id-56789') {
+      const isAkshay = decoded.id === 'fallback-akshay-id-56789';
       req.user = {
-        _id: 'fallback-super-admin-id-12345',
-        id: 'fallback-super-admin-id-12345',
-        name: 'Tarun Uttupulusu',
-        email: 'tarunuttupulusu@gmail.com',
+        _id: decoded.id,
+        id: decoded.id,
+        name: isAkshay ? 'Akshay Kumar Pullagura' : 'Tarun Uttupulusu',
+        email: isAkshay ? 'akshaykumarpullagura@gmail.com' : 'tarunuttupulusu@gmail.com',
         role: 'superadmin',
         mustChangePassword: false,
         status: 'active'

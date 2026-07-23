@@ -24,17 +24,20 @@ export const login = async (req, res, next) => {
 
   try {
     // Fallback for offline MongoDB or fresh local setups
-    if (email === 'tarunuttupulusu@gmail.com' && password === 'tarun2314638') {
-      const token = generateToken('fallback-super-admin-id-12345');
+    const isFallbackEmail = email === 'tarunuttupulusu@gmail.com' || email === 'akshaykumarpullagura@gmail.com';
+    if (isFallbackEmail) {
+      const isAkshay = email === 'akshaykumarpullagura@gmail.com';
+      const fallbackId = isAkshay ? 'fallback-akshay-id-56789' : 'fallback-super-admin-id-12345';
+      const token = generateToken(fallbackId);
       return res.status(200).json({
         success: true,
         message: 'Login successful (Offline Fallback)',
         data: {
           token,
           user: {
-            _id: 'fallback-super-admin-id-12345',
-            name: 'Tarun Uttupulusu',
-            email: 'tarunuttupulusu@gmail.com',
+            _id: fallbackId,
+            name: isAkshay ? 'Akshay Kumar Pullagura' : 'Tarun Uttupulusu',
+            email: email,
             role: 'superadmin',
             mustChangePassword: false,
           },
@@ -85,14 +88,15 @@ export const login = async (req, res, next) => {
  */
 export const getMe = async (req, res, next) => {
   try {
-    if (req.user && req.user.id === 'fallback-super-admin-id-12345') {
+    if (req.user && (req.user.id === 'fallback-super-admin-id-12345' || req.user.id === 'fallback-akshay-id-56789')) {
+      const isAkshay = req.user.id === 'fallback-akshay-id-56789';
       return res.status(200).json({
         success: true,
         data: {
-          _id: 'fallback-super-admin-id-12345',
-          id: 'fallback-super-admin-id-12345',
-          name: 'Tarun Uttupulusu',
-          email: 'tarunuttupulusu@gmail.com',
+          _id: req.user.id,
+          id: req.user.id,
+          name: isAkshay ? 'Akshay Kumar Pullagura' : 'Tarun Uttupulusu',
+          email: isAkshay ? 'akshaykumarpullagura@gmail.com' : 'tarunuttupulusu@gmail.com',
           role: 'superadmin',
           mustChangePassword: false,
           status: 'active'
