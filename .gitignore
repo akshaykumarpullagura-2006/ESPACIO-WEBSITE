@@ -1,0 +1,10 @@
+node_modules/
+server/.env
+client/node_modules/
+client/dist/
+server/node_modules/
+server/uploads/
+.DS_Store
+.gemini/
+*.zip
+server/google-credentials.json

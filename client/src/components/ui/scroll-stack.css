@@ -1,0 +1,11 @@
+.scroll-stack-card {
+  will-change: transform, filter;
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
+  box-sizing: border-box;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  position: relative;
+  border-radius: 28px;
+  padding: 2.5rem;
+}

@@ -1,0 +1,499 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Marcellus&family=Manrope:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+@import "tailwindcss";
+
+@font-face {
+  font-family: 'Lucy the Cat';
+  src: url('/fonts/lucy_the_cat.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+:root {
+  --logo-kerning: -2px;
+}
+@media (min-width: 640px) {
+  :root {
+    --logo-kerning: -5px;
+  }
+}
+
+/* ── Resentii-Inspired ESPACIO Design System ────────────────────────────────── */
+@theme {
+  /* Backgrounds */
+  --color-bg:            #F8F5F0;
+  --color-bg-dark:       #101014;
+  --color-bg-card:       #F0EDE7;
+  --color-bg-deep:       #28282c;
+  --color-bg-section:    #101014;
+
+  /* Ink / Text Scale */
+  --color-ink:           #101014;
+  --color-ink-soft:      #3d3d47;
+  --color-ink-muted:     #9b9ba8;
+  --color-ink-border:    #e6e6e6;
+  --color-ink-line:      #d0d1db;
+
+  /* Accent — Warm Luxury Gold */
+  --color-gold:          #C9A96E;
+  --color-gold-light:    #E8D5AD;
+  --color-gold-hover:    #B8924A;
+
+  /* Legacy aliases */
+  --color-cream:         #F8F5F0;
+  --color-cream-light:   #F0EDE7;
+  --color-offwhite:      #F0EDE7;
+  --color-walnut:        #3d3d47;
+  --color-walnut-dark:   #101014;
+  --color-charcoal:      #101014;
+  --color-charcoal-dark: #28282c;
+
+  /* Typography */
+  --font-logo:      'Gotham Medium', 'Gotham Book', 'Gotham', 'Montserrat', sans-serif;
+  --font-hero:      'Cormorant Garamond', serif;
+  --font-nav:       'Montserrat', sans-serif;
+  --font-body:      'Montserrat', sans-serif;
+  --font-btn:       'Montserrat', sans-serif;
+  --font-title:     'Cormorant Garamond', serif;
+
+  /* Custom utility aliases */
+  --font-editorial: 'Cormorant Garamond', serif;
+  --font-sans:      'Montserrat', sans-serif;
+  --font-display:   'Cormorant Garamond', serif;
+
+  /* Border Radius */
+  --radius-card:   16px;
+  --radius-button: 8px;
+  --radius-img:    16px;
+  --radius-input:  8px;
+  --radius-pill:   999px;
+}
+
+/* ── Base Reset ──────────────────────────────────────────────────────────────── */
+@layer base {
+  html { scroll-behavior: smooth; }
+
+  body {
+    @apply bg-bg text-ink font-sans antialiased overflow-x-hidden pb-20 lg:pb-0;
+    font-family: 'Montserrat', sans-serif;
+    font-feature-settings: "cv09" on, "cv03" on, "cv04" on, "cv11" on;
+    font-size: 14.5px;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+    color: #101014;
+  }
+
+  p {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 14.5px;
+    font-weight: 400;
+    line-height: 1.65;
+    color: #3d3d47;
+  }
+
+  ::selection {
+    background-color: #C9A96E;
+    color: #101014;
+  }
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: #fafafa; }
+::-webkit-scrollbar-thumb { background: #d0d1db; border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: #C9A96E; }
+
+/* ── Custom Cursor ───────────────────────────────────────────────────────────── */
+.custom-cursor {
+  width: 20px; height: 20px;
+  border: 1.5px solid #101014;
+  border-radius: 50%; position: fixed;
+  transform: translate(-50%, -50%);
+  pointer-events: none; z-index: 9999;
+  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              height 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.3s ease,
+              border-color 0.3s ease;
+  mix-blend-mode: multiply;
+}
+.custom-cursor-hover {
+  width: 44px; height: 44px;
+  background-color: rgba(201, 169, 110, 0.15);
+  border-color: #C9A96E;
+}
+
+/* ── Slider ──────────────────────────────────────────────────────────────────── */
+.slider-handle-drag { cursor: ew-resize; }
+
+/* ── Catalog Blur ────────────────────────────────────────────────────────────── */
+.catalog-blur-overlay {
+  background: linear-gradient(to bottom, rgba(250, 250, 250, 0.2) 0%, rgba(250, 250, 250, 0.97) 75%);
+  backdrop-filter: blur(12px);
+}
+
+/* ── Form Inputs — Public ────────────────────────────────────────────────────── */
+.espacio-input {
+  width: 100%;
+  background: #f4f4f6;
+  border: 1.5px solid #e6e6e6;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  padding: 14px 18px;
+  color: #101014;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.espacio-input::placeholder { color: #9b9ba8; }
+.espacio-input:hover { border-color: #d0d1db; }
+.espacio-input:focus {
+  border-color: #C9A96E;
+  box-shadow: 0 0 0 3px rgba(201, 169, 110, 0.12);
+}
+
+/* ── Form Inputs — Admin ─────────────────────────────────────────────────────── */
+.admin-input {
+  width: 100%;
+  background: #0E0F11;
+  border: 1.5px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  padding: 12px 16px;
+  color: #fff;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+.admin-input::placeholder { color: rgba(255,255,255,0.25); }
+.admin-input:hover { border-color: rgba(255,255,255,0.15); }
+.admin-input:focus { border-color: #C9A96E; }
+
+/* ── Fade Up Animation ───────────────────────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up {
+  animation: fadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.animate-fade-up-delay-1 {
+  animation: fadeUp 0.7s 0.1s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.animate-fade-up-delay-2 {
+  animation: fadeUp 0.7s 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.animate-fade-up-delay-3 {
+  animation: fadeUp 0.7s 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── Hover Underline Effect (Resentii-style nav links) ───────────────────────── */
+.hover-underline {
+  position: relative;
+  display: inline-block;
+}
+.hover-underline::after {
+  content: '';
+  position: absolute;
+  bottom: -2px; left: 0;
+  width: 100%; height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.hover-underline:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/* ── Line clamp ──────────────────────────────────────────────────────────────── */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── Card hover lift ─────────────────────────────────────────────────────────── */
+.card-lift {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
+}
+.card-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 48px rgba(16, 16, 20, 0.08);
+}
+
+/* ── Button base ─────────────────────────────────────────────────────────────── */
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: #101014; color: #fafafa;
+  font-family: 'Manrope', sans-serif;
+  font-size: 12px; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 14px 28px; border-radius: 8px;
+  border: 1.5px solid #101014;
+  transition: background 0.25s ease, color 0.25s ease, transform 0.2s ease;
+}
+.btn-primary:hover {
+  background: #28282c; transform: translateY(-1px);
+}
+
+.btn-gold {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: #C9A96E; color: #101014;
+  font-family: 'Manrope', sans-serif;
+  font-size: 12px; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 14px 28px; border-radius: 8px;
+  border: 1.5px solid #C9A96E;
+  transition: background 0.25s ease, transform 0.2s ease;
+}
+.btn-gold:hover {
+  background: #B8924A; transform: translateY(-1px);
+}
+
+.btn-outline {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: transparent; color: #101014;
+  font-family: 'Manrope', sans-serif;
+  font-size: 12px; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 13px 27px; border-radius: 8px;
+  border: 1.5px solid #e6e6e6;
+  transition: border-color 0.25s ease, background 0.25s ease;
+}
+.btn-outline:hover {
+  border-color: #101014; background: #f4f4f6;
+}
+
+/* ── sliding-rolling cta button ─────────────────────────────────────────────── */
+.btn-sliding-cta {
+  display: inline-block;
+  width: 160px;
+  height: 52px;
+  background: transparent;
+  color: #fff !important;
+  border-radius: 50px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  outline: none;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  text-decoration: none;
+  transition: background-color 0.45s ease, border-color 0.45s ease, color 0.45s ease, box-shadow 0.45s ease;
+}
+
+.btn-sliding-cta span {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: top 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  display: block;
+}
+
+.btn-sliding-cta-text-one {
+  position: absolute;
+  width: 100%;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+}
+
+.btn-sliding-cta-text-two {
+  position: absolute;
+  width: 100%;
+  top: 150%;
+  left: 0;
+  transform: translateY(-50%);
+}
+
+.btn-sliding-cta:hover {
+  background-color: #ffffff;
+  border-color: #ffffff;
+  color: #101014 !important;
+  box-shadow: 0 8px 20px rgba(255, 255, 255, 0.1);
+}
+
+.btn-sliding-cta:hover .btn-sliding-cta-text-one {
+  top: -100%;
+}
+
+.btn-sliding-cta:hover .btn-sliding-cta-text-two {
+  top: 50%;
+}
+
+/* ── sliding-rolling cta button (dark version for light backgrounds) ── */
+.btn-sliding-cta-dark {
+  display: inline-block;
+  width: 160px;
+  height: 48px;
+  background: transparent;
+  color: #101014 !important;
+  border-radius: 50px;
+  border: 1px solid rgba(16, 16, 20, 0.15);
+  outline: none;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  text-decoration: none;
+  text-align: center;
+  transition: background-color 0.45s ease, border-color 0.45s ease, color 0.45s ease, box-shadow 0.45s ease;
+}
+
+.btn-sliding-cta-dark span {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: top 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  display: block;
+}
+
+.btn-sliding-cta-dark-text-one {
+  position: absolute;
+  width: 100%;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+}
+
+.btn-sliding-cta-dark-text-two {
+  position: absolute;
+  width: 100%;
+  top: 150%;
+  left: 0;
+  transform: translateY(-50%);
+}
+
+.btn-sliding-cta-dark:hover {
+  background-color: #101014;
+  border-color: #101014;
+  color: #ffffff !important;
+  box-shadow: 0 8px 20px rgba(16, 16, 20, 0.1);
+}
+
+.btn-sliding-cta-dark:hover .btn-sliding-cta-dark-text-one {
+  top: -100%;
+}
+
+.btn-sliding-cta-dark:hover .btn-sliding-cta-dark-text-two {
+  top: 50%;
+}
+
+/* ── Split-fill Navigation Button ───────────────────────────────────────────── */
+.btn-nav-split {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-appearance: button;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border-radius: 99rem;
+  border: 1.5px solid #101014;
+  overflow: hidden;
+  padding: 0.5rem 1.7rem;
+  position: relative;
+  text-decoration: none;
+  background-color: #101014;
+  color: #ffffff !important;
+  transition: box-shadow 0.3s ease;
+}
+
+/* For cinematic state when navbar is transparent, we can make the border white for contrast */
+.btn-nav-split.cinematic {
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.btn-nav-split span {
+  position: relative;
+  z-index: 10;
+  mix-blend-mode: difference;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Base style for fill layers */
+.btn-nav-split::after,
+.btn-nav-split::before {
+  content: "";
+  inset: -1px;
+  position: absolute;
+  transform: translateY(var(--progress, 101%));
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 1;
+}
+
+/* Fill with white on hover for both states */
+.btn-nav-split::before {
+  background: linear-gradient(
+    90deg,
+    #ffffff 25%,
+    transparent 0,
+    transparent 50%,
+    #ffffff 0,
+    #ffffff 75%,
+    transparent 0
+  );
+}
+
+.btn-nav-split::after {
+  --progress: -101%;
+  background: linear-gradient(
+    90deg,
+    transparent 0,
+    transparent 25%,
+    #ffffff 0,
+    #ffffff 50%,
+    transparent 0,
+    transparent 75%,
+    #ffffff 0
+  );
+}
+
+/* Hover state - slide fills to center */
+.btn-nav-split:hover::after,
+.btn-nav-split:hover::before {
+  --progress: 0%;
+}
+
+/* ── Lenis Smooth Scroll Configuration ── */
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis-scrolling iframe {
+  pointer-events: none;
+}
+

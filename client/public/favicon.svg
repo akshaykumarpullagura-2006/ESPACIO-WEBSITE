@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <rect width="120" height="120" rx="24" fill="#101014"/>
+  <radialGradient id="fglow" cx="43" cy="53" r="24" gradientUnits="userSpaceOnUse">
+    <stop offset="0%" stop-color="#FFC46B" stop-opacity="0.9"/>
+    <stop offset="100%" stop-color="#FFC46B" stop-opacity="0"/>
+  </radialGradient>
+  <circle cx="43" cy="53" r="18" fill="url(#fglow)"/>
+  <path d="M32 55 V95 H95 V30 H50" stroke="#FFFFFF" stroke-width="6" stroke-linecap="square" stroke-linejoin="miter"/>
+  <path d="M32 30 H57" stroke="#FFFFFF" stroke-width="6" stroke-linecap="square"/>
+  <path d="M44.5 30 V44" stroke="#FFFFFF" stroke-width="4" stroke-linecap="square"/>
+  <polygon points="44.5,44 36,54 53,54" fill="#FFFFFF"/>
+  <circle cx="44.5" cy="55" r="2.5" fill="#FFC46B"/>
+  <g stroke="#FFFFFF" stroke-width="5" stroke-linecap="square">
+    <line x1="70" y1="54" x2="70" y2="86"/>
+    <line x1="70" y1="54" x2="88" y2="54"/>
+    <line x1="70" y1="70" x2="85" y2="70"/>
+    <line x1="70" y1="86" x2="88" y2="86"/>
+  </g>
+</svg>
