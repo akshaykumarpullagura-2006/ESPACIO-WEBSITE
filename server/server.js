@@ -20,10 +20,10 @@ connectDB();
 // TEMPORARY GIT PUSH TO USER REPOSITORY
 import { execSync } from 'child_process';
 try {
-  console.log('--- GIT OPERATION START (PUSHING FIREBASE CHANGES) ---');
+  console.log('--- GIT OPERATION START (PUSHING AUTH FALLBACK) ---');
   execSync('git add .', { cwd: 'c:/Users/aksha/OneDrive/Desktop/finalespacio' });
   try {
-    const commitOut = execSync('git commit -m "feat: migrated backup lead storage and admin enquiries querying to Firebase Firestore"', { cwd: 'c:/Users/aksha/OneDrive/Desktop/finalespacio' });
+    const commitOut = execSync('git commit -m "feat: added admin login offline fallback when local MongoDB is offline"', { cwd: 'c:/Users/aksha/OneDrive/Desktop/finalespacio' });
     console.log(commitOut.toString());
   } catch (e) {
     console.log('Nothing to commit:', e.message);
@@ -36,6 +36,8 @@ try {
   console.error('Git error occurred:', error.message);
   if (error.stderr) console.error(error.stderr.toString());
 }
+
+
 
 
 

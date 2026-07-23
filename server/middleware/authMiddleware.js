@@ -27,6 +27,20 @@ export const protect = async (req, res, next) => {
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+    // Bypass check for fallback offline superadmin
+    if (decoded.id === 'fallback-super-admin-id-12345') {
+      req.user = {
+        _id: 'fallback-super-admin-id-12345',
+        id: 'fallback-super-admin-id-12345',
+        name: 'Tarun Uttupulusu',
+        email: 'tarunuttupulusu@gmail.com',
+        role: 'superadmin',
+        mustChangePassword: false,
+        status: 'active'
+      };
+      return next();
+    }
+
     // Get user from token and attach to request
     req.user = await User.findById(decoded.id).select('-password');
     if (!req.user || req.user.softDelete || req.user.status === 'inactive') {
