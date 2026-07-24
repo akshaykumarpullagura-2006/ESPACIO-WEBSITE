@@ -264,7 +264,7 @@ const About = () => {
 
           {/* Right Column — Narrative Story */}
           <Reveal delay={0.15} className="lg:col-span-7 space-y-6 pt-2">
-            <h2 className="text-gold leading-tight" style={{ fontFamily: "'Lucy the Cat', sans-serif", fontSize: 'clamp(36px,5.5vw,64px)', fontWeight: 'normal', letterSpacing: '0.02em' }}>
+            <h2 className="text-gold leading-tight" style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(36px,5.5vw,64px)', fontWeight: 'normal', letterSpacing: '0.02em' }}>
               Our Origin Story
             </h2>
             <p className="text-ink leading-relaxed" style={{ fontFamily: "'Canela', 'Cormorant Garamond', 'Cinzel', serif", fontSize: 'clamp(18px,2.5vw,28px)', fontWeight: 700 }}>
@@ -467,21 +467,23 @@ const About = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {galleryImages.map((img, i) => (
               <Reveal key={i} delay={i * 0.1}>
-                <div className="group flex flex-col space-y-3 cursor-pointer">
-                  <div className="relative aspect-[3/4] rounded-[20px] overflow-hidden border border-ink-border shadow-sm bg-bg-card">
-                    <img
-                      src={img.url}
-                      alt={img.title}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
-                  </div>
+                <div className="group relative aspect-[3/4] rounded-[20px] overflow-hidden border border-ink-border shadow-sm bg-bg-card cursor-pointer">
+                  <img
+                    src={img.url}
+                    alt={img.title}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
                   
-                  <div className="bg-cream/40 border border-walnut/10 rounded-[20px] p-6 relative overflow-hidden shadow-sm transition-all duration-300 group-hover:border-gold/30">
+                  <div 
+                    className="absolute bottom-5 left-5 right-5 bg-white/45 border border-white/10 rounded-[16px] p-5 shadow-2xl opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 pointer-events-none overflow-hidden"
+                    style={{ backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}
+                  >
                     <div className="absolute top-0 left-0 w-1.5 h-full bg-gold" />
-                    <p className="font-sans text-[11px] font-bold uppercase tracking-[0.22em] text-gold group-hover:text-ink transition-colors duration-300">
+                    <p className="font-sans text-[10px] font-bold uppercase tracking-[0.2em] text-gold pl-1.5">
                       {img.subtitle}
                     </p>
-                    <h3 className="font-display text-base md:text-lg font-bold text-ink leading-snug mt-2">
+                    <h3 className="font-display text-sm md:text-base font-bold text-ink leading-snug mt-1.5 pl-1.5">
                       {img.title}
                     </h3>
                   </div>

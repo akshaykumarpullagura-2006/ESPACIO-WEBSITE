@@ -23,10 +23,15 @@ const AdminLogin = () => {
   const onSubmit = async (data) => {
     setServerError(null);
     try {
-      const response = await axios.post('/auth/login', data);
+      const sanitizedData = {
+        ...data,
+        email: data.email ? data.email.trim().toLowerCase() : ''
+      };
+      const response = await axios.post('/auth/login', sanitizedData);
       if (response.data.success) {
-        localStorage.setItem('espacio_token', response.data.token);
-        axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+        const token = response.data.data?.token || response.data.token;
+        localStorage.setItem('espacio_token', token);
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         navigate('/admin/dashboard');
       }
     } catch (err) {

@@ -22,11 +22,13 @@ export const login = async (req, res, next) => {
     return next(new ErrorResponse('Please provide email and password', 400));
   }
 
+  const sanitizedEmail = email.trim().toLowerCase();
+
   try {
     // Fallback for offline MongoDB or fresh local setups
-    const isFallbackEmail = email === 'tarunuttupulusu@gmail.com' || email === 'akshaykumarpullagura@gmail.com';
+    const isFallbackEmail = sanitizedEmail === 'tarunuttupulusu@gmail.com' || sanitizedEmail === 'akshaykumarpullagura@gmail.com';
     if (isFallbackEmail) {
-      const isAkshay = email === 'akshaykumarpullagura@gmail.com';
+      const isAkshay = sanitizedEmail === 'akshaykumarpullagura@gmail.com';
       const fallbackId = isAkshay ? 'fallback-akshay-id-56789' : 'fallback-super-admin-id-12345';
       const token = generateToken(fallbackId);
       return res.status(200).json({
@@ -37,7 +39,7 @@ export const login = async (req, res, next) => {
           user: {
             _id: fallbackId,
             name: isAkshay ? 'Akshay Kumar Pullagura' : 'Tarun Uttupulusu',
-            email: email,
+            email: sanitizedEmail,
             role: 'superadmin',
             mustChangePassword: false,
           },
@@ -46,7 +48,7 @@ export const login = async (req, res, next) => {
     }
 
     // Check for user
-    const user = await User.findOne({ email, softDelete: false });
+    const user = await User.findOne({ email: sanitizedEmail, softDelete: false });
 
     if (!user || user.status === 'inactive') {
       return next(new ErrorResponse('Invalid credentials', 401));
