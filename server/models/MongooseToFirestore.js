@@ -135,9 +135,18 @@ export class FirestoreModelAdapter {
     return chain;
   }
 
-  async findOne(filter = {}) {
-    const docs = await this.find(filter);
-    return docs.length > 0 ? docs[0] : null;
+  findOne(filter = {}) {
+    const queryChain = this.find(filter);
+    const originalThen = queryChain.then;
+    queryChain.then = (resolve, reject) => {
+      return originalThen(
+        (docs) => {
+          if (resolve) resolve(docs.length > 0 ? docs[0] : null);
+        },
+        reject
+      );
+    };
+    return queryChain;
   }
 
   async findById(id) {

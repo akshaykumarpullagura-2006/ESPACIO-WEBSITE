@@ -27,6 +27,15 @@ const QuoteModal = () => {
     // Set 1-minute timer (60,000 ms = 60 seconds)
     const timer = setTimeout(() => {
       if (!isDismissed) {
+        setSubmitted(false);
+        setErrorMsg('');
+        setFormData({
+          name: '',
+          phone1: '',
+          phone2: '',
+          email: '',
+          location: '',
+        });
         setIsOpen(true);
       }
     }, 60000);
@@ -34,6 +43,15 @@ const QuoteModal = () => {
     // Custom event listener so any button on the site can trigger the popup
     const handleCustomOpen = (e) => {
       const detail = e?.detail;
+      setSubmitted(false);
+      setErrorMsg('');
+      setFormData({
+        name: '',
+        phone1: '',
+        phone2: '',
+        email: '',
+        location: '',
+      });
       if (detail && detail.mode === 'catalogue') {
         setModalMode('catalogue');
         setModalTitle(detail.title || 'To Unlock More Catalogs, Fill the Details');
@@ -67,6 +85,15 @@ const QuoteModal = () => {
   const handleClose = () => {
     setIsOpen(false);
     sessionStorage.setItem('quote_modal_dismissed', 'true');
+    setSubmitted(false);
+    setErrorMsg('');
+    setFormData({
+      name: '',
+      phone1: '',
+      phone2: '',
+      email: '',
+      location: '',
+    });
   };
 
   const handleChange = (e) => {

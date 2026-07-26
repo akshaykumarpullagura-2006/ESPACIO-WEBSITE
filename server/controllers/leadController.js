@@ -66,15 +66,8 @@ export const createLead = async (req, res, next) => {
       normalised.projectDetails.attachments = attachments;
     }
 
-    // ── Google Sheets Sync & ID Generation ────────────────────────────
-    const isCatalogueRequest = projectType === 'Catalogue Request';
-    const isMaterialsEnquiry = 
-      projectType === 'Materials' || 
-      serviceType === 'Materials' || 
-      budget === 'Materials Path' || 
-      projectType === 'Free Estimate Request' ||
-      (req.body.googleSheetData && req.body.googleSheetData.requirement === 'Materials') ||
-      !!materialDetails;
+     const isCatalogueRequest = projectType === 'Catalogue Request';
+    const isFreeEstimateRequest = projectType === 'Free Estimate Request';
  
     let sheetId;
     try {
@@ -103,29 +96,26 @@ export const createLead = async (req, res, next) => {
 
         const sheetRes = await appendToGoogleSheet('catalogue', cataloguePayload);
         if (sheetRes) sheetId = sheetRes.id;
-      } else if (isMaterialsEnquiry) {
+      } else if (isFreeEstimateRequest) {
         // Parse phone numbers
         let phone1 = phone || '';
         let phone2 = '';
-        if (req.body.googleSheetData) {
-          phone1 = req.body.googleSheetData.mobile || phone1;
-        }
         if (phone1.includes('/')) {
           const parts = phone1.split('/');
           phone1 = parts[0].trim();
           phone2 = parts[1].trim();
         }
 
-        const materialPayload = {
-          name: name || (req.body.googleSheetData ? req.body.googleSheetData.name : 'N/A'),
+        const estimatePayload = {
+          name: name || 'N/A',
           phone1,
           phone2,
-          email: email || (req.body.googleSheetData ? req.body.googleSheetData.email : 'N/A'),
-          location: location || (propertyDetails ? propertyDetails.location : '') || (req.body.googleSheetData ? req.body.googleSheetData.location : 'N/A'),
+          email: email || 'N/A',
+          location: location || 'N/A',
           ipAddress
         };
 
-        const sheetRes = await appendToGoogleSheet('material', materialPayload);
+        const sheetRes = await appendToGoogleSheet('material', estimatePayload);
         if (sheetRes) sheetId = sheetRes.id;
       } else {
         const contactPayload = {

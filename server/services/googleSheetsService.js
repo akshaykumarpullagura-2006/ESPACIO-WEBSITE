@@ -98,7 +98,7 @@ export const appendToGoogleSheet = async (type, data) => {
     const timestamp = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
 
     if (type === 'contact') {
-      const sheetName = 'Contact Requests';
+      const sheetName = process.env.GOOGLE_SHEETS_CONTACT_SHEET_NAME || 'Contact Requests';
       const headers = [
         'Timestamp',
         'Lead ID',
@@ -176,11 +176,11 @@ export const appendToGoogleSheet = async (type, data) => {
         },
       });
 
-      console.log(`Google Sheets API: Appended row to "Contact Requests" with ID ${nextId}`);
+      console.log(`Google Sheets API: Appended row to "${sheetName}" with ID ${nextId}`);
       return { id: nextId };
 
     } else if (type === 'catalogue') {
-      const sheetName = 'Catalogue Requests';
+      const sheetName = process.env.GOOGLE_SHEETS_CATALOGUE_SHEET_NAME || 'Catalogue Requests';
       const headers = [
         'Timestamp',
         'Enquiry ID',
@@ -246,11 +246,11 @@ export const appendToGoogleSheet = async (type, data) => {
         },
       });
 
-      console.log(`Google Sheets API: Appended row to "Catalogue Requests" with ID ${nextId}`);
+      console.log(`Google Sheets API: Appended row to "${sheetName}" with ID ${nextId}`);
       return { id: nextId };
 
     } else if (type === 'material') {
-      const sheetName = 'Material Enquiries';
+      const sheetName = process.env.GOOGLE_SHEETS_MATERIAL_SHEET_NAME || 'Material Enquiries';
       const headers = [
         'Timestamp',
         'Enquiry ID',
@@ -320,7 +320,7 @@ export const appendToGoogleSheet = async (type, data) => {
         },
       });
 
-      console.log(`Google Sheets API: Appended row to "Material Enquiries" with ID ${nextId}`);
+      console.log(`Google Sheets API: Appended row to "${sheetName}" with ID ${nextId}`);
       return { id: nextId };
     }
   } catch (err) {
