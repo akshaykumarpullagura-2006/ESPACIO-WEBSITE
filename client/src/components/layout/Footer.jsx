@@ -1,13 +1,28 @@
 import React, { useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { ArrowUpRight } from 'lucide-react';
 import { motion, useInView, useScroll, useTransform } from 'framer-motion';
 import { SocialLightButton } from '../ui/SocialLightButton';
+import { PAGE_CTAS } from '../../utils/siteData';
 
 const Footer = () => {
+  const location = useLocation();
   const year = new Date().getFullYear();
   const espRef = useRef(null);
   const inView = useInView(espRef, { once: false, margin: '-60px' });
+
+  // Select page-specific CTA configuration
+  const getPageCta = () => {
+    const path = location.pathname;
+    if (path.startsWith('/projects')) return PAGE_CTAS.PROJECTS;
+    if (path.startsWith('/services')) return PAGE_CTAS.SERVICES;
+    if (path.startsWith('/what-we-do')) return PAGE_CTAS.SPACES;
+    if (path.startsWith('/products')) return PAGE_CTAS.MATERIALS;
+    if (path.startsWith('/about')) return PAGE_CTAS.ABOUT;
+    return PAGE_CTAS.HOME;
+  };
+
+  const currentCta = getPageCta();
 
   const [footerSettings, setFooterSettings] = React.useState({
     address: '1st floor, H.No. 6-63/14B, Moinabad Road, Aziznagar, Hyderabad, Telangana 500075',
@@ -97,7 +112,6 @@ const Footer = () => {
     { name: 'Spaces', href: '/what-we-do' },
     { name: 'Materials', href: '/products' },
     { name: 'About', href: '/about' },
-    { name: 'FAQs', href: '/faq' },
   ];
 
   const socialLinks = [
@@ -115,7 +129,7 @@ const Footer = () => {
         style={{ clipPath }}
         className="relative pt-24 pb-32 px-6 md:px-12 text-center mb-16 overflow-hidden bg-cover bg-center"
       >
-        {/* Background Image Layer (absolute to allow clipping without affecting layout) */}
+        {/* Background Image Layer */}
         <div 
           className="absolute inset-0 z-0 bg-cover bg-center"
           style={{
@@ -130,18 +144,18 @@ const Footer = () => {
           className="relative z-10 max-w-[1440px] mx-auto flex flex-col items-center justify-center"
           style={{ y: contentY, opacity: contentOpacity }}
         >
-          <h2 className="font-display text-[clamp(32px,5vw,60px)] font-medium leading-[1.1] tracking-tight text-bg mb-6">
-            Ready to Transform<br />Your Space?
+          <h2 className="font-display text-[clamp(32px,5vw,60px)] font-medium leading-[1.1] tracking-tight text-bg mb-6 whitespace-pre-line">
+            {currentCta.headline}
           </h2>
           <p className="font-sans text-[15px] text-bg/60 max-w-[480px] mx-auto leading-relaxed mb-10">
-            Every great space starts with a single conversation. Let's talk about your vision and bring it to life together.
+            {currentCta.subtext}
           </p>
           <Link 
-            to="/contact"
+            to={currentCta.path}
             className="btn-sliding-cta"
           >
-            <span className="btn-sliding-cta-text-one">LET'S TALK ↗</span>
-            <span className="btn-sliding-cta-text-two">LET'S TALK ↗</span>
+            <span className="btn-sliding-cta-text-one">{currentCta.buttonText}</span>
+            <span className="btn-sliding-cta-text-two">{currentCta.buttonText}</span>
           </Link>
         </motion.div>
       </motion.div>

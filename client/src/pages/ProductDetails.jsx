@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { ArrowLeft, CheckCircle, Lock, ArrowRight, ChevronLeft, ChevronRight as ChevronRightIcon } from 'lucide-react';
 import SEO from '../components/common/SEO';
+import { getCMSData, STORAGE_KEYS } from '../utils/cmsStore';
 
 const ProductDetails = () => {
   const { slug } = useParams();
@@ -761,36 +762,45 @@ const ProductDetails = () => {
     }
   };
 
+  const [cmsProducts, setCmsProducts] = useState(() => getCMSData(STORAGE_KEYS.PRODUCTS) || []);
+
   useEffect(() => {
     window.scrollTo(0, 0);
-    const fetchProduct = async () => {
-      try {
-        const response = await axios.get(`/products/${slug}`);
-        let backendProduct = null;
-        if (response.data.success && response.data.data) {
-          backendProduct = response.data.data;
-        }
-        const localFound = categoryDict[slug] || mockProductsList.find(m => m.slug === slug);
-        setProduct(backendProduct ? { ...backendProduct, ...localFound } : (localFound || mockProduct));
-      } catch {
-        const found = categoryDict[slug] || mockProductsList.find(m => m.slug === slug);
-        setProduct(found || mockProduct);
-      } finally {
-        setLoading(false);
+    const syncCMS = () => {
+      const stored = getCMSData(STORAGE_KEYS.PRODUCTS);
+      if (Array.isArray(stored)) {
+        setCmsProducts(stored);
       }
     };
-    fetchProduct();
+    syncCMS();
+
+    window.addEventListener('espacio_cms_update', syncCMS);
+    window.addEventListener('storage', syncCMS);
+    return () => {
+      window.removeEventListener('espacio_cms_update', syncCMS);
+      window.removeEventListener('storage', syncCMS);
+    };
   }, [slug]);
 
+  const storedProduct = (cmsProducts || []).find(m => m.slug === slug || m.title?.toLowerCase().replace(/[^a-z0-9]+/g, '-') === slug);
   const localProduct = categoryDict[slug] || mockProductsList.find(m => m.slug === slug);
-  const p = localProduct || product || mockProduct;
-  const previewLimit = 6;
+  const fallbackProduct = localProduct || mockProduct;
+  const p = storedProduct ? { ...fallbackProduct, ...storedProduct } : fallbackProduct;
+  const previewLimit = p.previewLimit || 6;
   
-  const basePages = (p.previewPages && p.previewPages.length > 0) ? p.previewPages : mockProduct.previewPages;
-  const allPages = [];
-  for (let i = 0; i < 12; i++) {
-    allPages.push(basePages[i % basePages.length]);
-  }
+  const fallbackPages = (localProduct?.previewPages && localProduct.previewPages.length > 0) 
+    ? localProduct.previewPages 
+    : mockProduct.previewPages;
+
+  const cmsCustomPages = (storedProduct?.previewPages && storedProduct.previewPages.length > 0) ? storedProduct.previewPages : [];
+  
+  // Combine all CMS uploaded pages and full original catalog pages safely
+  const sourcePages = cmsCustomPages.length > 0 ? cmsCustomPages : fallbackPages;
+  const combinedPages = Array.from(new Set([...sourcePages]));
+  const targetCount = p.totalShades || 12;
+  const allPages = combinedPages.length >= targetCount 
+    ? combinedPages.slice(0, targetCount) 
+    : Array.from({ length: targetCount }, (_, i) => combinedPages[i % combinedPages.length]);
   
   const totalShades = p.totalShades || 12;
 
@@ -818,89 +828,103 @@ const ProductDetails = () => {
           </div>
         </div>
       </section>
+      {(p.showOverviewSection !== false || p.showFinishesSection !== false || p.showSpecificationsSection !== false) && (
+        <section className="max-w-[1440px] mx-auto px-6 md:px-12 py-20 grid grid-cols-1 lg:grid-cols-2 gap-16">
+          {/* Left Column: Overview + Features */}
+          {p.showOverviewSection !== false && (
+            <div className="space-y-6">
+              <h2 className="font-editorial text-3xl font-bold text-charcoal">{p.overviewSectionTitle || 'Material Overview'}</h2>
+              <p className="font-sans text-sm text-walnut leading-relaxed">{p.description}</p>
 
-      {/* Overview + Features */}
-      <section className="max-w-[1440px] mx-auto px-6 md:px-12 py-20 grid grid-cols-1 lg:grid-cols-2 gap-16">
-        <div className="space-y-6">
-          <h2 className="font-editorial text-3xl font-bold text-charcoal">Material Overview</h2>
-          <p className="font-sans text-sm text-walnut leading-relaxed">{p.description}</p>
-
-          {/* Feature Tags */}
-          <div className="space-y-3">
-            <h3 className="font-sans text-xs uppercase tracking-widest text-charcoal font-bold">Key Features</h3>
-            <div className="grid grid-cols-2 gap-3">
-              {(p.features || mockProduct.features).map((feat, idx) => (
-                <div key={idx} className="flex items-center space-x-2 text-xs font-sans text-walnut">
-                  <CheckCircle size={14} className="text-gold shrink-0" />
-                  <span>{feat}</span>
+              {/* Feature Tags */}
+              <div className="space-y-3">
+                <h3 className="font-sans text-xs uppercase tracking-widest text-charcoal font-bold">{p.featuresSectionTitle || 'Key Features'}</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {(p.features || mockProduct.features).map((feat, idx) => (
+                    <div key={idx} className="flex items-center space-x-2 text-xs font-sans text-walnut">
+                      <CheckCircle size={14} className="text-gold shrink-0" />
+                      <span>{feat}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
             </div>
-          </div>
-        </div>
+          )}
 
-        {/* Color Swatches */}
-        <div className="space-y-6">
-          <h3 className="font-sans text-xs uppercase tracking-widest text-charcoal font-bold">Available Finishes</h3>
-          <div className="flex flex-wrap gap-4">
-            {(p.colors || mockProduct.colors).map((color, idx) => (
-              <button key={idx} onClick={() => setActiveColor(idx)}
-                className={`flex flex-col items-center space-y-2 group transition-all duration-200 ${activeColor === idx ? 'scale-105' : ''}`}>
-                <div
-                  className={`w-12 h-12 rounded-full border-2 shadow-sm transition-all ${activeColor === idx ? 'border-gold scale-110 shadow-md' : 'border-walnut/20 group-hover:border-walnut/50'}`}
-                  style={{ backgroundColor: color.hex }}
-                />
-                <span className="font-sans text-[9px] text-walnut uppercase tracking-wide text-center max-w-[60px]">{color.name}</span>
-              </button>
-            ))}
-          </div>
-
-          {/* Specifications Table */}
-          <div className="mt-6 space-y-3">
-            <h3 className="font-sans text-xs uppercase tracking-widest text-charcoal font-bold">Technical Specifications</h3>
-            <div className="border border-walnut/10 rounded-card overflow-hidden">
-              {(p.specifications || mockProduct.specifications).map((spec, idx) => (
-                <div key={idx} className={`flex items-center px-5 py-3.5 text-xs font-sans ${idx % 2 === 0 ? 'bg-offwhite' : 'bg-cream'}`}>
-                  <span className="text-walnut font-medium w-1/2">{spec.label}</span>
-                  <span className="text-charcoal font-bold w-1/2">{spec.value}</span>
+          {/* Right Column: Color Swatches + Specifications */}
+          <div className="space-y-6">
+            {p.showFinishesSection !== false && (
+              <div className="space-y-4">
+                <h3 className="font-sans text-xs uppercase tracking-widest text-charcoal font-bold">{p.finishesSectionTitle || 'Available Finishes'}</h3>
+                <div className="flex flex-wrap gap-4">
+                  {(p.colors || mockProduct.colors).map((color, idx) => (
+                    <button key={idx} onClick={() => setActiveColor(idx)}
+                      className={`flex flex-col items-center space-y-2 group transition-all duration-200 ${activeColor === idx ? 'scale-105' : ''}`}>
+                      <div
+                        className={`w-12 h-12 rounded-full border-2 shadow-sm transition-all ${activeColor === idx ? 'border-gold scale-110 shadow-md' : 'border-walnut/20 group-hover:border-walnut/50'}`}
+                        style={{ backgroundColor: color.hex }}
+                      />
+                      <span className="font-sans text-[9px] text-walnut uppercase tracking-wide text-center max-w-[60px]">{color.name}</span>
+                    </button>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </div>
+            )}
+
+            {/* Specifications Table */}
+            {p.showSpecificationsSection !== false && (
+              <div className="mt-6 space-y-3">
+                <h3 className="font-sans text-xs uppercase tracking-widest text-charcoal font-bold">{p.specificationsSectionTitle || 'Technical Specifications'}</h3>
+                <div className="border border-walnut/10 rounded-card overflow-hidden">
+                  {(p.specifications || mockProduct.specifications).map((spec, idx) => (
+                    <div key={idx} className={`flex items-center px-5 py-3.5 text-xs font-sans ${idx % 2 === 0 ? 'bg-offwhite' : 'bg-cream'}`}>
+                      <span className="text-walnut font-medium w-1/2">{spec.label}</span>
+                      <span className="text-charcoal font-bold w-1/2">{spec.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-        </div>
-      </section>
-
-
+        </section>
+      )}
 
       {/* Applications */}
-      <section className="max-w-[1440px] mx-auto px-6 md:px-12 pb-20">
-        <h2 className="font-editorial text-2xl font-bold mb-8">Applications</h2>
-        <div className="flex flex-wrap gap-3">
-          {(p.applications || mockProduct.applications).map((app, idx) => (
-            <span key={idx} className="bg-offwhite border border-walnut/10 text-walnut font-sans text-xs px-4 py-2 rounded-full">
-              {app}
-            </span>
-          ))}
-        </div>
-      </section>
+      {p.showApplicationsSection !== false && (
+        <section className="max-w-[1440px] mx-auto px-6 md:px-12 pb-20">
+          <h2 className="font-editorial text-2xl font-bold mb-8">{p.applicationsSectionTitle || 'Applications'}</h2>
+          <div className="flex flex-wrap gap-3">
+            {(p.applications || mockProduct.applications).map((app, idx) => (
+              <span key={idx} className="bg-offwhite border border-walnut/10 text-walnut font-sans text-xs px-4 py-2 rounded-full">
+                {app}
+              </span>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ── CATALOGUE PREVIEW GATE ──────────────────────────────────────────── */}
-      <section className="max-w-[1440px] mx-auto px-6 md:px-12 pb-20">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <span className="font-sans text-xs uppercase tracking-widest text-gold font-bold">Catalog & Shades</span>
-            <h2 className="font-editorial text-3xl font-bold text-charcoal">Catalogue Preview</h2>
+      {p.showCataloguePreviewSection !== false && (
+        <section className="max-w-[1440px] mx-auto px-6 md:px-12 pb-20">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <span className="font-sans text-xs uppercase tracking-widest text-gold font-bold">{p.catalogueEyebrow || 'Catalog & Shades'}</span>
+              <h2 className="font-editorial text-3xl font-bold text-charcoal">{p.catalogueTitle || 'Catalogue Preview'}</h2>
+            </div>
+            <span className="bg-charcoal text-cream font-sans text-[11px] uppercase tracking-wider font-bold px-3 py-1.5 rounded-full">
+              {allPages.filter((item, i) => (typeof item === 'object' && item.isLocked !== undefined ? !item.isLocked : i < previewLimit)).length} Unlocked / {totalShades} Total Shades
+            </span>
           </div>
-          <span className="bg-charcoal text-cream font-sans text-[11px] uppercase tracking-wider font-bold px-3 py-1.5 rounded-full">
-            {Math.min(previewLimit, allPages.length)} Unlocked / {totalShades} Total Shades
-          </span>
-        </div>
 
-        <div className="relative overflow-hidden rounded-card border border-walnut/10 bg-offwhite shadow-sm">
+          <div className="relative overflow-hidden rounded-card border border-walnut/10 bg-offwhite shadow-sm">
           {/* Grid of pages */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-5 p-6">
             {allPages.map((pageImg, idx) => {
-              const isLocked = idx >= previewLimit;
+              const pageUrl = typeof pageImg === 'string' ? pageImg : (pageImg.url || pageImg.src || pageImg);
+              const isLocked = typeof pageImg === 'object' && pageImg.isLocked !== undefined 
+                ? pageImg.isLocked 
+                : idx >= previewLimit;
+
               return (
                 <div
                   key={idx}
@@ -927,7 +951,7 @@ const ProductDetails = () => {
                   }`}
                 >
                   <img
-                    src={pageImg}
+                    src={pageUrl}
                     alt={`Catalogue Page ${idx + 1}`}
                     className={`w-full h-full object-cover transition-all duration-500 ${
                       isLocked ? 'blur-lg scale-110 opacity-40' : ''
@@ -979,6 +1003,7 @@ const ProductDetails = () => {
           </button>
         </div>
       </section>
+      )}
 
       {/* Lightbox */}
       {lightboxOpen && (

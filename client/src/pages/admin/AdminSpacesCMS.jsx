@@ -551,7 +551,7 @@ const AdminSpacesCMS = () => {
               </button>
             </div>
 
-            <div className="space-y-2 max-h-[650px] overflow-y-auto pr-1">
+            <div data-lenis-prevent className="space-y-2 max-h-[650px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gold/50 scrollbar-track-white/5 hover:scrollbar-thumb-gold transition-all">
               {spacesList.map((space, idx) => {
                 const isSelected = idx === selectedSpaceIdx;
                 return (

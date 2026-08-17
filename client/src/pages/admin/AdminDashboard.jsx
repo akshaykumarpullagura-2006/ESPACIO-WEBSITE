@@ -21,13 +21,13 @@ const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/admin/dashboard' },
   { icon: Layers, label: 'Home Hero CMS', path: '/admin/hero' },
   { icon: Package, label: 'Services CMS', path: '/admin/services' },
+  { icon: FolderKanban, label: 'Projects CMS', path: '/admin/projects' },
   { icon: Layers, label: 'Spaces CMS', path: '/admin/spaces' },
   { icon: Package, label: 'Materials CMS', path: '/admin/materials' },
   { icon: FileText, label: 'About CMS', path: '/admin/about' },
   { icon: HelpCircle, label: 'FAQ CMS', path: '/admin/faqs' },
   { icon: Mail, label: 'Contact CMS', path: '/admin/contact' },
   { icon: Star, label: 'Testimonials CMS', path: '/admin/testimonials' },
-  { icon: Package, label: 'Products', path: '/admin/products' },
   { icon: Mail, label: 'Enquiries', path: '/admin/enquiries' },
   { icon: Image, label: 'Gallery', path: '/admin/gallery' },
   { icon: Users, label: 'Admin Users', path: '/admin/users' },
@@ -80,7 +80,7 @@ const AdminLayout = ({ children }) => {
       return !['/admin/users', '/admin/audit', '/admin/settings'].includes(item.path);
     }
     if (userRole === 'Manager') {
-      return ['/admin/dashboard', '/admin/enquiries', '/admin/projects', '/admin/products'].includes(item.path);
+      return ['/admin/dashboard', '/admin/enquiries', '/admin/projects', '/admin/materials', '/admin/products'].includes(item.path);
     }
     return true;
   });
@@ -93,7 +93,7 @@ const AdminLayout = ({ children }) => {
       return !['/admin/users', '/admin/audit', '/admin/settings'].includes(currentPath);
     }
     if (userRole === 'Manager') {
-      return ['/admin/dashboard', '/admin/enquiries', '/admin/projects', '/admin/products'].includes(currentPath);
+      return ['/admin/dashboard', '/admin/enquiries', '/admin/projects', '/admin/materials', '/admin/products'].includes(currentPath);
     }
     return true;
   };

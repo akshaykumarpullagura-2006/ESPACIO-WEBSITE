@@ -801,7 +801,7 @@ const WhatWeDo = () => {
       {spacesHeroState.visible !== false && (
         <section
           ref={heroRef}
-          className="relative h-[80vh] lg:h-[95vh] px-5 pt-5 pb-[10px] lg:px-12 select-none"
+          className="relative h-[55vh] lg:h-[65vh] min-h-[440px] px-5 pt-5 pb-[10px] lg:px-12 select-none"
           onMouseDown={onStart}
           onMouseMove={onMouseMove}
           onTouchStart={() => { setIsPaused(true); onStart(); }}

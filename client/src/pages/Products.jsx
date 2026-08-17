@@ -183,10 +183,18 @@ const Products = () => {
         {/* Dome Gallery Container */}
         <div className="absolute inset-0 w-full h-full z-0">
           <DomeGallery 
-            images={sourceData.map((p, idx) => ({ 
-              src: p.heroImage || fallbacks[idx % fallbacks.length], 
-              alt: p.title 
-            }))}
+            images={(() => {
+              const seen = new Set();
+              const uniqueImages = [];
+              sourceData.forEach((p, idx) => {
+                const src = p.heroImage || fallbacks[idx % fallbacks.length];
+                if (src && !seen.has(src)) {
+                  seen.add(src);
+                  uniqueImages.push({ src, alt: p.title });
+                }
+              });
+              return uniqueImages;
+            })()}
             fit={0.45}
             fitBasis="auto"
             overlayBlurColor="#120F17"
@@ -208,7 +216,7 @@ const Products = () => {
       <div className="max-w-[1440px] mx-auto px-6 md:px-12 pt-16 pb-8 flex items-center justify-between gap-6 flex-wrap">
         <div className="space-y-2">
           <span className="font-sans text-xs uppercase tracking-widest text-gold font-bold">Premium Collection</span>
-          <h2 className="font-editorial text-3xl font-bold text-charcoal">Browse Materials</h2>
+          <h2 className="font-display text-3xl font-bold text-charcoal">Browse Materials</h2>
         </div>
         <GooeyInput
           placeholder="Search materials..."
@@ -248,7 +256,7 @@ const Products = () => {
                   </div>
                 </div>
                 <div className="p-6 space-y-3">
-                  <h3 className="font-editorial text-lg font-bold text-charcoal group-hover:text-gold transition-colors">{product.title}</h3>
+                  <h3 className="font-display text-lg font-bold text-charcoal group-hover:text-gold transition-colors">{product.title}</h3>
                   <p className="font-sans text-xs text-walnut leading-relaxed line-clamp-2">{product.description}</p>
                   <div className="pt-2 flex items-center space-x-1.5 text-[10px] text-gold uppercase tracking-widest font-bold opacity-0 group-hover:opacity-100 transition-opacity">
                     <span>{product.ctaText || 'Explore Material'}</span>
@@ -259,14 +267,22 @@ const Products = () => {
             ))}
           </div>
         ) : (
-          <div className="py-20 text-center space-y-4">
-            <p className="font-sans text-sm text-walnut font-medium">No materials found matching "{searchQuery}".</p>
-            <button
-              onClick={() => setSearchQuery('')}
-              className="font-sans text-xs uppercase tracking-widest font-bold text-gold hover:underline"
-            >
-              Clear Search & Show All Materials
-            </button>
+          <div className="py-20 text-center space-y-5 bg-bg-card rounded-card border border-ink-border p-8 max-w-[540px] mx-auto">
+            <div className="w-12 h-12 rounded-full bg-gold/10 text-gold flex items-center justify-center mx-auto border border-gold/30">
+              <Search size={22} />
+            </div>
+            <h3 className="font-display text-xl font-bold text-charcoal">No Materials Found</h3>
+            <p className="font-sans text-xs text-walnut leading-relaxed">
+              No materials match "{searchQuery}". Try searching another keyword like WPC, Polygranite, Acrylic, or Fluted.
+            </p>
+            <div className="pt-2 flex items-center justify-center gap-3">
+              <button
+                onClick={() => setSearchQuery('')}
+                className="px-6 py-3 rounded-full bg-gold text-charcoal font-sans text-xs uppercase tracking-widest font-bold hover:bg-charcoal hover:text-cream transition-all shadow-md cursor-pointer"
+              >
+                Clear Search & Browse All
+              </button>
+            </div>
           </div>
         )}
       </section>

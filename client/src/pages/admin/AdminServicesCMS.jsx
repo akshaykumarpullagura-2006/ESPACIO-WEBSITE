@@ -524,7 +524,7 @@ const AdminServicesCMS = () => {
               </button>
             </div>
 
-            <div className="space-y-2 max-h-[600px] overflow-y-auto pr-1">
+            <div data-lenis-prevent className="space-y-2 max-h-[600px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gold/50 scrollbar-track-white/5 hover:scrollbar-thumb-gold transition-all">
               {servicesList.map((service, idx) => {
                 const isSelected = idx === selectedServiceIdx;
                 return (

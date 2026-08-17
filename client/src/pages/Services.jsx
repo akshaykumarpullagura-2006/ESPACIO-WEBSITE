@@ -43,46 +43,52 @@ const services = [
     num: '01', 
     title: 'Full Home Interior Design & Execution', 
     tag: 'Turnkey Design & Build', 
-    desc: 'From concept to handover, we design and build your home end-to-end — delivered turnkey, so you\'re never juggling multiple vendors or contractors.', 
-    includes: ['Living & Dining Design', 'Bedroom & Wardrobe Systems', 'Modular Kitchen Layouts', 'Ceilings & Ambient Lighting', 'Material & Texture Curation', 'Turnkey Project Execution'], 
-    img: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=900&q=80' 
+    desc: 'Bespoke residential interior architecture engineered from concept to final handover. We integrate custom modular joinery, lighting layouts, and premium wall finishes into a seamless turnkey execution.', 
+    includes: ['Living & Dining Spatial Architecture', 'Custom Modular Wardrobe Systems', 'Ergonomic Modular Kitchen Layouts', 'Ambient Cove & Architectural Lighting', 'Curated Wall & Surface Textures', 'Turnkey Execution & Project Oversight'], 
+    img: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=900&q=80',
+    ctaText: 'Enquire About Interior Design'
   },
   { 
     num: '02', 
-    title: 'Commercial Interiors', 
+    title: 'Commercial & Office Interiors', 
     tag: 'Workspaces & Retail', 
-    desc: 'Interior design and fit-out for offices, retail, and commercial spaces, delivered turnkey with a single team managing design, materials, and execution from start to finish.', 
-    includes: ['Office Layout Optimization', 'Retail Flow Planning', 'Conference & Meeting Rooms', 'Ergonomic Workstations', 'AV & Tech Integration', 'Turnkey Construction'], 
-    img: 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=900&q=90' 
+    desc: 'High-tolerance commercial fit-outs for corporate offices, experience centers, and retail environments. Engineered for acoustic optimization, brand elevation, and maximum workspace efficiency.', 
+    includes: ['Corporate Office Spatial Planning', 'Retail & Studio Flow Optimization', 'Acoustic WPC Conference Suites', 'Ergonomic Workstation Clusters', 'Tech & AV Concealed Channels', 'Turnkey Commercial Buildout'], 
+    img: 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=900&q=90',
+    ctaText: 'Enquire About Modular Solutions'
   },
   { 
     num: '03', 
-    title: 'Styling & Decor', 
+    title: 'Styling & Decor Curation', 
     tag: 'Curated Styling', 
-    desc: 'Curated styling, accessories, and finishing touches that bring a space to life — offered as a standalone service or as the final turnkey step on any Espacio project.', 
-    includes: ['Art & Wall Decor Curation', 'Custom Soft Furnishings', 'Lighting & Accessory Styling', 'Plants & Greenery Selection', 'Color Palette Harmony', 'Bespoke Styling Audits'], 
-    img: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=900&q=80' 
+    desc: 'Tailored aesthetic curation, soft furnishings, and architectural accent styling. Designed to harmonize color palettes, art installations, and spatial lighting into a cohesive luxury statement.', 
+    includes: ['Bespoke Art & Wall Installations', 'Luxury Soft Furnishing Selection', 'Architectural Accent & Mood Lighting', 'Indoor Botanical & Greenery Curation', 'Harmonized Color & Texture Audits', 'Turnkey Final Styling Installation'], 
+    img: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=900&q=80',
+    ctaText: 'Enquire About Styling & Decor'
   },
   { 
     num: '04', 
-    title: 'Renovation', 
+    title: 'Turnkey Renovation & Remodeling', 
     tag: 'Upgrade Existing Spaces', 
-    desc: 'Redesigning and upgrading existing spaces, residential or commercial, without starting from scratch — delivered turnkey, with design, materials, and execution handled entirely by us.', 
-    includes: ['Kitchen & Bath Upgrades', 'Living Space Redesign', 'Structural Alterations', 'Flooring Replacement', 'Electrical & Plumbing Re-lay', 'Turnkey Execution'], 
-    img: 'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=900&q=80' 
+    desc: 'Transforming existing residential and commercial properties into modern architectural showcases. Complete structural upgrades, re-wiring, and finish overhauls handled without multi-vendor hassle.', 
+    includes: ['Full Kitchen & Bath Overhauls', 'Living Area Structural Spatial Redesign', 'Precision Electrical & Plumbing Re-lay', 'Italian Marble & Flooring Replacement', 'Custom Ceiling & Louver Upgrades', 'Complete Turnkey Project Management'], 
+    img: 'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=900&q=80',
+    ctaText: 'Enquire About Turnkey Renovation'
   },
   { 
     num: '05', 
-    title: 'Materials Supply (Sold Separately)', 
-    tag: 'Premium Sourced Supply', 
-    desc: 'We source globally to bring you WPC wall & ceiling panels, polygranite sheets, and more warehoused in our own godowns for faster availability. Note: Materials are also sold separately from our design and execution services, you can purchase materials on their own, without booking a full project with us.', 
-    includes: ['WPC Wall & Ceiling Panels', 'Polygranite & Acrylic Sheets', 'Fluted & Charcoal Louvers', 'Bespoke Wall Finishes', 'Stand-alone Purchasing', 'Fast Delivery from Godowns'], 
-    img: 'https://images.unsplash.com/photo-1618219908412-a29a1bb7b86e?auto=format&fit=crop&w=900&q=80' 
+    title: 'Materials Supply (Standalone Purchase)', 
+    tag: 'Direct Warehouse Sourcing', 
+    desc: 'Direct access to our extensive inventory of WPC wall & ceiling panels, polygranite sheets, acrylic fluted louvers, and hardware. Available for standalone purchase directly from our Aziznagar warehouse.', 
+    includes: ['WPC Wall & Exterior Cladding Panels', 'Polygranite & High-Gloss Acrylic Sheets', 'Charcoal & Wood Grain Fluted Louvers', 'Architectural Trim & Edge Hardware', 'Standalone Wholesale & Retail Purchase', 'Rapid Delivery from Hyderabad Godowns'], 
+    img: 'https://images.unsplash.com/photo-1618219908412-a29a1bb7b86e?auto=format&fit=crop&w=900&q=80',
+    ctaText: 'Enquire About Materials',
+    hasSecondaryLink: true
   },
 ];
 
 const processSteps = [
-  { step: '01', name: 'Free Consultation', desc: 'We understand your vision, lifestyle, and budget constraints — no pressure, no pitch.' },
+  { step: '01', name: 'Initial Consultation', desc: 'We understand your vision, lifestyle, and budget constraints with absolute clarity.' },
   { step: '02', name: 'Site Visit & Measurement', desc: 'Our team surveys site dimensions, structural constraints, and wiring channels.' },
   { step: '03', name: '3D Concept Design', desc: 'Photorealistic 3D renders of your space before a single nail goes in.' },
   { step: '04', name: 'Material Selection', desc: 'Walk through our material library. Touch, see, and confirm every finish.' },
@@ -115,6 +121,12 @@ import { getCMSData, STORAGE_KEYS } from '../utils/cmsStore';
 
 const getNonEmpty = (val, fallback) => (val && typeof val === 'string' && val.trim().length > 0 ? val : fallback);
 
+const defaultTestimonials = [
+  { name: 'Rajesh & Ananya Sharma', designation: 'Jubilee Hills Villa • Full Interiors', body: 'ESPACIO delivered our 3BHK villa turnkey interior ahead of schedule. Their transparent BOQ quotation had zero hidden surprises, and the fluted acrylic finish is breathtaking.', rating: 5 },
+  { name: 'Dr. Vikram Reddy', designation: 'Gachibowli Residence • Kitchen & Louvers', body: 'The modular kitchen and charcoal louver wall in our living room turned out exactly like the 3D renders. The quotation matched down to the last rupee.', rating: 5 },
+  { name: 'Siddharth Mehta', designation: 'HITECH City • Corporate Office', body: 'We fitted our 4,000 sq.ft executive office with ESPACIO PVC ceiling panels and glass partitions. Professional project management and impeccable finishing.', rating: 5 }
+];
+
 const Services = () => {
   const heroRef = useRef(null);
   const [currentImageIdx, setCurrentImageIdx] = useState(0);
@@ -135,6 +147,15 @@ const Services = () => {
     return (Array.isArray(s?.services_list) && s.services_list.length > 0) ? s.services_list : services;
   });
 
+  const [testimonialsList, setTestimonialsList] = useState(() => {
+    const stored = getCMSData(STORAGE_KEYS.TESTIMONIALS);
+    if (Array.isArray(stored) && stored.length > 0) {
+      const filtered = stored.filter(t => t.visible !== false && t.featured);
+      return filtered.length > 0 ? filtered.slice(0, 3) : defaultTestimonials;
+    }
+    return defaultTestimonials;
+  });
+
   useEffect(() => {
     const syncCMS = () => {
       const settings = getCMSData(STORAGE_KEYS.SETTINGS);
@@ -150,6 +171,14 @@ const Services = () => {
         });
         if (Array.isArray(settings.services_list) && settings.services_list.length > 0) {
           setServicesList(settings.services_list);
+        }
+      }
+
+      const storedTestimonials = getCMSData(STORAGE_KEYS.TESTIMONIALS);
+      if (Array.isArray(storedTestimonials) && storedTestimonials.length > 0) {
+        const filtered = storedTestimonials.filter(t => t.visible !== false && t.featured);
+        if (filtered.length > 0) {
+          setTestimonialsList(filtered.slice(0, 3));
         }
       }
     };
@@ -174,15 +203,13 @@ const Services = () => {
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end end'] });
   const bgScale = useTransform(scrollYProgress, [0, 1], [1.05, 0.95]);
   const bgY     = useTransform(scrollYProgress, [0, 1], ['0%', '8%']);
-  const textY   = useTransform(scrollYProgress, [0, 1], ['0px', '-40px']);
-  const textOp  = useTransform(scrollYProgress, [0, 0.6, 1], [1, 0.9, 0]);
 
   return (
     <div className="bg-bg overflow-x-hidden">
       <SEO title="Services — ESPACIO Interiors" description="Full home interiors, modular kitchens, commercial spaces, and renovations. Engineering-first luxury design executed by ESPACIO." url="/services" />
 
       {heroContent.visible !== false && (
-        <section ref={heroRef} className="relative h-[80vh] lg:h-[95vh] px-5 pt-5 pb-[10px] lg:px-12">
+        <section ref={heroRef} className="relative h-[55vh] lg:h-[65vh] min-h-[440px] px-5 pt-5 pb-[10px] lg:px-12">
           <div className="relative w-full h-full overflow-hidden will-change-transform rounded-[24px] lg:rounded-[40px]">
             <motion.div style={{ scale: bgScale, y: bgY }} className="absolute inset-0 will-change-transform overflow-hidden">
               <AnimatePresence initial={false}>
@@ -192,23 +219,18 @@ const Services = () => {
             <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/75 z-10 pointer-events-none" />
             <div className="absolute inset-0 bg-gradient-to-r from-black/25 to-transparent z-10 pointer-events-none" />
             <div className="absolute inset-0 z-20 flex flex-col justify-end pointer-events-none">
-              <div className="w-full px-8 md:px-12 pb-10 md:pb-14 pointer-events-auto">
-                <div className="flex flex-col items-start gap-4">
-                  <div className="inline-flex items-center gap-2 bg-black/55 backdrop-blur-md border border-white/20 text-white px-4 py-2 rounded-full">
+              <div className="w-full px-8 md:px-12 pb-10 md:pb-12 pointer-events-auto">
+                <div className="flex flex-col items-start gap-3">
+                  <div className="inline-flex items-center gap-2 bg-black/55 backdrop-blur-md border border-white/20 text-white px-4 py-1.5 rounded-full">
                     <span className="w-1.5 h-1.5 rounded-full bg-gold animate-pulse" />
                     <span className="font-sans text-[11px] font-semibold uppercase tracking-[0.2em]">{heroContent.badge}</span>
                   </div>
-                  <h1 className="font-display font-bold leading-none tracking-tight text-white" style={{ fontSize: 'clamp(48px, 8vw, 108px)' }}>
+                  <h1 className="font-display font-bold leading-none tracking-tight text-white" style={{ fontSize: 'clamp(40px, 6vw, 84px)' }}>
                     {heroContent.title}
                   </h1>
                   <p className="font-sans text-[14px] md:text-[15px] text-white/70 max-w-[500px] leading-relaxed">
                     {heroContent.subtitle}
                   </p>
-                  <div className="flex items-center gap-2 mt-1">
-                    {(heroContent.images || heroImages).map((_, i) => (
-                      <button key={i} onClick={() => setCurrentImageIdx(i)} className={`rounded-full transition-all duration-500 ${i === currentImageIdx ? 'w-6 h-1.5 bg-gold' : 'w-1.5 h-1.5 bg-white/40 hover:bg-white/70'}`} />
-                    ))}
-                  </div>
                 </div>
               </div>
             </div>
@@ -216,7 +238,7 @@ const Services = () => {
         </section>
       )}
 
-      <section className="py-24 px-6 md:px-10 overflow-hidden">
+      <section className="py-20 px-6 md:px-10 overflow-hidden">
         <div className="max-w-[1440px] mx-auto divide-y divide-ink-border">
           {servicesList.filter((s) => s.visible !== false).map((s, i) => {
             const isOdd = i % 2 === 1;
@@ -243,9 +265,16 @@ const Services = () => {
                     ))}
                   </ul>
                   {s.ctaVisible !== false && (
-                    <Link to={s.ctaLink || "/contact"} className="btn-primary w-fit">
-                      {s.ctaText || "Enquire About This"} <ArrowUpRight size={13} />
-                    </Link>
+                    <div className="flex flex-wrap items-center gap-4 pt-2">
+                      <Link to={s.ctaLink || "/contact"} className="btn-primary w-fit">
+                        {s.ctaText || "Enquire About This"} <ArrowUpRight size={13} />
+                      </Link>
+                      {(s.hasSecondaryLink || s.num === '05' || s.title.includes('Materials')) && (
+                        <Link to="/products" className="inline-flex items-center gap-1.5 font-sans text-[13px] font-bold text-gold hover:text-gold/80 transition-colors uppercase tracking-wider">
+                          Browse Materials →
+                        </Link>
+                      )}
+                    </div>
                   )}
                 </Reveal>
               </div>
@@ -286,74 +315,16 @@ const Services = () => {
         </div>
       </section>
 
-      {/* ── ARCHITECTURAL QUOTES & DESIGN PHILOSOPHY ────────────────────────────── */}
-      <section className="py-24 px-6 md:px-10 bg-charcoal text-cream relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gold/10 rounded-full blur-[140px] pointer-events-none" />
-        <div className="max-w-[1440px] mx-auto relative z-10">
-          <Reveal>
-            <span className="font-sans text-[11px] font-semibold uppercase tracking-[0.2em] text-gold mb-3 block">Design Philosophy</span>
-            <h2 className="font-editorial text-[clamp(28px,4vw,52px)] font-bold text-white mb-16">Architectural Quotes & Wisdom</h2>
-          </Reveal>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <Reveal delay={0.05}>
-              <BorderDrawingCard delay={0.05} className="w-full h-full">
-                <div className="space-y-4">
-                  <span className="text-gold font-editorial text-5xl leading-none">“</span>
-                  <p className="font-editorial text-lg md:text-xl text-cream/90 italic leading-relaxed">
-                    Architecture is the learned game, correct and magnificent, of forms assembled in the light.
-                  </p>
-                </div>
-                <div className="pt-4 border-t border-white/10 flex items-center justify-between">
-                  <span className="font-sans text-xs font-bold uppercase tracking-wider text-gold">Le Corbusier</span>
-                  <span className="font-sans text-[10px] text-cream/40 uppercase tracking-widest">Master Architect</span>
-                </div>
-              </BorderDrawingCard>
-            </Reveal>
- 
-            <Reveal delay={0.1}>
-              <BorderDrawingCard delay={0.15} className="w-full h-full">
-                <div className="space-y-4">
-                  <span className="text-gold font-editorial text-5xl leading-none">“</span>
-                  <p className="font-editorial text-lg md:text-xl text-cream/90 italic leading-relaxed">
-                    God is in the details. True luxury is not complexity, but the absolute perfection of execution.
-                  </p>
-                </div>
-                <div className="pt-4 border-t border-white/10 flex items-center justify-between">
-                  <span className="font-sans text-xs font-bold uppercase tracking-wider text-gold">Ludwig Mies van der Rohe</span>
-                  <span className="font-sans text-[10px] text-cream/40 uppercase tracking-widest">Modernism Pioneer</span>
-                </div>
-              </BorderDrawingCard>
-            </Reveal>
- 
-            <Reveal delay={0.15}>
-              <BorderDrawingCard delay={0.25} className="w-full h-full">
-                <div className="space-y-4">
-                  <span className="text-gold font-editorial text-5xl leading-none">“</span>
-                  <p className="font-editorial text-lg md:text-xl text-cream/90 italic leading-relaxed">
-                    Space, light, and order. Those are the things that human beings need just as much as bread or shelter.
-                  </p>
-                </div>
-                <div className="pt-4 border-t border-white/10 flex items-center justify-between">
-                  <span className="font-sans text-xs font-bold uppercase tracking-wider text-gold">Frank Lloyd Wright</span>
-                  <span className="font-sans text-[10px] text-cream/40 uppercase tracking-widest">Visionary Architect</span>
-                </div>
-              </BorderDrawingCard>
-            </Reveal>
-          </div>
-        </div>
-      </section>
-
       {/* ── INSTANT ESTIMATION & QUOTATION CALCULATOR ──────────────────────────── */}
-      <section className="py-24 px-6 md:px-10 bg-offwhite">
+      <section className="py-20 px-6 md:px-10 bg-offwhite">
         <div className="max-w-[1440px] mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             <div className="lg:col-span-5 space-y-6">
               <Reveal>
-                <span className="font-sans text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">Budget Planner</span>
-                <h2 className="font-editorial text-[clamp(32px,3.5vw,48px)] font-bold text-charcoal leading-tight">Instant Project Quotation Estimate</h2>
+                <span className="font-sans text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">Project Planner</span>
+                <h2 className="font-display text-[clamp(32px,3.5vw,48px)] font-bold text-charcoal leading-tight">Instant Project Estimate</h2>
                 <p className="font-sans text-sm text-walnut leading-relaxed">
-                  Get a transparent baseline estimate for your residential or commercial project. Select your property type, scope, and finish tier below.
+                  Select your property type, scope, and finish tier below. Since actual site conditions affect final BOQ significantly, our principal design team will share your personalized range on a quick call.
                 </p>
               </Reveal>
             </div>
@@ -367,73 +338,39 @@ const Services = () => {
         </div>
       </section>
 
-      {/* ── CLIENT QUOTES & TESTIMONIALS ────────────────────────────────────────── */}
-      <section className="py-24 px-6 md:px-10 bg-cream">
+      {/* ── CLIENT REVIEWS & TESTIMONIALS ────────────────────────────────────────── */}
+      <section className="py-20 px-6 md:px-10 bg-cream">
         <div className="max-w-[1440px] mx-auto">
-          <Reveal className="text-center max-w-[600px] mx-auto mb-16 space-y-3">
+          <Reveal className="text-center max-w-[600px] mx-auto mb-14 space-y-3">
             <span className="font-sans text-[11px] font-semibold uppercase tracking-[0.2em] text-gold">Client Feedback</span>
-            <h2 className="font-editorial text-[clamp(28px,3.5vw,44px)] font-bold text-charcoal">What Our Clients Say</h2>
+            <h2 className="font-display text-[clamp(28px,3.5vw,44px)] font-bold text-charcoal">What Our Clients Say</h2>
           </Reveal>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Reveal delay={0.05} className="bg-offwhite border border-walnut/10 rounded-card p-8 shadow-sm space-y-6 flex flex-col justify-between">
-              <div className="space-y-4">
-                <div className="flex text-gold text-sm gap-1">★★★★★</div>
-                <p className="font-sans text-xs text-charcoal/80 leading-relaxed italic">
-                  “ESPACIO delivered our 3BHK villa turnkey interior ahead of schedule. Their transparent BOQ quotation had zero hidden surprises, and the fluted acrylic finish is breathtaking.”
-                </p>
-              </div>
-              <div className="pt-4 border-t border-walnut/10">
-                <h4 className="font-sans text-xs font-bold text-charcoal">Rajesh & Ananya Sharma</h4>
-                <p className="font-sans text-[10px] text-walnut">Jubilee Hills Villa • Full Interiors</p>
-              </div>
-            </Reveal>
-
-            <Reveal delay={0.1} className="bg-offwhite border border-walnut/10 rounded-card p-8 shadow-sm space-y-6 flex flex-col justify-between">
-              <div className="space-y-4">
-                <div className="flex text-gold text-sm gap-1">★★★★★</div>
-                <p className="font-sans text-xs text-charcoal/80 leading-relaxed italic">
-                  “The modular kitchen and charcoal louver wall in our living room turned out exactly like the 3D renders. The quotation matched down to the last rupee.”
-                </p>
-              </div>
-              <div className="pt-4 border-t border-walnut/10">
-                <h4 className="font-sans text-xs font-bold text-charcoal">Dr. Vikram Reddy</h4>
-                <p className="font-sans text-[10px] text-walnut">Gachibowli Residence • Kitchen & Louvers</p>
-              </div>
-            </Reveal>
-
-            <Reveal delay={0.15} className="bg-offwhite border border-walnut/10 rounded-card p-8 shadow-sm space-y-6 flex flex-col justify-between">
-              <div className="space-y-4">
-                <div className="flex text-gold text-sm gap-1">★★★★★</div>
-                <p className="font-sans text-xs text-charcoal/80 leading-relaxed italic">
-                  “We fitted our 4,000 sq.ft executive office with ESPACIO PVC ceiling panels and glass partitions. Professional project management and impeccable finishing.”
-                </p>
-              </div>
-              <div className="pt-4 border-t border-walnut/10">
-                <h4 className="font-sans text-xs font-bold text-charcoal">Siddharth Mehta</h4>
-                <p className="font-sans text-[10px] text-walnut">HITECH City • Corporate Office</p>
-              </div>
-            </Reveal>
+            {testimonialsList.map((t, idx) => (
+              <Reveal key={t.id || idx} delay={idx * 0.08} className="bg-offwhite border border-walnut/10 rounded-card p-8 shadow-sm space-y-6 flex flex-col justify-between">
+                <div className="space-y-4">
+                  <div className="flex text-gold text-sm gap-1">
+                    {'★'.repeat(t.rating || 5)}
+                  </div>
+                  <p className="font-sans text-xs text-charcoal/80 leading-relaxed italic">
+                    “{t.body || t.reviewText || ''}”
+                  </p>
+                </div>
+                <div className="pt-4 border-t border-walnut/10 flex items-center space-x-3">
+                  {t.avatar && (
+                    <img src={t.avatar} alt={t.name} className="w-9 h-9 rounded-full object-cover shrink-0 border border-gold/30" />
+                  )}
+                  <div>
+                    <h4 className="font-sans text-xs font-bold text-charcoal">{t.name}</h4>
+                    <p className="font-sans text-[10px] text-walnut">{t.designation || t.role || 'ESPACIO Client'}</p>
+                  </div>
+                </div>
+              </Reveal>
+            ))}
           </div>
         </div>
       </section>
-
-      {/* ── FINAL QUOTATION CTA BANNER ────────────────────────────────────────── */}
-      <section className="py-20 px-6 md:px-10 bg-charcoal text-cream text-center relative overflow-hidden">
-        <div className="max-w-[700px] mx-auto space-y-6 relative z-10">
-          <span className="font-sans text-[11px] uppercase tracking-widest text-gold font-bold">Request a Formal Quote</span>
-          <h2 className="font-editorial text-3xl md:text-5xl font-bold text-white leading-tight">Ready for a Detailed BOQ & Quotation?</h2>
-          <p className="font-sans text-xs md:text-sm text-cream/70 leading-relaxed">
-            Schedule a free site survey or consultation with our senior interior architects today. We will prepare an exact itemised quotation within 24 hours.
-          </p>
-          <div className="pt-2">
-            <Link to="/contact" className="inline-flex items-center gap-2 bg-gold text-charcoal font-sans text-xs uppercase tracking-widest font-bold px-8 py-4 rounded-full hover:bg-white transition-all shadow-lg">
-              Get Formal Quotation <ArrowUpRight size={16} />
-            </Link>
-          </div>
-        </div>
-      </section>
-
     </div>
   );
 };
@@ -443,120 +380,144 @@ const QuotationCalculator = () => {
   const [propertyType, setPropertyType] = useState('3bhk');
   const [scope, setScope] = useState('full');
   const [finishGrade, setFinishGrade] = useState('premium');
+  const [submitted, setSubmitted] = useState(false);
+  const [phone, setPhone] = useState('');
+  const [name, setName] = useState('');
 
-  const basePrices = {
-    '2bhk': { full: 650000, kitchen: 220000, louvers: 90000 },
-    '3bhk': { full: 950000, kitchen: 300000, louvers: 140000 },
-    'villa': { full: 1800000, kitchen: 500000, louvers: 250000 },
-    'office': { full: 1200000, kitchen: 150000, louvers: 200000 }
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!phone || phone.trim().length < 10) return;
+    
+    // Save to CMS enquiries
+    try {
+      import('../utils/cmsStore').then(({ getCMSData, setCMSData, STORAGE_KEYS, notifyCMSUpdate }) => {
+        const existing = getCMSData(STORAGE_KEYS.ENQUIRIES) || [];
+        const newRecord = {
+          id: `ESP-EST-${Date.now()}`,
+          enquiryId: `ESP-EST-${Date.now()}`,
+          type: 'INSTANT_ESTIMATE',
+          source: 'SERVICES_ESTIMATOR',
+          name: name || 'Valued Client',
+          phone: phone,
+          location: propertyType,
+          notes: `Property: ${propertyType}, Scope: ${scope}, Grade: ${finishGrade}`,
+          status: 'NEW',
+          read: false,
+          submittedAt: new Date().toISOString()
+        };
+        setCMSData(STORAGE_KEYS.ENQUIRIES, [newRecord, ...existing]);
+        notifyCMSUpdate();
+      });
+    } catch {}
+
+    setSubmitted(true);
   };
-
-  const gradeMultipliers = {
-    essential: 0.85,
-    premium: 1.0,
-    signature: 1.35
-  };
-
-  const calculatedBase = (basePrices[propertyType]?.[scope] || 800000) * (gradeMultipliers[finishGrade] || 1);
-  const minEst = Math.round(calculatedBase * 0.95 / 10000) * 10000;
-  const maxEst = Math.round(calculatedBase * 1.12 / 10000) * 10000;
 
   return (
     <div className="bg-cream border border-walnut/15 rounded-card p-6 md:p-8 shadow-xl space-y-6">
-      <div className="space-y-2 pb-4 border-b border-walnut/10">
-        <h3 className="font-editorial text-xl font-bold text-charcoal">Quick Quotation Estimator</h3>
-        <p className="font-sans text-xs text-walnut">Instant range estimate for your upcoming project</p>
-      </div>
+      {!submitted ? (
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="space-y-1 pb-3 border-b border-walnut/10">
+            <h3 className="font-display text-xl font-bold text-charcoal">Instant Project Estimate</h3>
+            <p className="font-sans text-xs text-walnut">Configure your project details to unlock your personalized estimate</p>
+          </div>
 
-      {/* Property Type */}
-      <div className="space-y-2">
-        <label className="font-sans text-xs font-bold uppercase tracking-wider text-charcoal">1. Property Type</label>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          {[
-            { id: '2bhk', label: '2 BHK' },
-            { id: '3bhk', label: '3 BHK' },
-            { id: 'villa', label: 'Villa' },
-            { id: 'office', label: 'Office' }
-          ].map(item => (
+          {/* Property Type */}
+          <div className="space-y-2">
+            <label className="font-sans text-xs font-bold uppercase tracking-wider text-charcoal">1. Property Type</label>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {[
+                { id: '2bhk', label: '2 BHK' },
+                { id: '3bhk', label: '3 BHK' },
+                { id: 'villa', label: 'Villa' },
+                { id: 'office', label: 'Office' }
+              ].map(item => (
+                <button
+                  type="button"
+                  key={item.id}
+                  onClick={() => setPropertyType(item.id)}
+                  className={`py-2.5 px-3 rounded-card text-xs font-sans font-medium transition-all ${
+                    propertyType === item.id 
+                      ? 'bg-charcoal text-cream shadow-md font-bold' 
+                      : 'bg-offwhite text-walnut border border-walnut/10 hover:border-walnut/30'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Scope */}
+          <div className="space-y-2">
+            <label className="font-sans text-xs font-bold uppercase tracking-wider text-charcoal">2. Scope of Work</label>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              {[
+                { id: 'full', label: 'Turnkey Full Home' },
+                { id: 'kitchen', label: 'Modular Kitchen' },
+                { id: 'louvers', label: 'Panelling & Louvers' }
+              ].map(item => (
+                <button
+                  type="button"
+                  key={item.id}
+                  onClick={() => setScope(item.id)}
+                  className={`py-2.5 px-3 rounded-card text-xs font-sans font-medium transition-all ${
+                    scope === item.id 
+                      ? 'bg-charcoal text-cream shadow-md font-bold' 
+                      : 'bg-offwhite text-walnut border border-walnut/10 hover:border-walnut/30'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Contact Input for Lead Capture */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+            <input
+              type="text"
+              placeholder="Your Name (Optional)"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-walnut/20 bg-white text-xs font-sans focus:outline-none focus:border-gold"
+            />
+            <input
+              type="tel"
+              placeholder="Mobile / WhatsApp Number *"
+              required
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-walnut/20 bg-white text-xs font-sans focus:outline-none focus:border-gold"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="w-full text-center bg-gold text-charcoal font-sans text-xs font-bold uppercase tracking-wider px-6 py-4 rounded-xl hover:bg-charcoal hover:text-cream transition-all shadow-md cursor-pointer"
+          >
+            Unlock Personalized Estimate →
+          </button>
+        </form>
+      ) : (
+        <div className="py-6 text-center space-y-4">
+          <div className="w-14 h-14 rounded-full bg-gold/15 text-gold flex items-center justify-center mx-auto border border-gold/30">
+            <CheckCircle2 size={32} />
+          </div>
+          <h3 className="font-display text-xl font-bold text-charcoal">Your Estimate is Ready</h3>
+          <p className="font-sans text-xs text-walnut leading-relaxed max-w-[420px] mx-auto">
+            Your estimate is ready — we'll share your personalized range on a quick call, since site conditions affect final BOQ significantly.
+          </p>
+          <div className="pt-2">
             <button
-              key={item.id}
-              onClick={() => setPropertyType(item.id)}
-              className={`py-2.5 px-3 rounded-card text-xs font-sans font-medium transition-all ${
-                propertyType === item.id 
-                  ? 'bg-charcoal text-cream shadow-md font-bold' 
-                  : 'bg-offwhite text-walnut border border-walnut/10 hover:border-walnut/30'
-              }`}
+              onClick={() => setSubmitted(false)}
+              className="px-6 py-2.5 rounded-full border border-walnut/20 text-charcoal font-sans text-xs font-bold hover:bg-charcoal hover:text-cream transition-all"
             >
-              {item.label}
+              Configure Another Estimate
             </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Scope */}
-      <div className="space-y-2">
-        <label className="font-sans text-xs font-bold uppercase tracking-wider text-charcoal">2. Scope of Work</label>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          {[
-            { id: 'full', label: 'Turnkey Full Home' },
-            { id: 'kitchen', label: 'Modular Kitchen' },
-            { id: 'louvers', label: 'Panelling & Louvers' }
-          ].map(item => (
-            <button
-              key={item.id}
-              onClick={() => setScope(item.id)}
-              className={`py-2.5 px-3 rounded-card text-xs font-sans font-medium transition-all ${
-                scope === item.id 
-                  ? 'bg-charcoal text-cream shadow-md font-bold' 
-                  : 'bg-offwhite text-walnut border border-walnut/10 hover:border-walnut/30'
-              }`}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Finish Grade */}
-      <div className="space-y-2">
-        <label className="font-sans text-xs font-bold uppercase tracking-wider text-charcoal">3. Finish Grade</label>
-        <div className="grid grid-cols-3 gap-2">
-          {[
-            { id: 'essential', label: 'Essential' },
-            { id: 'premium', label: 'Premium Luxe' },
-            { id: 'signature', label: 'Signature' }
-          ].map(item => (
-            <button
-              key={item.id}
-              onClick={() => setFinishGrade(item.id)}
-              className={`py-2.5 px-3 rounded-card text-xs font-sans font-medium transition-all ${
-                finishGrade === item.id 
-                  ? 'bg-charcoal text-cream shadow-md font-bold' 
-                  : 'bg-offwhite text-walnut border border-walnut/10 hover:border-walnut/30'
-              }`}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Result Display */}
-      <div className="pt-4 border-t border-walnut/10 bg-offwhite p-5 rounded-card flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div>
-          <span className="font-sans text-[10px] uppercase tracking-widest text-walnut font-semibold">Estimated Budget Range</span>
-          <div className="font-editorial text-2xl md:text-3xl font-bold text-gold">
-            ₹{(minEst / 100000).toFixed(2)} Lakhs – ₹{(maxEst / 100000).toFixed(2)} Lakhs
           </div>
         </div>
-
-        <Link
-          to={`/contact?property=${propertyType}&scope=${scope}&grade=${finishGrade}`}
-          className="w-full sm:w-auto text-center bg-gold text-charcoal font-sans text-xs font-bold uppercase tracking-wider px-5 py-3 rounded-full hover:bg-charcoal hover:text-cream transition-all shadow-md shrink-0"
-        >
-          Request BOQ Quote →
-        </Link>
-      </div>
+      )}
     </div>
   );
 };

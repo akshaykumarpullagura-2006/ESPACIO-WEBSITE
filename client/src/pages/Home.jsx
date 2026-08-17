@@ -569,13 +569,13 @@ const Home = () => {
     hero_stat1_visible: true,
     hero_stat1_order: 1,
 
-    hero_stat2_value: '1 Year',
-    hero_stat2_label: 'Since 2025',
+    hero_stat2_value: '100+',
+    hero_stat2_label: 'Happy Clients',
     hero_stat2_visible: true,
     hero_stat2_order: 2,
 
     hero_stat3_value: '40+',
-    hero_stat3_label: 'Years of Family Legacy',
+    hero_stat3_label: 'Years Legacy',
     hero_stat3_visible: true,
     hero_stat3_order: 3,
 
@@ -751,8 +751,8 @@ const Home = () => {
 
   const activeHomeStats = [
     { val: homeSettings.hero_stat1_value || '25+', desc: homeSettings.hero_stat1_label || 'Projects Completed', visible: homeSettings.hero_stat1_visible !== false, order: Number(homeSettings.hero_stat1_order) || 1 },
-    { val: homeSettings.hero_stat2_value || '1 Year', desc: homeSettings.hero_stat2_label || 'Since 2025', visible: homeSettings.hero_stat2_visible !== false, order: Number(homeSettings.hero_stat2_order) || 2 },
-    { val: homeSettings.hero_stat3_value || '40+', desc: homeSettings.hero_stat3_label || 'Years of Family Legacy', visible: homeSettings.hero_stat3_visible !== false, order: Number(homeSettings.hero_stat3_order) || 3 },
+    { val: homeSettings.hero_stat2_value || '100+', desc: homeSettings.hero_stat2_label || 'Happy Clients', visible: homeSettings.hero_stat2_visible !== false, order: Number(homeSettings.hero_stat2_order) || 2 },
+    { val: homeSettings.hero_stat3_value || '40+', desc: homeSettings.hero_stat3_label || 'Years Legacy', visible: homeSettings.hero_stat3_visible !== false, order: Number(homeSettings.hero_stat3_order) || 3 },
   ].filter(s => s.visible).sort((a, b) => a.order - b.order);
 
   const [currentImageIdx, setCurrentImageIdx] = useState(0);
@@ -815,32 +815,38 @@ const Home = () => {
     { 
       title: 'The Lakeside Sanctuary', location: 'Banjara Hills', category: 'Villa', 
       heroImage: 'https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=1200&q=85', 
-      slug: 'lakeside-sanctuary' 
+      slug: 'lakeside-sanctuary',
+      description: 'A serene 5,200 sq.ft villa in Banjara Hills featuring organic warm walnut wood paneling, floor-to-ceiling glass walls, and a custom modular island kitchen.'
     },
     { 
       title: 'Modernist Penthouse', location: 'Jubilee Hills', category: 'Apartment', 
       heroImage: 'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1200&q=85', 
-      slug: 'modernist-penthouse' 
+      slug: 'modernist-penthouse',
+      description: 'A high-rise penthouse in Jubilee Hills designed with Italian marble flooring, custom acrylic fluted accent walls, and ambient LED cove lighting.'
     },
     { 
       title: 'Executive Office Hub', location: 'HITEC City', category: 'Commercial', 
       heroImage: 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=1200&q=85', 
-      slug: 'exec-office' 
+      slug: 'exec-office',
+      description: 'A modern commercial workplace in HITEC City engineered with acoustic WPC panels, modular glass cabins, and ergonomic workstation clusters.'
     },
     { 
       title: 'The Lumen Apartment', location: 'Gachibowli', category: 'Apartment', 
       heroImage: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=1200&q=85', 
-      slug: 'lumen-apartment' 
+      slug: 'lumen-apartment',
+      description: 'A sun-lit luxury residence in Gachibowli combining minimalist Scandinavian spatial planning with brass inlay details and bespoke soft-close wardrobes.'
     },
     { 
       title: 'Slate Residence', location: 'Kondapur', category: 'Luxury Home', 
       heroImage: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1200&q=85', 
-      slug: 'slate-residence' 
+      slug: 'slate-residence',
+      description: 'An opulent home in Kondapur showcasing dark slate stone textured walls, custom veneer storage suites, and an open-plan lounge environment.'
     },
     { 
       title: 'The Granite Villa', location: 'Shamshabad', category: 'Villa', 
       heroImage: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&w=1200&q=85', 
-      slug: 'granite-villa' 
+      slug: 'granite-villa',
+      description: 'A grand countryside estate in Shamshabad engineered with weather-resistant exterior WPC cladding, double-height ceilings, and handcrafted modular furniture.'
     },
   ];
 
@@ -856,7 +862,7 @@ const Home = () => {
           <span className="font-sans text-[13px] lg:text-[14px] text-ink-soft font-medium">{p.location}</span>
         </div>
         <p className="font-sans text-[15px] lg:text-[17px] text-ink-soft leading-relaxed font-normal">
-          A luxury {p.category.toLowerCase()} interior design in {p.location}. ESPACIO redefines living spaces through premium material integration and custom modular craftsmanship.
+          {p.description || `A luxury ${p.category.toLowerCase()} interior design in ${p.location}, showcasing custom spatial architecture and premium materials.`}
         </p>
         <Link 
           to={`/projects/${p.slug}`}
@@ -867,13 +873,15 @@ const Home = () => {
       </div>
     ),
     content: (
-      <Link to={`/projects/${p.slug}`} className="block h-full w-full relative overflow-hidden group cursor-pointer">
+      <div className="h-full w-full relative overflow-hidden rounded-[24px]">
         <img
           src={p.heroImage}
-          className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+          loading="eager"
+          decoding="async"
+          className="h-full w-full object-cover transition-transform duration-700 ease-out"
           alt={p.title}
         />
-      </Link>
+      </div>
     )
   }));
 
@@ -1341,9 +1349,9 @@ const Home = () => {
       <section className="pb-12 px-6 md:px-12 max-w-[1440px] mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 text-left">
           {[
-            { value: homeSettings.grid_stat1_val || "25+", label: homeSettings.grid_stat1_label || "Projects Completed", progressWidth: "60%", dots: [true, false, false] },
-            { value: homeSettings.grid_stat2_val || "100+", label: homeSettings.grid_stat2_label || "Happy Clients (including materials clients)", progressWidth: "80%", dots: [false, true, false] },
-            { value: homeSettings.grid_stat3_val || "40+", label: homeSettings.grid_stat3_label || "Years Combined Legacy", progressWidth: "90%", dots: [false, false, true] }
+            { value: "25+", label: "Projects Completed", progressWidth: "60%" },
+            { value: "100+", label: "Happy Clients", progressWidth: "80%" },
+            { value: "40+", label: "Years Legacy", progressWidth: "90%" }
           ].map((stat, i) => (
             <motion.div
               key={i}
@@ -1351,30 +1359,16 @@ const Home = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: false, amount: 0.1 }}
               transition={{ duration: 0.8, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
-              className="border border-ink-border/20 bg-bg rounded-[20px] p-6 shadow-sm relative overflow-hidden flex flex-col justify-between min-h-[140px] w-full max-w-[550px] mx-auto lg:max-w-none lg:mx-0 group hover:border-gold hover:shadow-md transition-all duration-300"
+              className="border border-ink-border/20 bg-bg rounded-[20px] p-6 shadow-sm relative overflow-hidden flex flex-col justify-between min-h-[130px] w-full max-w-[550px] mx-auto lg:max-w-none lg:mx-0 group hover:border-gold hover:shadow-md transition-all duration-300"
             >
-              {/* Top Row: Empty Left, Indicators Right */}
-              <div className="flex justify-end items-center gap-1">
-                {stat.dots.map((active, dIdx) => (
-                  <span 
-                    key={dIdx} 
-                    className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                      active ? 'bg-ink' : 'bg-ink-border/30'
-                    }`} 
-                  />
-                ))}
-              </div>
-
               {/* Middle Row: Large Value Left */}
-              <div className="flex items-baseline justify-between mt-3 mb-2">
-                <h3 className={`font-display font-medium text-ink leading-none ${
-                  stat.value.length > 5 ? 'text-[24px] md:text-[28px] tracking-tight' : 'text-[44px] md:text-[48px]'
-                }`}>
+              <div className="flex items-baseline justify-between mt-2 mb-2">
+                <h3 className="font-display font-medium text-ink leading-none text-[44px] md:text-[48px]">
                   <AnimatedCounter value={stat.value} />
                 </h3>
                 
                 {/* Bottom Right Label */}
-                <p className="font-sans text-[12.5px] font-semibold text-ink-soft text-right leading-snug max-w-[180px] select-none">
+                <p className="font-sans text-[13px] font-semibold text-ink-soft text-right leading-snug max-w-[180px] select-none">
                   {stat.label}
                 </p>
               </div>

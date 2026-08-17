@@ -156,42 +156,58 @@ const AdminTestimonialsCMS = () => {
     setSyncing(true);
     setSyncSuccess(false);
     try {
-      await new Promise((res) => setTimeout(res, 800));
+      const res = await axios.get('/testimonials/google-sync');
+      
+      if (res.data?.success && Array.isArray(res.data?.data) && res.data.data.length > 0) {
+        const syncedGoogle = res.data.data;
+        const manuals = (testimonials || []).filter(t => t.source === 'MANUAL');
+        const cleanList = deduplicateReviews([...manuals, ...syncedGoogle]);
+        
+        setTestimonials(cleanList);
+        
+        const nowStr = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+        const newStats = {
+          rating: res.data.stats?.googleRating || 5.0,
+          reviewCount: res.data.stats?.totalReviews || syncedGoogle.length,
+          lastSynced: nowStr,
+          businessName: 'ESPACIO Interiors and Modular',
+          placeId: '2pUt25WptxBMZUxHq'
+        };
+        setGoogleStats(newStats);
 
+        const settings = getCMSData(STORAGE_KEYS.SETTINGS) || {};
+        settings.google_last_synced = nowStr;
+        settings.google_total_reviews = newStats.reviewCount;
+        settings.google_overall_rating = newStats.rating;
+        setCMSData(STORAGE_KEYS.SETTINGS, settings);
+        setCMSData(STORAGE_KEYS.TESTIMONIALS, cleanList);
+        notifyCMSUpdate();
+
+        setSyncSuccess(true);
+        showToast(`Google Reviews synchronized! (${newStats.reviewCount} Reviews, ${newStats.rating.toFixed(1)} ⭐)`);
+        
+        import('../../utils/auditStore')
+          .then(({ logAuditEvent }) => {
+            logAuditEvent('Synchronized Google Business Reviews', 'Testimonials CMS', `Synced ${newStats.reviewCount} Google Business reviews`);
+          })
+          .catch(() => {});
+
+        setTimeout(() => setSyncSuccess(false), 3000);
+      } else if (res.data?.configured === false) {
+        // API key or place ID not configured in server environment
+        showToast('Google API Not Configured: Add GOOGLE_PLACES_API_KEY to environment variables.');
+        // Safely preserve existing reviews without clearing
+      } else {
+        // Response received but sync failed or zero items returned
+        const errMsg = res.data?.message || 'Sync failed — preserve existing reviews.';
+        showToast(`Sync Notice: ${errMsg}`);
+      }
+    } catch (err) {
+      console.warn('Google sync request notice:', err?.message);
+      // Fail gracefully: preserve existing authentic reviews, notify user, allow retry
       const cleanList = deduplicateReviews([...(testimonials || []).filter(t => t.source === 'MANUAL'), ...initialGoogleReviews]);
       setTestimonials(cleanList);
-      
-      const nowStr = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
-      setGoogleStats((prev) => ({
-        ...prev,
-        reviewCount: cleanList.filter(t => t.source === 'GOOGLE').length,
-        lastSynced: nowStr
-      }));
-
-      // Update global settings & testimonials store
-      const settings = getCMSData(STORAGE_KEYS.SETTINGS) || {};
-      settings.google_last_synced = nowStr;
-      settings.google_total_reviews = 49;
-      settings.google_overall_rating = 5.0;
-      setCMSData(STORAGE_KEYS.SETTINGS, settings);
-      setCMSData(STORAGE_KEYS.TESTIMONIALS, cleanList);
-      notifyCMSUpdate();
-
-      setSyncSuccess(true);
-      showToast('Google Reviews synchronized successfully! Total: 49 Reviews (5.0 ⭐)');
-      
-      // Async audit log without blocking UI or failing sync
-      import('../../utils/auditStore')
-        .then(({ logAuditEvent }) => {
-          logAuditEvent('Synchronized Google Business Reviews', 'Testimonials CMS', 'Synced 49 authentic Google Business reviews');
-        })
-        .catch((e) => console.warn('Audit log notice:', e));
-
-      setTimeout(() => setSyncSuccess(false), 3000);
-    } catch (err) {
-      console.error('Google Reviews sync error:', err);
-      setSyncSuccess(false);
-      showToast('Failed to sync with Google Business API.');
+      showToast('Google API unavailable or unconfigured — Existing reviews preserved intact.');
     } finally {
       setSyncing(false);
     }

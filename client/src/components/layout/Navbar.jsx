@@ -42,7 +42,6 @@ const Navbar = () => {
     { name: 'Spaces',    path: '/what-we-do' },
     { name: 'Materials', path: '/products' },
     { name: 'About',     path: '/about' },
-    { name: 'FAQs',      path: '/faq' },
   ];
 
   const [navLinks, setNavLinks] = useState(defaultNavLinks);

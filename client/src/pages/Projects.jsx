@@ -322,22 +322,11 @@ const Projects = () => {
       <div className="bg-bg pb-24">
         <div className="max-w-[1440px] mx-auto px-6 md:px-10 pt-16">
 
-          {/* Filter & Search Bar */}
+          {/* Search Bar */}
           <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between border-b border-ink-border pb-8 mb-12 gap-6">
-            <div className="flex items-center gap-2 overflow-x-auto pb-4 lg:pb-0 scrollbar-none shrink-0">
-              {filterChips.map((chip) => (
-                <button
-                  key={chip.value}
-                  onClick={() => setActiveFilter(chip.value)}
-                  className={`font-sans text-[11px] font-semibold uppercase tracking-widest px-4.5 py-2 rounded-pill transition-all duration-200 shrink-0 ${
-                    activeFilter === chip.value
-                      ? 'bg-ink text-bg'
-                      : 'bg-bg-card text-ink-soft border border-ink-border hover:text-ink'
-                  }`}
-                >
-                  {chip.label}
-                </button>
-              ))}
+            <div>
+              <h2 className="font-display text-2xl font-bold text-ink">All Architectural Projects</h2>
+              <p className="font-sans text-xs text-ink-soft mt-1">Explore our turnkey interior design and execution portfolio</p>
             </div>
 
             <GooeyInput
@@ -357,7 +346,7 @@ const Projects = () => {
             </div>
           ) : filteredProjects.length === 0 ? (
             <div className="text-center py-20 bg-bg-card rounded-card border border-ink-border">
-              <p className="font-sans text-sm text-ink-soft">No projects found matching your filters.</p>
+              <p className="font-sans text-sm text-ink-soft select-none">No projects found matching your search.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -366,7 +355,7 @@ const Projects = () => {
                   <Reveal key={idx} delay={(idx % 3) * 0.08}>
                     <Link
                       to={`/projects/${project.slug}`}
-                      className="group block rounded-card overflow-hidden bg-bg-card card-lift"
+                      className="group block rounded-card overflow-hidden bg-bg-card card-lift cursor-pointer select-none"
                     >
                       <div className="relative overflow-hidden aspect-[4/3]">
                         <img
@@ -375,23 +364,23 @@ const Projects = () => {
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-expo-out"
                         />
                         {(project.featured === true || project.featured === 'true') && (
-                          <div className="absolute top-3 left-3 bg-gold text-charcoal font-sans text-[10px] uppercase font-bold tracking-widest px-3 py-1 rounded-full shadow-lg z-10">
+                          <div className="absolute top-3 left-3 bg-gold text-charcoal font-sans text-[10px] uppercase font-bold tracking-widest px-3 py-1 rounded-full shadow-lg z-10 select-none">
                             ★ Featured
                           </div>
                         )}
                       </div>
-                      <div className="p-6">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="font-sans text-[10px] uppercase tracking-widest text-gold font-bold">
+                      <div className="p-6 select-none">
+                        <div className="flex items-center justify-between mb-2 select-none">
+                          <span className="font-sans text-[10px] uppercase tracking-widest text-gold font-bold select-none">
                             {project.style || 'Luxury build'}
                           </span>
-                          <span className="font-sans text-[11px] text-ink-muted">{project.year}</span>
+                          <span className="font-sans text-[11px] text-ink-muted select-none">{project.year}</span>
                         </div>
-                        <h3 className="font-display text-[22px] font-bold text-ink group-hover:text-ink-soft transition-colors mb-2 leading-snug">
+                        <h3 className="font-display text-[22px] font-bold text-ink group-hover:text-ink-soft transition-colors mb-2 leading-snug select-none">
                           {project.title}
                         </h3>
-                        <p className="font-sans text-[13px] text-ink-soft">{project.location}</p>
-                        <div className="pt-4 flex items-center gap-1 text-[11px] text-ink font-semibold uppercase tracking-wider group-hover:translate-x-0.5 transition-transform">
+                        <p className="font-sans text-[13px] text-ink-soft select-none">{project.location}</p>
+                        <div className="pt-4 flex items-center gap-1 text-[11px] text-ink font-semibold uppercase tracking-wider group-hover:translate-x-0.5 transition-transform select-none">
                           <span>View case study</span>
                           <ArrowUpRight size={13} />
                         </div>

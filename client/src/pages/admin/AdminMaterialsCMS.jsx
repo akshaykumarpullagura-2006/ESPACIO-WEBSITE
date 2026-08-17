@@ -3,7 +3,7 @@ import axios from 'axios';
 import {
   Package, Save, CheckCircle, Loader2, Plus, Trash2,
   Eye, Sliders, ArrowRight, ArrowUp, ArrowDown,
-  CheckCircle2, Search, SlidersHorizontal, Image as ImageIcon
+  CheckCircle2, Search, SlidersHorizontal, Image as ImageIcon, Lock, Unlock
 } from 'lucide-react';
 import { getCMSData, setCMSData, STORAGE_KEYS } from '../../utils/cmsStore';
 
@@ -130,6 +130,7 @@ const AdminMaterialsCMS = () => {
   const [loading, setLoading] = useState(true);
   const [toastMessage, setToastMessage] = useState('');
   const [selectedMaterialIdx, setSelectedMaterialIdx] = useState(0);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const fileInputHeroBeforeRef = useRef(null);
   const fileInputHeroAfterRef = useRef(null);
@@ -557,22 +558,57 @@ const AdminMaterialsCMS = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Left Column: Material Selector List */}
           <div className="lg:col-span-4 space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="font-sans text-xs font-bold uppercase tracking-wider text-white/60">Materials Collection ({materialsList.length})</span>
-              <button
-                type="button"
-                onClick={handleAddMaterial}
-                className="flex items-center space-x-1 bg-gold/15 text-gold border border-gold/30 hover:bg-gold hover:text-charcoal px-3 py-1.5 rounded-lg font-sans text-xs font-bold uppercase transition-all"
-              >
-                <Plus size={13} />
-                <span>Add Material</span>
-              </button>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="font-sans text-xs font-bold uppercase tracking-wider text-white/60">Materials Collection ({materialsList.length})</span>
+                <button
+                  type="button"
+                  onClick={handleAddMaterial}
+                  className="flex items-center space-x-1 bg-gold/15 text-gold border border-gold/30 hover:bg-gold hover:text-charcoal px-3 py-1.5 rounded-lg font-sans text-xs font-bold uppercase transition-all"
+                >
+                  <Plus size={13} />
+                  <span>Add Material</span>
+                </button>
+              </div>
+
+              {/* Search Box */}
+              <div className="relative flex items-center">
+                <Search size={14} className="absolute left-3.5 text-white/40 pointer-events-none" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search materials by title or category..."
+                  className="w-full bg-[#141518] border border-white/10 focus:border-gold focus:outline-none rounded-xl font-sans text-xs pl-9 pr-8 py-2 text-white placeholder:text-white/30 transition-all"
+                />
+                {searchTerm && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchTerm('')}
+                    className="absolute right-2.5 text-white/40 hover:text-white text-xs font-bold"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
             </div>
 
-            <div className="space-y-2 max-h-[650px] overflow-y-auto pr-1">
-              {materialsList.map((mat, idx) => {
-                const isSelected = idx === selectedMaterialIdx;
-                return (
+            <div data-lenis-prevent className="space-y-2 max-h-[600px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gold/50 scrollbar-track-white/5 hover:scrollbar-thumb-gold transition-all">
+              {materialsList
+                .map((mat, idx) => ({ mat, idx }))
+                .filter(({ mat }) => {
+                  if (!searchTerm.trim()) return true;
+                  const q = searchTerm.trim().toLowerCase();
+                  return (
+                    (mat.title || '').toLowerCase().includes(q) ||
+                    (mat.category || '').toLowerCase().includes(q) ||
+                    (mat.materialCode || '').toLowerCase().includes(q) ||
+                    (mat.description || '').toLowerCase().includes(q)
+                  );
+                })
+                .map(({ mat, idx }) => {
+                  const isSelected = idx === selectedMaterialIdx;
+                  return (
                   <div
                     key={idx}
                     onClick={() => setSelectedMaterialIdx(idx)}
@@ -662,6 +698,145 @@ const AdminMaterialsCMS = () => {
                   handleMaterialChange(selectedMaterialIdx, 'heroImage', dataUrl);
                 })}
               />
+
+              {/* SECTION-LEVEL MANAGEMENT CONTROL PANEL */}
+              <div className="bg-[#0E0F11] border border-gold/30 rounded-2xl p-5 space-y-4">
+                <div className="flex items-center space-x-2 border-b border-white/10 pb-3">
+                  <Sliders className="text-gold" size={16} />
+                  <h4 className="font-editorial text-base font-bold text-white">Page Sections Management & Visibility</h4>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {/* Overview Section Toggle */}
+                  <div className="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/5">
+                    <div>
+                      <span className="font-sans text-xs font-bold text-white block">1. Material Overview</span>
+                      <span className="font-sans text-[9px] text-white/40">Show/Hide description and key features</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleMaterialChange(selectedMaterialIdx, 'showOverviewSection', !(currentMaterial.showOverviewSection !== false))}
+                      className={`w-10 h-5 rounded-full relative transition-colors duration-200 ${
+                        currentMaterial.showOverviewSection !== false ? 'bg-gold' : 'bg-white/10'
+                      }`}
+                    >
+                      <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200 ${currentMaterial.showOverviewSection !== false ? 'translate-x-5.5' : 'translate-x-0.5'}`} />
+                    </button>
+                  </div>
+
+                  {/* Finishes Section Toggle */}
+                  <div className="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/5">
+                    <div>
+                      <span className="font-sans text-xs font-bold text-white block">2. Available Finishes</span>
+                      <span className="font-sans text-[9px] text-white/40">Show/Hide color swatches</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleMaterialChange(selectedMaterialIdx, 'showFinishesSection', !(currentMaterial.showFinishesSection !== false))}
+                      className={`w-10 h-5 rounded-full relative transition-colors duration-200 ${
+                        currentMaterial.showFinishesSection !== false ? 'bg-gold' : 'bg-white/10'
+                      }`}
+                    >
+                      <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200 ${currentMaterial.showFinishesSection !== false ? 'translate-x-5.5' : 'translate-x-0.5'}`} />
+                    </button>
+                  </div>
+
+                  {/* Specifications Section Toggle */}
+                  <div className="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/5">
+                    <div>
+                      <span className="font-sans text-xs font-bold text-white block">3. Technical Specs Table</span>
+                      <span className="font-sans text-[9px] text-white/40">Show/Hide specs key-value table</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleMaterialChange(selectedMaterialIdx, 'showSpecificationsSection', !(currentMaterial.showSpecificationsSection !== false))}
+                      className={`w-10 h-5 rounded-full relative transition-colors duration-200 ${
+                        currentMaterial.showSpecificationsSection !== false ? 'bg-gold' : 'bg-white/10'
+                      }`}
+                    >
+                      <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200 ${currentMaterial.showSpecificationsSection !== false ? 'translate-x-5.5' : 'translate-x-0.5'}`} />
+                    </button>
+                  </div>
+
+                  {/* Applications Section Toggle */}
+                  <div className="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/5">
+                    <div>
+                      <span className="font-sans text-xs font-bold text-white block">4. Applications Tags</span>
+                      <span className="font-sans text-[9px] text-white/40">Show/Hide application badges</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleMaterialChange(selectedMaterialIdx, 'showApplicationsSection', !(currentMaterial.showApplicationsSection !== false))}
+                      className={`w-10 h-5 rounded-full relative transition-colors duration-200 ${
+                        currentMaterial.showApplicationsSection !== false ? 'bg-gold' : 'bg-white/10'
+                      }`}
+                    >
+                      <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200 ${currentMaterial.showApplicationsSection !== false ? 'translate-x-5.5' : 'translate-x-0.5'}`} />
+                    </button>
+                  </div>
+
+                  {/* Catalogue Preview Section Toggle */}
+                  <div className="flex items-center justify-between bg-white/5 p-3 rounded-xl border border-white/5 md:col-span-2">
+                    <div>
+                      <span className="font-sans text-xs font-bold text-white block">5. Catalogue Preview & Shade Cards Grid Section</span>
+                      <span className="font-sans text-[9px] text-white/40">Show/Hide Catalogue Preview grid, unlocked shades counter, and lightbox modal</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleMaterialChange(selectedMaterialIdx, 'showCataloguePreviewSection', !(currentMaterial.showCataloguePreviewSection !== false))}
+                      className={`w-10 h-5 rounded-full relative transition-colors duration-200 ${
+                        currentMaterial.showCataloguePreviewSection !== false ? 'bg-gold' : 'bg-white/10'
+                      }`}
+                    >
+                      <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200 ${currentMaterial.showCataloguePreviewSection !== false ? 'translate-x-5.5' : 'translate-x-0.5'}`} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Custom Section Title Overrides */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-white/10">
+                  <div>
+                    <label className={labelClass}>Overview Section Title</label>
+                    <input
+                      type="text"
+                      value={currentMaterial.overviewSectionTitle || ''}
+                      onChange={(e) => handleMaterialChange(selectedMaterialIdx, 'overviewSectionTitle', e.target.value)}
+                      placeholder="Material Overview"
+                      className={inpClass}
+                    />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Finishes Section Title</label>
+                    <input
+                      type="text"
+                      value={currentMaterial.finishesSectionTitle || ''}
+                      onChange={(e) => handleMaterialChange(selectedMaterialIdx, 'finishesSectionTitle', e.target.value)}
+                      placeholder="Available Finishes"
+                      className={inpClass}
+                    />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Catalogue Section Eyebrow</label>
+                    <input
+                      type="text"
+                      value={currentMaterial.catalogueEyebrow || ''}
+                      onChange={(e) => handleMaterialChange(selectedMaterialIdx, 'catalogueEyebrow', e.target.value)}
+                      placeholder="Catalog & Shades"
+                      className={inpClass}
+                    />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Catalogue Section Title</label>
+                    <input
+                      type="text"
+                      value={currentMaterial.catalogueTitle || ''}
+                      onChange={(e) => handleMaterialChange(selectedMaterialIdx, 'catalogueTitle', e.target.value)}
+                      placeholder="Catalogue Preview"
+                      className={inpClass}
+                    />
+                  </div>
+                </div>
+              </div>
 
               <div className="space-y-5">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -784,6 +959,363 @@ const AdminMaterialsCMS = () => {
                         </button>
                       </div>
                     ))}
+                  </div>
+                </div>
+
+                {/* Available Finishes / Color Swatches */}
+                <div className="space-y-3 pt-4 border-t border-white/5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className={labelClass}>Available Finishes & Color Swatches</label>
+                      <span className="font-sans text-[10px] text-white/40">Color swatches displayed inside the opened material modal/page.</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const updated = [...(currentMaterial.colors || []), { name: 'Natural Shade', hex: '#C9A96E' }];
+                        handleMaterialChange(selectedMaterialIdx, 'colors', updated);
+                      }}
+                      className="flex items-center space-x-1 bg-white/10 hover:bg-white/20 text-white px-2.5 py-1 rounded-lg font-sans text-[10px] font-bold uppercase"
+                    >
+                      <Plus size={12} />
+                      <span>Add Color Swatch</span>
+                    </button>
+                  </div>
+
+                  <div className="space-y-3">
+                    {(currentMaterial.colors || [
+                      { name: 'Natural Oak', hex: '#D2B48C' },
+                      { name: 'Smoked Walnut', hex: '#5C4033' },
+                      { name: 'Ashen Grey', hex: '#808080' },
+                      { name: 'Slate Charcoal', hex: '#2F4F4F' },
+                      { name: 'White Ash', hex: '#F5F0EB' }
+                    ]).map((col, cIdx) => (
+                      <div key={cIdx} className="flex items-center space-x-3 bg-[#0E0F11] border border-white/10 p-3 rounded-xl">
+                        <input
+                          type="color"
+                          value={col.hex || '#C9A96E'}
+                          onChange={(e) => {
+                            const updated = [...(currentMaterial.colors || [])];
+                            updated[cIdx] = { ...updated[cIdx], hex: e.target.value };
+                            handleMaterialChange(selectedMaterialIdx, 'colors', updated);
+                          }}
+                          className="w-8 h-8 rounded-lg border border-white/20 cursor-pointer p-0 bg-transparent shrink-0"
+                        />
+                        <input
+                          type="text"
+                          value={col.name || ''}
+                          onChange={(e) => {
+                            const updated = [...(currentMaterial.colors || [])];
+                            updated[cIdx] = { ...updated[cIdx], name: e.target.value };
+                            handleMaterialChange(selectedMaterialIdx, 'colors', updated);
+                          }}
+                          placeholder="Finish Name (e.g. Natural Oak)"
+                          className={inpClass}
+                        />
+                        <input
+                          type="text"
+                          value={col.hex || ''}
+                          onChange={(e) => {
+                            const updated = [...(currentMaterial.colors || [])];
+                            updated[cIdx] = { ...updated[cIdx], hex: e.target.value };
+                            handleMaterialChange(selectedMaterialIdx, 'colors', updated);
+                          }}
+                          placeholder="#Hex"
+                          className="w-28 bg-[#0E0F11] border border-white/10 focus:border-gold focus:outline-none rounded-lg font-sans text-xs px-3 py-3 text-white transition-all shrink-0"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = (currentMaterial.colors || []).filter((_, i) => i !== cIdx);
+                            handleMaterialChange(selectedMaterialIdx, 'colors', updated);
+                          }}
+                          className="p-2.5 text-red-400 hover:bg-red-500/10 rounded-lg shrink-0"
+                          title="Remove Swatch"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Technical Specifications Table Editor */}
+                <div className="space-y-3 pt-4 border-t border-white/5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className={labelClass}>Technical Specifications Table</label>
+                      <span className="font-sans text-[10px] text-white/40">Key-value table (e.g. Sheet Size, Surface Type, Finishes List, Core Weight, Warranty).</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const updated = [...(currentMaterial.specifications || []), { label: 'Sheet Size', value: '2440mm × 1220mm × 2mm' }];
+                        handleMaterialChange(selectedMaterialIdx, 'specifications', updated);
+                      }}
+                      className="flex items-center space-x-1 bg-white/10 hover:bg-white/20 text-white px-2.5 py-1 rounded-lg font-sans text-[10px] font-bold uppercase"
+                    >
+                      <Plus size={12} />
+                      <span>Add Spec Row</span>
+                    </button>
+                  </div>
+
+                  <div className="space-y-3">
+                    {(currentMaterial.specifications || [
+                      { label: 'Sheet Size', value: '2440mm × 1220mm × 2mm' },
+                      { label: 'Surface', value: 'Hard-coated Acrylic' },
+                      { label: 'Finishes', value: 'Luminous Grid (8313), Crema Imperiale (8302), Elysian Vein (8303)' }
+                    ]).map((spec, sIdx) => (
+                      <div key={sIdx} className="flex flex-col sm:flex-row items-center gap-2 bg-[#0E0F11] border border-white/10 p-3 rounded-xl">
+                        <input
+                          type="text"
+                          value={spec.label || ''}
+                          onChange={(e) => {
+                            const updated = [...(currentMaterial.specifications || [])];
+                            updated[sIdx] = { ...updated[sIdx], label: e.target.value };
+                            handleMaterialChange(selectedMaterialIdx, 'specifications', updated);
+                          }}
+                          placeholder="Spec Label (e.g. Sheet Size)"
+                          className="w-full sm:w-1/3 bg-[#0E0F11] border border-white/10 focus:border-gold focus:outline-none rounded-lg font-sans text-xs px-3 py-2.5 text-white transition-all"
+                        />
+                        <input
+                          type="text"
+                          value={spec.value || ''}
+                          onChange={(e) => {
+                            const updated = [...(currentMaterial.specifications || [])];
+                            updated[sIdx] = { ...updated[sIdx], value: e.target.value };
+                            handleMaterialChange(selectedMaterialIdx, 'specifications', updated);
+                          }}
+                          placeholder="Spec Value (e.g. 2440mm x 1220mm)"
+                          className="w-full sm:w-2/3 bg-[#0E0F11] border border-white/10 focus:border-gold focus:outline-none rounded-lg font-sans text-xs px-3 py-2.5 text-white transition-all"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = (currentMaterial.specifications || []).filter((_, i) => i !== sIdx);
+                            handleMaterialChange(selectedMaterialIdx, 'specifications', updated);
+                          }}
+                          className="p-2.5 text-red-400 hover:bg-red-500/10 rounded-lg shrink-0 self-end sm:self-auto"
+                          title="Remove Spec"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Applications List */}
+                <div className="space-y-3 pt-4 border-t border-white/5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className={labelClass}>Applications & Best Uses</label>
+                      <span className="font-sans text-[10px] text-white/40">Tags displayed under Applications (e.g. Modular Kitchen Shutters, Wardrobe Sliding Doors).</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const updated = [...(currentMaterial.applications || []), 'Modular Kitchen Shutters'];
+                        handleMaterialChange(selectedMaterialIdx, 'applications', updated);
+                      }}
+                      className="flex items-center space-x-1 bg-white/10 hover:bg-white/20 text-white px-2.5 py-1 rounded-lg font-sans text-[10px] font-bold uppercase"
+                    >
+                      <Plus size={12} />
+                      <span>Add Application Tag</span>
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {(currentMaterial.applications || [
+                      'Modular Kitchen Shutters',
+                      'Wardrobe Sliding Doors',
+                      'Bathroom Vanity'
+                    ]).map((app, aIdx) => (
+                      <div key={aIdx} className="flex items-center space-x-2 bg-[#0E0F11] border border-white/10 p-2 rounded-xl">
+                        <input
+                          type="text"
+                          value={app}
+                          onChange={(e) => {
+                            const updated = [...(currentMaterial.applications || [])];
+                            updated[aIdx] = e.target.value;
+                            handleMaterialChange(selectedMaterialIdx, 'applications', updated);
+                          }}
+                          className={inpClass}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = (currentMaterial.applications || []).filter((_, i) => i !== aIdx);
+                            handleMaterialChange(selectedMaterialIdx, 'applications', updated);
+                          }}
+                          className="p-2.5 text-red-400 hover:bg-red-500/10 rounded-lg shrink-0"
+                          title="Remove Tag"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Catalogue Preview / Shade Cards Gallery Editor */}
+                <div className="space-y-3 pt-4 border-t border-white/5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className={labelClass}>Catalogue Preview & Shade Cards Gallery</label>
+                      <span className="font-sans text-[10px] text-white/40">Shade card images displayed under Catalogue Preview inside the opened material modal.</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const updated = [...(currentMaterial.previewPages || currentMaterial.gallery || []), 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80'];
+                        handleMaterialChange(selectedMaterialIdx, 'previewPages', updated);
+                        handleMaterialChange(selectedMaterialIdx, 'gallery', updated);
+                      }}
+                      className="flex items-center space-x-1 bg-white/10 hover:bg-white/20 text-white px-2.5 py-1 rounded-lg font-sans text-[10px] font-bold uppercase"
+                    >
+                      <Plus size={12} />
+                      <span>Add Shade Card</span>
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-[#0E0F11] p-3.5 rounded-xl border border-white/10">
+                    <div>
+                      <label className={labelClass}>Total Shades Count (e.g. 12 or 23)</label>
+                      <input
+                        type="number"
+                        min={1}
+                        value={currentMaterial.totalShades || 12}
+                        onChange={(e) => handleMaterialChange(selectedMaterialIdx, 'totalShades', Number(e.target.value))}
+                        className={inpClass}
+                      />
+                    </div>
+                    <div>
+                      <label className={labelClass}>Unlocked Preview Limit (e.g. 6)</label>
+                      <input
+                        type="number"
+                        min={1}
+                        value={currentMaterial.previewLimit || 6}
+                        onChange={(e) => handleMaterialChange(selectedMaterialIdx, 'previewLimit', Number(e.target.value))}
+                        className={inpClass}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    {((currentMaterial.previewPages && currentMaterial.previewPages.length > 0)
+                      ? currentMaterial.previewPages
+                      : (currentMaterial.gallery && currentMaterial.gallery.length > 0)
+                        ? currentMaterial.gallery
+                        : [
+                            '/images/materials/irish.png',
+                            '/images/materials/azzurro.png',
+                            '/images/materials/giallo.png',
+                            '/images/materials/marbo.png',
+                            '/images/materials/florida.png',
+                            '/images/materials/menta.png',
+                            '/images/materials/giallo_dining.png',
+                            '/images/materials/ash.png',
+                            '/images/materials/linia.png',
+                            '/images/materials/florida_vanity.png',
+                            '/images/materials/gracia.png',
+                            '/images/materials/irish_gen2.png'
+                          ]).map((rawItem, pIdx, arr) => {
+                      const urlVal = typeof rawItem === 'string' ? rawItem : (rawItem.url || rawItem.src || '');
+                      const isLocked = typeof rawItem === 'object' && rawItem.isLocked !== undefined 
+                        ? rawItem.isLocked 
+                        : pIdx >= (currentMaterial.previewLimit || 6);
+
+                      const handleToggleLock = () => {
+                        const updated = arr.map((item, i) => {
+                          const itemUrl = typeof item === 'string' ? item : (item.url || item.src || '');
+                          const itemLocked = typeof item === 'object' && item.isLocked !== undefined ? item.isLocked : i >= (currentMaterial.previewLimit || 6);
+                          if (i === pIdx) {
+                            return { url: itemUrl, isLocked: !itemLocked };
+                          }
+                          return typeof item === 'string' ? { url: item, isLocked: itemLocked } : item;
+                        });
+                        handleMaterialChange(selectedMaterialIdx, 'previewPages', updated);
+                        handleMaterialChange(selectedMaterialIdx, 'gallery', updated);
+                      };
+
+                      return (
+                        <div key={pIdx} className="flex items-center space-x-3 bg-[#0E0F11] border border-white/10 p-3 rounded-xl">
+                          <span className="font-sans text-[11px] font-bold text-white/50 w-12 shrink-0">PAGE {pIdx + 1}</span>
+                          {urlVal && (
+                            <img src={urlVal} alt={`Shade ${pIdx + 1}`} className="w-12 h-12 object-cover rounded-lg border border-white/10 shrink-0" />
+                          )}
+                          <input
+                            type="text"
+                            value={urlVal}
+                            onChange={(e) => {
+                              const updated = arr.map((item, i) => {
+                                if (i === pIdx) {
+                                  return typeof item === 'object' ? { ...item, url: e.target.value } : e.target.value;
+                                }
+                                return item;
+                              });
+                              handleMaterialChange(selectedMaterialIdx, 'previewPages', updated);
+                              handleMaterialChange(selectedMaterialIdx, 'gallery', updated);
+                            }}
+                            placeholder="Image URL (https://... or /images/...)"
+                            className={inpClass}
+                          />
+
+                          {/* Manual Lock / Unlock Toggle Button */}
+                          <button
+                            type="button"
+                            onClick={handleToggleLock}
+                            className={`flex items-center space-x-1.5 px-3 py-2.5 rounded-lg font-sans text-[10px] font-bold uppercase transition-all shrink-0 ${
+                              isLocked
+                                ? 'bg-red-500/15 text-red-400 border border-red-500/30 hover:bg-red-500/25'
+                                : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25'
+                            }`}
+                            title={isLocked ? 'Click to Unlock this card' : 'Click to Lock this card'}
+                          >
+                            {isLocked ? <Lock size={12} /> : <Unlock size={12} />}
+                            <span>{isLocked ? 'Locked' : 'Unlocked'}</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const input = document.createElement('input');
+                              input.type = 'file';
+                              input.accept = 'image/*';
+                              input.onchange = (e) => {
+                                handleFileUpload(e, (dataUrl) => {
+                                  const updated = arr.map((item, i) => {
+                                    if (i === pIdx) {
+                                      return typeof item === 'object' ? { ...item, url: dataUrl } : dataUrl;
+                                    }
+                                    return item;
+                                  });
+                                  handleMaterialChange(selectedMaterialIdx, 'previewPages', updated);
+                                  handleMaterialChange(selectedMaterialIdx, 'gallery', updated);
+                                });
+                              };
+                              input.click();
+                            }}
+                            className="flex items-center space-x-1 bg-white/10 hover:bg-white/20 text-white px-3 py-2.5 rounded-lg font-sans text-[10px] font-bold uppercase shrink-0"
+                          >
+                            <Plus size={12} />
+                            <span>Upload</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = arr.filter((_, i) => i !== pIdx);
+                              handleMaterialChange(selectedMaterialIdx, 'previewPages', updated);
+                              handleMaterialChange(selectedMaterialIdx, 'gallery', updated);
+                            }}
+                            className="p-2.5 text-red-400 hover:bg-red-500/10 rounded-lg shrink-0"
+                            title="Remove Shade Card"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>

@@ -350,10 +350,10 @@ const QuoteModal = () => {
                 <h3 className="font-display text-xl sm:text-2xl font-bold text-ink">
                   {modalMode === 'catalogue' ? 'Catalogue Request Received!' : 'Estimate Request Received!'}
                 </h3>
-                <p className="font-sans text-sm text-ink-soft max-w-[360px] mx-auto leading-relaxed">
+                <p className="font-sans text-sm text-ink-soft max-w-[380px] mx-auto leading-relaxed">
                   {modalMode === 'catalogue' 
-                    ? <>Thank you, <strong>{formData.name || 'valued client'}</strong>. You will receive an SMS and email with details to access more catalog pages shortly.</>
-                    : <>Thank you, <strong>{formData.name || 'valued client'}</strong>. Our principal design director will get back to you shortly with your custom quote.</>
+                    ? <>Thank you, <strong>{formData.name || 'valued client'}</strong>. You will receive an SMS and email with details to access our full catalog library shortly.</>
+                    : <>Thank you, <strong>{formData.name || 'valued client'}</strong>. Your estimate request has been logged. Our principal design team will share your personalized estimate range on a quick call, since actual site conditions affect final BOQ significantly.</>
                   }
                 </p>
                 <button

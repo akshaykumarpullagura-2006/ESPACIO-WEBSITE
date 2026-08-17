@@ -7,9 +7,8 @@ import { getCMSData, STORAGE_KEYS } from '../utils/cmsStore';
 
 const defaultStats = [
   { value: '25+', label: 'Projects Completed' },
-  { value: '1 Year', label: 'Since 2025 (as Espacio)' },
-  { value: '100+', label: 'Happy Clients (incl. materials)' },
-  { value: '40+', label: 'Years Combined Family Legacy' }
+  { value: '100+', label: 'Happy Clients' },
+  { value: '40+', label: 'Years Legacy' }
 ];
 
 const defaultGenerations = [

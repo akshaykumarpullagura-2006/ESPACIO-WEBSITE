@@ -785,7 +785,7 @@ const AdminProjects = () => {
       {/* Projects Hero Configurator Modal */}
       {showHeroModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-[#141518] border border-white/10 rounded-2xl w-full max-w-2xl p-6 md:p-8 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+          <div data-lenis-prevent className="bg-[#141518] border border-white/10 rounded-2xl w-full max-w-2xl p-6 md:p-8 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gold/50 scrollbar-track-white/5">
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
               <div>
                 <h2 className="font-editorial text-2xl font-bold text-white">Edit Projects Page Hero Section</h2>

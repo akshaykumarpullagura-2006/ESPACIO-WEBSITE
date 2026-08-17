@@ -448,14 +448,14 @@ const Contact = () => {
           <div className="w-20 h-20 bg-gold/20 rounded-full flex items-center justify-center mx-auto">
             <CheckCircle size={40} className="text-gold" />
           </div>
-          <h1 className="font-editorial text-4xl font-bold text-charcoal">Thank you.</h1>
+          <h1 className="font-editorial text-4xl font-bold text-charcoal">Request Received.</h1>
           <p className="font-sans text-sm text-walnut leading-relaxed">
-            Your quote request has been received. Our team will get back to you within <strong>24 hours</strong> with your personalized quote.
+            Your estimate request has been logged. Our principal design team will share your personalized estimate range on a quick call, since actual site conditions affect final BOQ significantly.
           </p>
           <div className="pt-4 space-y-3 flex flex-col items-center">
             <p className="font-sans text-xs uppercase tracking-widest text-gold font-bold mb-1">What happens next?</p>
-            {['We review your requirements', 'You receive your personalized quote', 'Our experts follow up with details'].map((s, idx) => (
-              <div key={idx} className="flex items-center space-x-3 text-xs font-sans text-walnut w-full max-w-[280px]">
+            {['We review your project requirements', 'Design director contacts you for site specifics', 'Receive personalized BOQ & 3D proposal'].map((s, idx) => (
+              <div key={idx} className="flex items-center space-x-3 text-xs font-sans text-walnut w-full max-w-[340px] text-left">
                 <span className="w-5 h-5 rounded-full bg-gold/20 text-gold flex items-center justify-center font-bold text-[10px] shrink-0">{idx + 1}</span>
                 <span>{s}</span>
               </div>

@@ -24,9 +24,8 @@ import WhatWeDo from './pages/WhatWeDo';
 import Products from './pages/Products';
 import ProductDetails from './pages/ProductDetails';
 import Contact from './pages/Contact';
-import FAQ from './pages/FAQ';
 
-// Admin / CMS Pages
+// Admin Components
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminLayout, { AdminDashboardHome } from './pages/admin/AdminDashboard';
 import AdminHomeHeroCMS from './pages/admin/AdminHomeHeroCMS';
@@ -43,19 +42,19 @@ import AdminProjects from './pages/admin/AdminProjects';
 import AdminProducts from './pages/admin/AdminProducts';
 import AdminUsers from './pages/admin/AdminUsers';
 import AdminAuditLogs from './pages/admin/AdminAuditLogs';
-import { AdminTestimonials, AdminFAQs, AdminSettings, AdminMedia } from './pages/admin/AdminCMS';
-
+import { AdminMedia, AdminSettings } from './pages/admin/AdminCMS';
 // ── Scroll to top on every route change ─────────────────────────────────────
 const ScrollToTop = () => {
   const { pathname } = useLocation();
   useEffect(() => {
-    // Use a small timeout to allow React to render the new page
-    // and for Lenis to stop its current scroll inertia
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
     const timer = setTimeout(() => {
       window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
-    }, 10);
+    }, 0);
     return () => clearTimeout(timer);
   }, [pathname]);
   return null;
@@ -168,7 +167,6 @@ function App() {
               <Route path="/products" element={<Products />} />
               <Route path="/products/:slug" element={<ProductDetails />} />
               <Route path="/contact" element={<Contact />} />
-              <Route path="/faq" element={<FAQ />} />
               
               {/* 404 fallback */}
               <Route path="*" element={<NotFound />} />
@@ -188,11 +186,10 @@ function App() {
             <Route path="/admin/pages" element={<AdminLayout><AdminPagesCMS /></AdminLayout>} />
             <Route path="/admin/enquiries" element={<AdminLayout><AdminEnquiries /></AdminLayout>} />
             <Route path="/admin/projects" element={<AdminLayout><AdminProjects /></AdminLayout>} />
-            <Route path="/admin/products" element={<AdminLayout><AdminProducts /></AdminLayout>} />
+            <Route path="/admin/products" element={<AdminLayout><AdminMaterialsCMS /></AdminLayout>} />
             <Route path="/admin/users" element={<AdminLayout><AdminUsers /></AdminLayout>} />
             <Route path="/admin/audit" element={<AdminLayout><AdminAuditLogs /></AdminLayout>} />
             <Route path="/admin/gallery" element={<AdminLayout><AdminMedia /></AdminLayout>} />
-            <Route path="/admin/faqs" element={<AdminLayout><AdminFAQs /></AdminLayout>} />
             <Route path="/admin/settings" element={<AdminLayout><AdminSettings /></AdminLayout>} />
           </Routes>
         </Router>
