@@ -122,16 +122,26 @@ const AdminLogin = () => {
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div className="space-y-1.5">
-              <label className="font-sans text-[10px] uppercase tracking-widest text-cream/60 font-bold">Email</label>
-              <input {...register('email')} type="email" placeholder="tarunuttupulusu@gmail.com"
-                className="admin-input" />
+              <label className="font-sans text-[10px] uppercase tracking-widest text-cream/60 font-bold">Email Address</label>
+              <input 
+                {...register('email')} 
+                type="email" 
+                placeholder="Enter your email address"
+                autoComplete="email"
+                className="admin-input" 
+              />
               {errors.email && <p className="font-sans text-xs text-red-400">{errors.email.message}</p>}
             </div>
             <div className="space-y-1.5">
               <label className="font-sans text-[10px] uppercase tracking-widest text-cream/60 font-bold">Password</label>
               <div className="relative">
-                <input {...register('password')} type={showPass ? 'text' : 'password'} placeholder="••••••••••"
-                  className="admin-input pr-12" />
+                <input 
+                  {...register('password')} 
+                  type={showPass ? 'text' : 'password'} 
+                  placeholder="Enter your password"
+                  autoComplete="current-password"
+                  className="admin-input pr-12" 
+                />
                 <button type="button" onClick={() => setShowPass(!showPass)}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-cream/40 hover:text-cream transition-colors">
                   {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
