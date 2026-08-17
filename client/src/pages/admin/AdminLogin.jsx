@@ -18,6 +18,10 @@ const AdminLogin = () => {
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: ''
+    }
   });
 
   const onSubmit = async (data) => {
@@ -120,14 +124,14 @@ const AdminLogin = () => {
             <p className="font-sans text-cream/50 text-xs">Access restricted to authorised ESPACIO personnel only.</p>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" autoComplete="off">
             <div className="space-y-1.5">
               <label className="font-sans text-[10px] uppercase tracking-widest text-cream/60 font-bold">Email Address</label>
               <input 
                 {...register('email')} 
                 type="email" 
                 placeholder="Enter your email address"
-                autoComplete="email"
+                autoComplete="off"
                 className="admin-input" 
               />
               {errors.email && <p className="font-sans text-xs text-red-400">{errors.email.message}</p>}
@@ -139,7 +143,7 @@ const AdminLogin = () => {
                   {...register('password')} 
                   type={showPass ? 'text' : 'password'} 
                   placeholder="Enter your password"
-                  autoComplete="current-password"
+                  autoComplete="new-password"
                   className="admin-input pr-12" 
                 />
                 <button type="button" onClick={() => setShowPass(!showPass)}
