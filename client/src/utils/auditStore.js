@@ -2,11 +2,13 @@ import { getCMSData, setCMSData, STORAGE_KEYS, notifyCMSUpdate } from './cmsStor
 
 let cachedClientIP = null;
 
-// Dynamically fetch client IP address with fallback
 export const getClientIP = async () => {
   if (cachedClientIP) return cachedClientIP;
   try {
-    const res = await fetch('https://api.ipify.org?format=json', { signal: AbortSignal.timeout(3000) });
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 2000);
+    const res = await fetch('https://api.ipify.org?format=json', { signal: controller.signal });
+    clearTimeout(timer);
     if (res.ok) {
       const data = await res.json();
       if (data.ip) {

@@ -154,10 +154,11 @@ const AdminTestimonialsCMS = () => {
 
   const handleSyncGoogle = async () => {
     setSyncing(true);
+    setSyncSuccess(false);
     try {
       await new Promise((res) => setTimeout(res, 800));
 
-      const cleanList = deduplicateReviews([...testimonials.filter(t => t.source === 'MANUAL'), ...initialGoogleReviews]);
+      const cleanList = deduplicateReviews([...(testimonials || []).filter(t => t.source === 'MANUAL'), ...initialGoogleReviews]);
       setTestimonials(cleanList);
       
       const nowStr = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
@@ -179,13 +180,17 @@ const AdminTestimonialsCMS = () => {
       setSyncSuccess(true);
       showToast('Google Reviews synchronized successfully! Total: 49 Reviews (5.0 ⭐)');
       
-      try {
-        const { logAuditEvent } = await import('../../utils/auditStore');
-        await logAuditEvent('Synchronized Google Business Reviews', 'Testimonials CMS', 'Synced 49 authentic Google Business reviews');
-      } catch {}
+      // Async audit log without blocking UI or failing sync
+      import('../../utils/auditStore')
+        .then(({ logAuditEvent }) => {
+          logAuditEvent('Synchronized Google Business Reviews', 'Testimonials CMS', 'Synced 49 authentic Google Business reviews');
+        })
+        .catch((e) => console.warn('Audit log notice:', e));
 
-      setTimeout(() => setSyncSuccess(false), 2500);
+      setTimeout(() => setSyncSuccess(false), 3000);
     } catch (err) {
+      console.error('Google Reviews sync error:', err);
+      setSyncSuccess(false);
       showToast('Failed to sync with Google Business API.');
     } finally {
       setSyncing(false);

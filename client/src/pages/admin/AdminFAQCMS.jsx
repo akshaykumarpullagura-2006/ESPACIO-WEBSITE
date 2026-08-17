@@ -100,7 +100,7 @@ const defaultSharedFaqs = [
     imageLabel: 'MATERIALS',
     imageCaption: 'Do you sell materials separately from design services?',
     showOnFaqPage: true,
-    showOnHome: false,
+    showOnHome: true,
     faqPageOrder: 6,
     homeOrder: 6,
     status: 'Published'
@@ -114,7 +114,7 @@ const defaultSharedFaqs = [
     imageLabel: 'INVOLVEMENT',
     imageCaption: 'Do I need to be involved throughout the project?',
     showOnFaqPage: true,
-    showOnHome: false,
+    showOnHome: true,
     faqPageOrder: 7,
     homeOrder: 7,
     status: 'Published'
@@ -128,7 +128,7 @@ const defaultSharedFaqs = [
     imageLabel: 'CUSTOM',
     imageCaption: 'What if I already have a design in mind?',
     showOnFaqPage: true,
-    showOnHome: false,
+    showOnHome: true,
     faqPageOrder: 8,
     homeOrder: 8,
     status: 'Published'
@@ -142,7 +142,7 @@ const defaultSharedFaqs = [
     imageLabel: 'DESIGN',
     imageCaption: 'Can I customize designs, or do you offer fixed packages?',
     showOnFaqPage: true,
-    showOnHome: false,
+    showOnHome: true,
     faqPageOrder: 9,
     homeOrder: 9,
     status: 'Published'
@@ -158,7 +158,7 @@ const defaultSharedFaqs = [
     showOnFaqPage: true,
     showOnHome: true,
     faqPageOrder: 10,
-    homeOrder: 5,
+    homeOrder: 10,
     status: 'Published'
   }
 ];

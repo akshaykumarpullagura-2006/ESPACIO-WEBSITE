@@ -177,18 +177,25 @@ const Badge = ({ num, isOpen }) => (
 /* ── Main FAQ Component ─────────────────────────────────────────────────── */
 import { getCMSData, STORAGE_KEYS } from '../utils/cmsStore';
 
+const parseFaqList = (stored) => {
+  if (!Array.isArray(stored) || stored.length === 0) return faqItems;
+  const sorted = [...stored].sort((a, b) => {
+    const orderA = a.faqPageOrder ?? a.homeOrder ?? a.order ?? 0;
+    const orderB = b.faqPageOrder ?? b.homeOrder ?? b.order ?? 0;
+    return orderA - orderB;
+  });
+  return sorted.filter(item => item.status !== 'Draft' && item.status !== 'Archived').map((item, idx) => ({
+    q: item.question || item.q,
+    a: item.answer || item.a,
+    tag: (item.category || item.tag || 'GENERAL').toUpperCase(),
+    img: item.image || item.img || faqItems[idx % faqItems.length]?.img,
+  }));
+};
+
 const FAQ = () => {
   const [faqs, setFaqs] = useState(() => {
     const stored = getCMSData(STORAGE_KEYS.FAQS);
-    if (Array.isArray(stored) && stored.length > 0) {
-      return stored.filter(item => item.status !== 'Draft' && item.status !== 'Archived').map((item, idx) => ({
-        q: item.question || item.q,
-        a: item.answer || item.a,
-        tag: (item.category || item.tag || 'GENERAL').toUpperCase(),
-        img: item.image || item.img || faqItems[idx % faqItems.length]?.img,
-      }));
-    }
-    return faqItems;
+    return parseFaqList(stored);
   });
 
   const defaultSlides = [
@@ -239,15 +246,7 @@ const FAQ = () => {
         }
       }
 
-      if (Array.isArray(stored) && stored.length > 0) {
-        const filtered = stored.filter(item => item.status !== 'Draft' && item.status !== 'Archived').map((item, idx) => ({
-          q: item.question || item.q,
-          a: item.answer || item.a,
-          tag: (item.category || item.tag || 'GENERAL').toUpperCase(),
-          img: item.image || item.img || faqItems[idx % faqItems.length]?.img,
-        }));
-        setFaqs(filtered);
-      }
+      setFaqs(parseFaqList(stored));
     };
 
     syncCMS();

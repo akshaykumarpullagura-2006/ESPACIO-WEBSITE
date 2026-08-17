@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence, useInView, useScroll, useTransform, useMotionValue, useSpring } from 'framer-motion';
 import { ArrowUpRight } from 'lucide-react';
@@ -73,39 +73,115 @@ const Badge = ({ num, isOpen }) => (
   </motion.span>
 );
 
-const AUTO_SCROLL_IMAGES = [
-  'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80',
-  'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=600&q=80',
-  'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=600&q=80',
-  'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=600&q=80',
-  'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=600&q=80'
-];
+const TiltCard = ({ children, className }) => {
+  const ref = useRef(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const rotateX = useSpring(useTransform(y, [-0.5, 0.5], [8, -8]), { stiffness: 300, damping: 30 });
+  const rotateY = useSpring(useTransform(x, [-0.5, 0.5], [-8, 8]), { stiffness: 300, damping: 30 });
 
-const AutoScrollingInteriorBox = () => {
+  const handleMouse = useCallback((e) => {
+    const rect = ref.current?.getBoundingClientRect();
+    if (!rect) return;
+    x.set((e.clientX - rect.left) / rect.width - 0.5);
+    y.set((e.clientY - rect.top) / rect.height - 0.5);
+  }, [x, y]);
+
+  return (
+    <motion.div
+      ref={ref}
+      onMouseMove={handleMouse}
+      onMouseLeave={() => { x.set(0); y.set(0); }}
+      style={{ rotateX, rotateY, transformStyle: 'preserve-3d', perspective: 1000 }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+};
+
+const AutoScrollingInteriorBox = ({ activeIdx, items }) => {
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
+    if (activeIdx !== null && activeIdx !== undefined) {
+      setIndex(activeIdx);
+    }
+  }, [activeIdx]);
+
+  useEffect(() => {
+    if (activeIdx !== null && activeIdx !== undefined) return;
+    const listLen = items && items.length > 0 ? items.length : 1;
     const interval = setInterval(() => {
-      setIndex((prev) => (prev + 1) % AUTO_SCROLL_IMAGES.length);
-    }, 3000);
+      setIndex((prev) => (prev + 1) % listLen);
+    }, 4000);
     return () => clearInterval(interval);
-  }, []);
+  }, [activeIdx, items]);
+
+  const activeItem = (items && items.length > 0)
+    ? items[index % items.length]
+    : null;
+
+  const activeImg = activeItem?.img || 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=800&q=80';
+  const activeTag = activeItem?.tag || 'FAQ';
+  const activeCaption = activeItem?.q || '';
 
   return (
-    <div className="relative w-full aspect-[4/5] rounded-[24px] overflow-hidden shadow-lg border border-black/10">
-      <AnimatePresence initial={false}>
-        <motion.img
-          key={index}
-          src={AUTO_SCROLL_IMAGES[index]}
-          alt="ESPACIO Luxury Interior Style"
-          initial={{ opacity: 0, scale: 1.05 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 1.2, ease: "easeInOut" }}
-          className="absolute inset-0 w-full h-full object-cover"
+    <TiltCard className="relative w-full">
+      <div className="relative aspect-[3/4] sm:aspect-[4/5] lg:aspect-[3/4] min-h-[400px] w-full overflow-hidden rounded-[28px] shadow-2xl bg-stone-100 cursor-pointer border border-black/10">
+        <AnimatePresence mode="sync">
+          <motion.img
+            key={index}
+            src={activeImg}
+            alt={activeCaption || 'ESPACIO Showcase'}
+            initial={{ opacity: 0, scale: 1.08, filter: 'blur(8px)' }}
+            animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+            exit={{ opacity: 0, scale: 0.96, filter: 'blur(6px)' }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        </AnimatePresence>
+
+        {/* Overlay gradient */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent pointer-events-none" />
+
+        {/* Active tag & caption */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={index}
+            className="absolute bottom-5 left-5 right-5 text-left pointer-events-none z-10"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.4 }}
+          >
+            <span className="inline-block bg-[#c5a572]/90 backdrop-blur-sm text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full mb-2 shadow-sm">
+              {activeTag}
+            </span>
+            <p className="text-white font-display text-[15px] sm:text-[16px] font-medium leading-snug line-clamp-2 drop-shadow-sm">
+              {activeCaption}
+            </p>
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Gloss shimmer */}
+        <motion.div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: 'linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.08) 50%, transparent 60%)',
+            backgroundSize: '200% 100%',
+          }}
+          animate={{ backgroundPosition: ['200% 0', '-200% 0'] }}
+          transition={{ duration: 3.5, repeat: Infinity, ease: 'linear', repeatDelay: 1 }}
         />
-      </AnimatePresence>
-    </div>
+      </div>
+
+      {/* Floating 3D layer depth effect */}
+      <div
+        className="absolute -inset-3 rounded-[36px] -z-10 opacity-25 blur-xl pointer-events-none"
+        style={{ background: 'linear-gradient(135deg, #c5a572, #a07845)' }}
+      />
+    </TiltCard>
   );
 };
 
@@ -559,33 +635,87 @@ const Home = () => {
   const defaultHomeFaqItems = [
     {
       q: "How long does a project usually take?",
-      a: "Typically 2–3 months, depending on the level of detailing and customization involved in your project."
+      a: "Typically 2–3 months, depending on the level of detailing and customization involved in your project.",
+      img: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=800&q=80",
+      tag: "TIMELINE"
     },
     {
       q: "Do you provide turnkey interior solutions?",
-      a: "Yes. Every project we take on, residential or commercial, is delivered turnkey, with design, materials, execution, and finishing handled entirely by our team."
+      a: "Yes. Every project we take on, residential or commercial, is delivered turnkey, with design, materials, execution, and finishing handled entirely by our team.",
+      img: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=800&q=80",
+      tag: "SERVICES"
     },
     {
       q: "What is your consultation process?",
-      a: "We begin with a free consultation to understand your space, requirements, and vision, before moving into detailed design and planning."
+      a: "We begin with a free consultation to understand your space, requirements, and vision, before moving into detailed design and planning.",
+      img: "https://images.unsplash.com/photo-1507089947368-19c1da9775ae?auto=format&fit=crop&w=800&q=80",
+      tag: "PROCESS"
     },
     {
       q: "Which locations do you currently serve?",
-      a: "We're proudly based in Hyderabad and have delivered residential and commercial projects across the city."
+      a: "We're proudly based in Hyderabad and have delivered residential and commercial projects across the city.",
+      img: "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80",
+      tag: "LOCATION"
     },
     {
       q: "How can customers request a quotation?",
-      a: "Simply fill out our contact form on the website, and our team will get back to you to discuss your project."
+      a: "Simply fill out our contact form on the website, and our team will get back to you to discuss your project.",
+      img: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80",
+      tag: "PRICING"
+    },
+    {
+      q: "Do you sell materials separately from design services?",
+      a: "Yes. Our materials including WPC panels, polygranite sheets, acrylic sheets, and more are available for standalone purchase, without needing to book a full design or execution project with us.",
+      img: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=800&q=80",
+      tag: "MATERIALS"
+    },
+    {
+      q: "Do I need to be involved throughout the project, or can it be handled remotely?",
+      a: "We keep you informed at every key stage with regular updates and site visits, so you're never left in the dark, but you don't need to manage day-to-day execution yourself. That's what turnkey means.",
+      img: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=800&q=80",
+      tag: "INVOLVEMENT"
+    },
+    {
+      q: "What if I already have a design in mind, can you just execute it?",
+      a: "Absolutely. Whether you come with a finalized design or need us to design from scratch, we can adapt to execution-only or full design-and-build depending on what you need.",
+      img: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=800&q=80",
+      tag: "CUSTOM"
+    },
+    {
+      q: "Can I customize designs, or do you offer fixed packages?",
+      a: "Every project is fully customized around your space and preferences — we don't work off fixed templates or set packages.",
+      img: "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=800&q=80",
+      tag: "DESIGN"
+    },
+    {
+      q: "What happens if something needs repair after project completion?",
+      a: "Any issues within our warranty period are addressed directly by our team. Reach out through the contact form and we'll take care of it.",
+      img: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=800&q=80",
+      tag: "SUPPORT"
     }
   ];
+
+  const mapFaqItems = (storedList) => {
+    if (!Array.isArray(storedList)) return defaultHomeFaqItems;
+    const sorted = [...storedList].sort((a, b) => {
+      const orderA = a.faqPageOrder ?? a.homeOrder ?? a.order ?? 0;
+      const orderB = b.faqPageOrder ?? b.homeOrder ?? b.order ?? 0;
+      return orderA - orderB;
+    });
+    return sorted
+      .filter(item => item.status !== 'Draft' && item.status !== 'Archived')
+      .map((item, idx) => ({
+        q: item.question || item.q,
+        a: item.answer || item.a,
+        img: item.image || item.img || defaultHomeFaqItems[idx % defaultHomeFaqItems.length]?.img,
+        tag: (item.category || item.tag || defaultHomeFaqItems[idx % defaultHomeFaqItems.length]?.tag || 'FAQ').toUpperCase()
+      }));
+  };
 
   const [faqData, setFaqData] = useState(() => {
     const stored = getCMSData(STORAGE_KEYS.FAQS);
     if (Array.isArray(stored) && stored.length > 0) {
-      const filtered = stored.filter(item => item.status !== 'Draft' && item.status !== 'Archived').map(item => ({
-        q: item.question || item.q,
-        a: item.answer || item.a
-      }));
+      const filtered = mapFaqItems(stored);
       return filtered.length > 0 ? filtered : defaultHomeFaqItems;
     }
     return defaultHomeFaqItems;
@@ -597,10 +727,7 @@ const Home = () => {
         const { getCMSData, STORAGE_KEYS } = await import('../utils/cmsStore');
         const stored = getCMSData(STORAGE_KEYS.FAQS);
         if (Array.isArray(stored) && stored.length > 0) {
-          const filtered = stored.filter(item => item.status !== 'Draft' && item.status !== 'Archived').map(item => ({
-            q: item.question || item.q,
-            a: item.answer || item.a
-          }));
+          const filtered = mapFaqItems(stored);
           if (filtered.length > 0) {
             setFaqData(filtered);
           }
@@ -1342,7 +1469,7 @@ const Home = () => {
                 transition={{ duration: 0.8, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
                 className="hidden lg:block w-full max-w-[400px] mt-6"
               >
-                <AutoScrollingInteriorBox />
+                <AutoScrollingInteriorBox activeIdx={openFaqIdx} items={faqData} />
               </motion.div>
             </motion.div>
           </div>
