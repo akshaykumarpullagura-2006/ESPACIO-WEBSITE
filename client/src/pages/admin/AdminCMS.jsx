@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Plus, Trash2, Save, Loader2, Upload, CheckCircle, X } from 'lucide-react';
 import { getCMSData, setCMSData, STORAGE_KEYS, notifyCMSUpdate } from '../../utils/cmsStore';
+import { logAuditEvent } from '../../utils/auditStore';
 
 // ─── Admin Testimonials ───────────────────────────────────────────────────────
 export const AdminTestimonials = () => {
@@ -308,7 +309,6 @@ export const AdminSettings = () => {
     axios.put('/settings', settings).catch(() => {});
 
     try {
-      const { logAuditEvent } = await import('../../utils/auditStore');
       await logAuditEvent(
         settings.maintenanceMode ? 'Enabled Maintenance Mode' : 'Disabled Maintenance Mode',
         'Settings',

@@ -20,4 +20,14 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['@use-gesture/react'],
   },
+  build: {
+    chunkSizeWarningLimit: 2000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom', 'framer-motion', 'lucide-react', 'axios']
+        }
+      }
+    }
+  }
 })

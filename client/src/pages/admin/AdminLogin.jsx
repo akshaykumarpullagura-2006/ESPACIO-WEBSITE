@@ -5,6 +5,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import axios from 'axios';
 import { Loader2, Eye, EyeOff, Shield } from 'lucide-react';
+import { getCMSData, STORAGE_KEYS } from '../../utils/cmsStore';
+import { logAuditEvent } from '../../utils/auditStore';
 
 const loginSchema = z.object({
   email: z.string().email('Valid email required'),
@@ -31,8 +33,6 @@ const AdminLogin = () => {
 
     try {
       // 1. Check custom admin users stored in cmsStore
-      const { getCMSData, STORAGE_KEYS } = await import('../../utils/cmsStore');
-      const { logAuditEvent } = await import('../../utils/auditStore');
       const customUsers = getCMSData(STORAGE_KEYS.ADMIN_USERS) || [];
 
       // Include default admin account
