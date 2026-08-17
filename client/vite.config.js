@@ -24,8 +24,16 @@ export default defineConfig({
     chunkSizeWarningLimit: 2000,
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom', 'framer-motion', 'lucide-react', 'axios']
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
+              return 'vendor-react';
+            }
+            if (id.includes('framer-motion') || id.includes('lucide-react')) {
+              return 'vendor-ui';
+            }
+            return 'vendor';
+          }
         }
       }
     }
