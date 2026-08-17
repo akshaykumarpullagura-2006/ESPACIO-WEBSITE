@@ -6,6 +6,7 @@ import { motion, useInView } from 'framer-motion';
 import SEO from '../components/common/SEO';
 import DomeGallery from '../components/ui/DomeGallery';
 import GooeyInput from '../components/ui/gooey-input';
+import { getCMSData, STORAGE_KEYS } from '../utils/cmsStore';
 
 const Reveal = ({ children, delay = 0, className = '' }) => {
   const ref = useRef(null);
@@ -21,9 +22,6 @@ const Reveal = ({ children, delay = 0, className = '' }) => {
 };
 
 const Products = () => {
-  const [products, setProducts] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [loading, setLoading] = useState(false);
 
   const mockProducts = [
     {
@@ -109,37 +107,51 @@ const Products = () => {
     },
   ];
 
+  const [products, setProducts] = useState(() => {
+    const stored = getCMSData(STORAGE_KEYS.PRODUCTS);
+    return (Array.isArray(stored) && stored.length > 0) ? stored : mockProducts;
+  });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(false);
+
   useEffect(() => {
-    const fetchProducts = async () => {
+    const syncCMS = async () => {
+      const stored = getCMSData(STORAGE_KEYS.PRODUCTS);
+      if (Array.isArray(stored) && stored.length > 0) {
+        setProducts(stored);
+      }
       try {
         const response = await axios.get('/products');
-        if (response.data.success && response.data.data.length > 0) {
-          const merged = response.data.data.map(bp => {
-            const mock = mockProducts.find(m => m.slug === bp.slug);
-            return mock ? { ...bp, ...mock } : bp;
-          });
-          setProducts(merged);
-        } else {
-          setProducts(mockProducts);
+        if (response.data.success && Array.isArray(response.data.data) && response.data.data.length > 0) {
+          setProducts(response.data.data);
         }
-      } catch {
-        setProducts(mockProducts);
-      } finally {
-        setLoading(false);
-      }
+      } catch {}
     };
-    fetchProducts();
+
+    syncCMS();
+
+    window.addEventListener('espacio_cms_update', syncCMS);
+    window.addEventListener('storage', syncCMS);
+    return () => {
+      window.removeEventListener('espacio_cms_update', syncCMS);
+      window.removeEventListener('storage', syncCMS);
+    };
   }, []);
 
   const sourceData = (products.length > 0 ? products : mockProducts).filter(
-    (p) => p.slug !== 'espacio-master-catalogue'
+    (p) => p.slug !== 'espacio-master-catalogue' && p.showInCard !== false
   );
 
-  const filteredProducts = searchQuery.trim()
-    ? sourceData.filter((p) =>
-        p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.description.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+  const query = searchQuery.trim().toLowerCase();
+  const filteredProducts = query
+    ? sourceData.filter((p) => {
+        const titleMatch = (p.title || '').toLowerCase().includes(query);
+        const descMatch = (p.description || '').toLowerCase().includes(query);
+        const catMatch = (p.category || '').toLowerCase().includes(query);
+        const codeMatch = (p.materialCode || '').toLowerCase().includes(query);
+        const featMatch = Array.isArray(p.features) && p.features.some(f => (f || '').toLowerCase().includes(query));
+        return titleMatch || descMatch || catMatch || codeMatch || featMatch;
+      })
     : sourceData;
 
   const fallbacks = [
@@ -212,10 +224,10 @@ const Products = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {[1,2,3,4,5,6,7,8].map((n) => <div key={n} className="aspect-[3/4] bg-offwhite animate-pulse rounded-card" />)}
           </div>
-        ) : (
+        ) : filteredProducts.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {filteredProducts.map((product, idx) => (
-              <Link key={idx} to={`/products/${product.slug}`}
+              <Link key={product.slug || idx} to={`/products/${product.slug}`}
                 className="group block rounded-card overflow-hidden bg-offwhite border border-walnut/5 hover:-translate-y-2 transition-all duration-400 shadow-sm">
                 <div className="relative aspect-[4/3] overflow-hidden">
                   <img src={product.heroImage || fallbacks[idx % fallbacks.length]} alt={product.title}
@@ -223,6 +235,11 @@ const Products = () => {
                   <div className="absolute inset-0 bg-gradient-to-t from-charcoal/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   {/* Feature badges */}
                   <div className="absolute top-4 left-4 flex flex-wrap gap-1.5">
+                    {product.badge && (
+                      <span className="bg-gold text-charcoal font-sans text-[9px] uppercase tracking-wide font-bold px-2 py-1 rounded-full shadow">
+                        {product.badge}
+                      </span>
+                    )}
                     {(product.features || []).slice(0, 2).map((feat, fi) => (
                       <span key={fi} className="bg-cream/90 text-charcoal font-sans text-[9px] uppercase tracking-wide font-bold px-2 py-1 rounded-full">
                         {feat}
@@ -234,12 +251,22 @@ const Products = () => {
                   <h3 className="font-editorial text-lg font-bold text-charcoal group-hover:text-gold transition-colors">{product.title}</h3>
                   <p className="font-sans text-xs text-walnut leading-relaxed line-clamp-2">{product.description}</p>
                   <div className="pt-2 flex items-center space-x-1.5 text-[10px] text-gold uppercase tracking-widest font-bold opacity-0 group-hover:opacity-100 transition-opacity">
-                    <span>Explore Material</span>
+                    <span>{product.ctaText || 'Explore Material'}</span>
                     <ArrowRight size={10} />
                   </div>
                 </div>
               </Link>
             ))}
+          </div>
+        ) : (
+          <div className="py-20 text-center space-y-4">
+            <p className="font-sans text-sm text-walnut font-medium">No materials found matching "{searchQuery}".</p>
+            <button
+              onClick={() => setSearchQuery('')}
+              className="font-sans text-xs uppercase tracking-widest font-bold text-gold hover:underline"
+            >
+              Clear Search & Show All Materials
+            </button>
           </div>
         )}
       </section>

@@ -1,13 +1,21 @@
-// api/index.js — Vercel Serverless entry for Express
 import express from 'express';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.resolve(__dirname, '../server/.env') });
+if (!process.env.JWT_SECRET) {
+  process.env.JWT_SECRET = 'nzK7g7iDlzlDC5qF2Y5tgcZZc/nQqBr8KoVZW9rXkI0E/rWH7OBBPTI7A1QEKUC5RicIx8/42dw+GUWedUfhgg==';
+}
+
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import connectDB from '../server/config/db.js';
 import { errorHandler } from '../server/middleware/errorMiddleware.js';
 
@@ -21,8 +29,6 @@ import testimonialRoutes from '../server/routes/testimonialRoutes.js';
 import faqRoutes from '../server/routes/faqRoutes.js';
 import settingsRoutes from '../server/routes/settingsRoutes.js';
 import dashboardRoutes from '../server/routes/dashboardRoutes.js';
-
-dotenv.config({ path: path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../server/.env') });
 
 // Connect to MongoDB (Vercel keeps connections warm between invocations)
 connectDB();

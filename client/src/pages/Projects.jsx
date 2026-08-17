@@ -50,6 +50,7 @@ const Projects = () => {
 
   const filterChips = [
     { label: 'All Projects',       value: 'all'        },
+    { label: '★ Featured Case Studies', value: 'featured' },
     { label: 'Villas',             value: 'villa'       },
     { label: 'Apartments',         value: 'apartment'   },
     { label: 'Commercial Offices', value: 'office'      },
@@ -58,21 +59,55 @@ const Projects = () => {
     { label: 'Luxury Homes',       value: 'luxury_home' },
   ];
 
+  const [heroContent, setHeroContent] = useState({
+    badge: 'Portfolio & Case Studies',
+    title: 'Our Projects',
+    subtitle: 'Every space reflects thoughtful layouts, structural precision, custom material procurement, and meticulous attention to detail.',
+    images: heroImages
+  });
+
   useEffect(() => {
-    const fetchProjects = async () => {
+    const loadData = async () => {
+      try {
+        const { getCMSData, STORAGE_KEYS } = await import('../utils/cmsStore');
+        const stored = getCMSData(STORAGE_KEYS.PROJECTS);
+        if (stored && stored.length > 0) {
+          setProjects(stored);
+        }
+
+        const settings = getCMSData(STORAGE_KEYS.SETTINGS);
+        if (settings) {
+          setHeroContent({
+            badge: settings.projects_hero_badge || 'Portfolio & Case Studies',
+            title: settings.projects_hero_title || 'Our Projects',
+            subtitle: settings.projects_hero_subtitle || 'Every space reflects thoughtful layouts, structural precision, custom material procurement, and meticulous attention to detail.',
+            images: (Array.isArray(settings.projects_hero_images) && settings.projects_hero_images.length > 0)
+              ? settings.projects_hero_images
+              : heroImages
+          });
+        }
+      } catch {}
+
       try {
         const response = await axios.get('/projects');
-        if (response.data.success) {
+        if (response.data.success && Array.isArray(response.data.data) && response.data.data.length > 0) {
           setProjects(response.data.data);
-          setFilteredProjects(response.data.data);
         }
       } catch (err) {
-        console.error('Error fetching projects:', err);
       } finally {
         setLoading(false);
       }
     };
-    fetchProjects();
+
+    loadData();
+
+    const handleSync = () => loadData();
+    window.addEventListener('espacio_cms_update', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('espacio_cms_update', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
   }, []);
 
   // Unsplash image pools for each category type to ensure realistic real-world images
@@ -173,8 +208,16 @@ const Projects = () => {
   const sourceData = projects.length > 0 ? projects : mockProjects;
 
   useEffect(() => {
-    let result = sourceData;
-    if (activeFilter !== 'all') result = result.filter(p => p.category === activeFilter);
+    let result = [...sourceData];
+    if (activeFilter === 'featured') {
+      result = result.filter(p => p.featured === true || p.featured === 'true');
+    } else if (activeFilter !== 'all') {
+      result = result.filter(p => p.category === activeFilter);
+    } else {
+      // For 'all', sort featured projects to top
+      result.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+    }
+
     if (searchQuery.trim() !== '') {
       const q = searchQuery.toLowerCase();
       result = result.filter(p =>
@@ -210,7 +253,7 @@ const Projects = () => {
             <AnimatePresence initial={false}>
               <motion.img
                 key={currentImageIdx}
-                src={heroImages[currentImageIdx]}
+                src={(heroContent.images && heroContent.images[currentImageIdx % heroContent.images.length]) || heroImages[0]}
                 alt="ESPACIO Projects"
                 initial={{ x: '15%', opacity: 0 }}
                 animate={{ x: 0,     opacity: 1 }}
@@ -240,7 +283,7 @@ const Projects = () => {
                 {/* Pill label */}
                 <div className="inline-flex items-center gap-2 bg-black/55 backdrop-blur-md border border-white/20 text-white px-4 py-2 rounded-full">
                   <span className="w-1.5 h-1.5 rounded-full bg-gold animate-pulse" />
-                  <span className="font-sans text-[11px] font-semibold uppercase tracking-[0.2em]">Portfolio</span>
+                  <span className="font-sans text-[11px] font-semibold uppercase tracking-[0.2em]">{heroContent.badge}</span>
                 </div>
 
                 {/* Heading */}
@@ -248,16 +291,16 @@ const Projects = () => {
                   className="font-display font-bold leading-none tracking-tight text-white"
                   style={{ fontSize: 'clamp(48px, 8vw, 108px)' }}
                 >
-                  Our Projects
+                  {heroContent.title}
                 </h1>
 
-                <p className="font-sans text-[14px] md:text-[15px] text-white/60 max-w-[420px] leading-relaxed">
-                  Every space reflects thoughtful layouts, structural precision, custom material procurement, and meticulous attention to detail.
+                <p className="font-sans text-[14px] md:text-[15px] text-white/60 max-w-[500px] leading-relaxed">
+                  {heroContent.subtitle}
                 </p>
 
                 {/* Image dot indicators */}
                 <div className="flex items-center gap-2 mt-1">
-                  {heroImages.map((_, i) => (
+                  {(heroContent.images || heroImages).map((_, i) => (
                     <button
                       key={i}
                       onClick={() => setCurrentImageIdx(i)}
@@ -331,6 +374,11 @@ const Projects = () => {
                           alt={project.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-expo-out"
                         />
+                        {(project.featured === true || project.featured === 'true') && (
+                          <div className="absolute top-3 left-3 bg-gold text-charcoal font-sans text-[10px] uppercase font-bold tracking-widest px-3 py-1 rounded-full shadow-lg z-10">
+                            ★ Featured
+                          </div>
+                        )}
                       </div>
                       <div className="p-6">
                         <div className="flex items-center justify-between mb-2">

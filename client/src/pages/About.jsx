@@ -3,6 +3,70 @@ import { Link } from 'react-router-dom';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 import { ArrowUpRight, ShieldCheck, Layers, Award, Sparkles, DraftingCompass, CheckCircle2 } from 'lucide-react';
 import SEO from '../components/common/SEO';
+import { getCMSData, STORAGE_KEYS } from '../utils/cmsStore';
+
+const defaultStats = [
+  { value: '25+', label: 'Projects Completed' },
+  { value: '1 Year', label: 'Since 2025 (as Espacio)' },
+  { value: '100+', label: 'Happy Clients (incl. materials)' },
+  { value: '40+', label: 'Years Combined Family Legacy' }
+];
+
+const defaultGenerations = [
+  {
+    gen: 'Generation I',
+    title: 'The Civil Foundation',
+    company: 'Founding Stone Masonry & Engineering',
+    desc: 'Our great-grandfather laid the structural foundation of our family construction legacy in Hyderabad. Built on load-bearing precision, structural integrity, and honest material sourcing.',
+    image: 'https://images.unsplash.com/photo-1541888946425-d0fbb186c5f0?auto=format&fit=crop&w=1000&q=80'
+  },
+  {
+    gen: 'Generation II',
+    title: 'Mantana Constructions',
+    company: 'Commercial & Multi-Family Residential',
+    desc: 'Expanded into large-scale residential complexes and commercial landmarks across Hyderabad. Built a reputation for zero material compromises and strict engineering tolerances.',
+    image: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1000&q=80'
+  },
+  {
+    gen: 'Generation III',
+    title: 'Mastana Infra',
+    company: 'Iconic Private Estates & Infrastructure',
+    desc: 'Pioneered luxury architectural builds and bespoke private lakefront residences — including the lakeside estate chosen as a primary filming location in the movie Guntur Kaaram.',
+    image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1000&q=80'
+  },
+  {
+    gen: 'Generation IV',
+    title: 'ESPACIO Interiors & Modular',
+    company: 'Engineering-First Bespoke Interiors',
+    desc: 'Fusing structural construction mastery with luxury interior architecture. We don\'t just style spaces — we engineer every wall, cabinet, and finish for lifetime permanence.',
+    image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1000&q=80'
+  }
+];
+
+const defaultGalleryImages = [
+  {
+    url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=900&q=80',
+    title: 'Bespoke Villa Interior',
+    subtitle: 'Jubilee Hills Private Residence'
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=900&q=80',
+    title: 'Modular Precision Joinery',
+    subtitle: 'ESPACIO Studio & Workshop'
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=900&q=80',
+    title: 'Italian Marble Architecture',
+    subtitle: 'Gachibowli Modern Estate'
+  },
+  {
+    url: 'https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b?auto=format&fit=crop&w=900&q=80',
+    title: 'Lakeside Architectural Build',
+    subtitle: 'Featured in Guntur Kaaram'
+  }
+];
+
+const getNonEmpty = (val, fallback) => (val && typeof val === 'string' && val.trim().length > 0 ? val : fallback);
 
 /* ── Animated Counter Component ───────────────────────────────────── */
 const Counter = ({ from = 0, to, duration = 2, suffix = '' }) => {
@@ -48,32 +112,100 @@ const Reveal = ({ children, delay = 0, className = '' }) => {
 const About = () => {
   const [activeTimeline, setActiveTimeline] = useState(null);
 
-  const timelineEvents = [
-    {
-      gen: 'Generation I',
-      title: 'The Civil Foundation',
-      company: 'Founding Stone Masonry & Engineering',
-      desc: 'Our great-grandfather laid the structural foundation of our family construction legacy in Hyderabad. Built on load-bearing precision, structural integrity, and honest material sourcing.'
-    },
-    {
-      gen: 'Generation II',
-      title: 'Mantana Constructions',
-      company: 'Commercial & Multi-Family Residential',
-      desc: 'Expanded into large-scale residential complexes and commercial landmarks across Hyderabad. Built a reputation for zero material compromises and strict engineering tolerances.'
-    },
-    {
-      gen: 'Generation III',
-      title: 'Mastana Infra',
-      company: 'Iconic Private Estates & Infrastructure',
-      desc: 'Pioneered luxury architectural builds and bespoke private lakefront residences — including the lakeside estate chosen as a primary filming location in the movie Guntur Kaaram.'
-    },
-    {
-      gen: 'Generation IV',
-      title: 'ESPACIO Interiors & Modular',
-      company: 'Engineering-First Bespoke Interiors',
-      desc: 'Fusing structural construction mastery with luxury interior architecture. We don\'t just style spaces — we engineer every wall, cabinet, and finish for lifetime permanence.'
-    }
-  ];
+  const [aboutData, setAboutData] = useState(() => {
+    const s = getCMSData(STORAGE_KEYS.SETTINGS);
+    return {
+      heroBadge: getNonEmpty(s?.about_hero_badge, 'About ESPACIO'),
+      heroTitle: getNonEmpty(s?.about_hero_title, 'Four generations of construction.\nOne new standard for design.'),
+      heroSubtitle: getNonEmpty(s?.about_hero_subtitle, 'Long before ESPACIO existed, our family was already building across Hyderabad through Mantana Constructions and Mastana Infra. We bring 40 years of load-bearing precision and structural engineering to luxury interior architecture.'),
+      heroImage: getNonEmpty(s?.about_hero_image, 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80'),
+      heroStats: (Array.isArray(s?.about_hero_stats) && s.about_hero_stats.length > 0) ? s.about_hero_stats : defaultStats,
+      heroVisible: s?.about_hero_visible !== false,
+
+      storyBadge: getNonEmpty(s?.about_story_badge, 'OUR ORIGIN STORY'),
+      storyMain: getNonEmpty(s?.about_story_main, "Most interiors don't fail because of bad design. They fail because of what's hiding behind the design — walls that were never built right in the first place."),
+      storyHighlight: getNonEmpty(s?.about_story_highlight, "We've spent four generations making sure that never happens."),
+      storyP1: getNonEmpty(s?.about_story_p1, 'Long before Espacio existed, our family was already building, as builders. Our great-grandfather laid the literal foundation of a construction legacy that would run four generations deep, through two companies, Mantana Constructions and Mastana Infra, and 40+ years of homes, commercial spaces, and landmark builds across Hyderabad.'),
+      storyP2: getNonEmpty(s?.about_story_p2, 'One of those builds is the lakeside home which was later chosen as a filming location for the movie Guntur Kaaram. Not because it was decorated well. Because it was built to be unforgettable.'),
+      storyP3: getNonEmpty(s?.about_story_p3, "That's the world this brand comes from. Not showrooms. Job sites. Not mood boards. Load-bearing walls, material tolerances, what actually holds up over decades and what doesn't."),
+      storyImage: getNonEmpty(s?.about_story_image, 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1000&q=80'),
+      milestoneLabel: getNonEmpty(s?.about_milestone_label, 'Engineering Milestone'),
+      milestoneText: getNonEmpty(s?.about_milestone_text, 'Lakeside residence chosen as filming location for Guntur Kaaram'),
+      milestoneVisible: s?.about_milestone_visible !== false,
+
+      genBadge: getNonEmpty(s?.about_gen_badge, 'The Evolution'),
+      genTitle: getNonEmpty(s?.about_gen_title, 'Four Generations of Mastery'),
+      genSubtitle: getNonEmpty(s?.about_gen_subtitle, 'Hover to Expand Era'),
+      generations: (Array.isArray(s?.about_generations) && s.about_generations.length > 0) ? s.about_generations : defaultGenerations,
+
+      missionQuote: getNonEmpty(s?.about_mission_quote, '"We design spaces with intention — engineered first, styled second — so every home we touch is as functional as it is beautiful."'),
+      visionQuote: getNonEmpty(s?.about_vision_quote, '"To redefine what interior design means — proving that real craftsmanship, not trends, is what makes a space timeless."'),
+
+      galleryBadge: getNonEmpty(s?.about_gallery_badge, 'Visual Standards'),
+      galleryTitle: getNonEmpty(s?.about_gallery_title, 'Craftsmanship in Detail'),
+      galleryImages: (Array.isArray(s?.about_gallery_images) && s.about_gallery_images.length > 0) ? s.about_gallery_images : defaultGalleryImages,
+
+      ctaBadge: getNonEmpty(s?.about_cta_badge, 'GET IN TOUCH'),
+      ctaTitle: getNonEmpty(s?.about_cta_title, 'Ready to Transform Your Space?'),
+      ctaDesc: getNonEmpty(s?.about_cta_desc, "Let's discuss your luxury interior design and engineering requirements with our master team."),
+      ctaBtnText: getNonEmpty(s?.about_cta_btn_text, "LET'S TALK ↗"),
+      ctaBtnLink: getNonEmpty(s?.about_cta_btn_link, '/contact')
+    };
+  });
+
+  useEffect(() => {
+    const syncCMS = () => {
+      const s = getCMSData(STORAGE_KEYS.SETTINGS);
+      if (s) {
+        setAboutData({
+          heroBadge: getNonEmpty(s.about_hero_badge, 'About ESPACIO'),
+          heroTitle: getNonEmpty(s.about_hero_title, 'Four generations of construction.\nOne new standard for design.'),
+          heroSubtitle: getNonEmpty(s.about_hero_subtitle, 'Long before ESPACIO existed, our family was already building across Hyderabad through Mantana Constructions and Mastana Infra...'),
+          heroImage: getNonEmpty(s.about_hero_image, 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80'),
+          heroStats: (Array.isArray(s.about_hero_stats) && s.about_hero_stats.length > 0) ? s.about_hero_stats : defaultStats,
+          heroVisible: s.about_hero_visible !== false,
+
+          storyBadge: getNonEmpty(s.about_story_badge, 'OUR ORIGIN STORY'),
+          storyMain: getNonEmpty(s.about_story_main, "Most interiors don't fail because of bad design..."),
+          storyHighlight: getNonEmpty(s.about_story_highlight, "We've spent four generations making sure that never happens."),
+          storyP1: getNonEmpty(s.about_story_p1, 'Long before Espacio existed...'),
+          storyP2: getNonEmpty(s.about_story_p2, 'One of those builds is the lakeside home...'),
+          storyP3: getNonEmpty(s.about_story_p3, "That's the world this brand comes from..."),
+          storyImage: getNonEmpty(s.about_story_image, 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1000&q=80'),
+          milestoneLabel: getNonEmpty(s.about_milestone_label, 'Engineering Milestone'),
+          milestoneText: getNonEmpty(s.about_milestone_text, 'Lakeside residence chosen as filming location for Guntur Kaaram'),
+          milestoneVisible: s.about_milestone_visible !== false,
+
+          genBadge: getNonEmpty(s.about_gen_badge, 'The Evolution'),
+          genTitle: getNonEmpty(s.about_gen_title, 'Four Generations of Mastery'),
+          genSubtitle: getNonEmpty(s.about_gen_subtitle, 'Hover to Expand Era'),
+          generations: (Array.isArray(s.about_generations) && s.about_generations.length > 0) ? s.about_generations : defaultGenerations,
+
+          missionQuote: getNonEmpty(s.about_mission_quote, '"We design spaces with intention..."'),
+          visionQuote: getNonEmpty(s.about_vision_quote, '"To redefine what interior design means..."'),
+
+          galleryBadge: getNonEmpty(s.about_gallery_badge, 'Visual Standards'),
+          galleryTitle: getNonEmpty(s.about_gallery_title, 'Craftsmanship in Detail'),
+          galleryImages: (Array.isArray(s.about_gallery_images) && s.about_gallery_images.length > 0) ? s.about_gallery_images : defaultGalleryImages,
+
+          ctaBadge: getNonEmpty(s.about_cta_badge, 'GET IN TOUCH'),
+          ctaTitle: getNonEmpty(s.about_cta_title, 'Ready to Transform Your Space?'),
+          ctaDesc: getNonEmpty(s.about_cta_desc, "Let's discuss your luxury interior design and engineering requirements..."),
+          ctaBtnText: getNonEmpty(s.about_cta_btn_text, "LET'S TALK ↗"),
+          ctaBtnLink: getNonEmpty(s.about_cta_btn_link, '/contact')
+        });
+      }
+    };
+
+    syncCMS();
+
+    window.addEventListener('espacio_cms_update', syncCMS);
+    window.addEventListener('storage', syncCMS);
+    return () => {
+      window.removeEventListener('espacio_cms_update', syncCMS);
+      window.removeEventListener('storage', syncCMS);
+    };
+  }, []);
 
   const values = [
     {
@@ -134,109 +266,76 @@ const About = () => {
       />
 
       {/* ── 1. SIGNATURE HERO BANNER (Rounded Dark Hero Card) ────────────── */}
-      <section className="px-5 pt-5 pb-2 lg:px-12 z-0">
-        <div className="relative w-full overflow-hidden rounded-[24px] lg:rounded-[40px] bg-bg-dark text-white p-8 md:p-14 lg:p-20 shadow-2xl">
-          
-          {/* Hero Background Image with Overlay */}
-          <div className="absolute inset-0 z-0 opacity-25">
-            <img
-              src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1600&q=80"
-              alt="ESPACIO Luxury Background"
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#101014] via-[#101014]/80 to-transparent" />
+      {aboutData.heroVisible !== false && (
+        <section className="px-5 pt-5 pb-2 lg:px-12 z-0">
+          <div className="relative w-full overflow-hidden rounded-[24px] lg:rounded-[40px] bg-bg-dark text-white p-8 md:p-14 lg:p-20 shadow-2xl">
+            
+            {/* Hero Background Image with Overlay */}
+            <div className="absolute inset-0 z-0 opacity-25">
+              <img
+                src={aboutData.heroImage}
+                alt="ESPACIO Luxury Background"
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#101014] via-[#101014]/80 to-transparent" />
+            </div>
+
+            <div className="relative z-10 max-w-[1280px] mx-auto space-y-8">
+              {/* Tag Badge */}
+              <motion.div
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+                className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-gold/40 bg-gold/10 backdrop-blur-md"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-gold" />
+                <span className="font-sans text-[11px] font-semibold uppercase tracking-[0.22em] text-gold">
+                  {aboutData.heroBadge}
+                </span>
+              </motion.div>
+
+              {/* Editorial Title */}
+              <motion.h1
+                initial={{ opacity: 0, y: 28 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+                className="font-display text-[clamp(36px,5.5vw,76px)] font-normal leading-[1.08] tracking-tight text-white max-w-[950px] whitespace-pre-line"
+              >
+                {aboutData.heroTitle}
+              </motion.h1>
+
+              {/* Hero Subtitle */}
+              <motion.p
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.3 }}
+                className="font-sans text-[15px] md:text-[17px] text-white/70 max-w-[720px] leading-relaxed"
+              >
+                {aboutData.heroSubtitle}
+              </motion.p>
+
+              {/* Dynamic Hero Statistics Cards */}
+              <motion.div
+                className="pt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 border-t border-white/10"
+              >
+                {(aboutData.heroStats || defaultStats).map((st, idx) => (
+                  <div key={idx} className="p-6 rounded-[20px] bg-white/[0.06] backdrop-blur-xl border border-white/10 flex flex-col justify-between">
+                    <div>
+                      <p className="font-display text-[clamp(34px,3vw,48px)] font-bold text-gold leading-none tracking-tight">
+                        {st.value}
+                      </p>
+                      <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.15em] text-white/60 mt-3 leading-normal">
+                        {st.label}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </motion.div>
+            </div>
+
           </div>
-
-          <div className="relative z-10 max-w-[1280px] mx-auto space-y-8">
-            {/* Tag Badge */}
-            <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-gold/40 bg-gold/10 backdrop-blur-md"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-gold" />
-              <span className="font-sans text-[11px] font-semibold uppercase tracking-[0.22em] text-gold">
-                About ESPACIO
-              </span>
-            </motion.div>
-
-            {/* Editorial Title */}
-            <motion.h1
-              initial={{ opacity: 0, y: 28 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-              className="font-display text-[clamp(36px,5.5vw,76px)] font-normal leading-[1.08] tracking-tight text-white max-w-[950px]"
-            >
-              Four generations of construction.<br />
-              <span className="italic text-gold font-light">One new standard</span> for design.
-            </motion.h1>
-
-            {/* Hero Subtitle */}
-            <motion.p
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.3 }}
-              className="font-sans text-[15px] md:text-[17px] text-white/70 max-w-[720px] leading-relaxed"
-            >
-              Long before ESPACIO existed, our family was already building across Hyderabad through Mantana Constructions and Mastana Infra. We bring 40 years of load-bearing precision and structural engineering to luxury interior architecture.
-            </motion.p>
-
-            <motion.div
-              className="pt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 border-t border-white/10"
-            >
-              {/* Card 1: Projects Completed */}
-              <div className="p-6 rounded-[20px] bg-white/[0.06] backdrop-blur-xl border border-white/10 flex flex-col justify-between">
-                <div>
-                  <p className="font-display text-[clamp(34px,3vw,48px)] font-bold text-gold leading-none tracking-tight">
-                    <Counter to={25} suffix="+" />
-                  </p>
-                  <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.15em] text-white/60 mt-3 leading-normal">
-                    Projects Completed
-                  </p>
-                </div>
-              </div>
-
-              {/* Card 2: Years Active */}
-              <div className="p-6 rounded-[20px] bg-white/[0.06] backdrop-blur-xl border border-white/10 flex flex-col justify-between">
-                <div>
-                  <p className="font-display text-[clamp(34px,3vw,48px)] font-bold text-gold leading-none tracking-tight">
-                    <Counter to={1} /> Year
-                  </p>
-                  <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.15em] text-white/60 mt-3 leading-normal">
-                    Since 2025 (as Espacio)
-                  </p>
-                </div>
-              </div>
-
-              {/* Card 3: Happy Clients */}
-              <div className="p-6 rounded-[20px] bg-white/[0.06] backdrop-blur-xl border border-white/10 flex flex-col justify-between">
-                <div>
-                  <p className="font-display text-[clamp(34px,3vw,48px)] font-bold text-gold leading-none tracking-tight">
-                    <Counter to={100} suffix="+" />
-                  </p>
-                  <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.15em] text-white/60 mt-3 leading-normal">
-                    Happy Clients (incl. materials)
-                  </p>
-                </div>
-              </div>
-
-              {/* Card 4: Family Legacy */}
-              <div className="p-6 rounded-[20px] bg-white/[0.06] backdrop-blur-xl border border-white/10 flex flex-col justify-between">
-                <div>
-                  <p className="font-display text-[clamp(34px,3vw,48px)] font-bold text-gold leading-none tracking-tight">
-                    <Counter to={40} suffix="+" />
-                  </p>
-                  <p className="font-sans text-[10px] font-semibold uppercase tracking-[0.15em] text-white/60 mt-3 leading-normal">
-                    Years Combined Family Legacy
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* ── 2. OUR STORY SECTION (Warm Cream Background) ─────────────────── */}
       <section className="py-24 px-6 md:px-12 border-b border-ink-border bg-bg">
@@ -246,44 +345,43 @@ const About = () => {
           <Reveal className="lg:col-span-5 lg:sticky lg:top-28">
             <div className="relative aspect-[4/3] rounded-[24px] overflow-hidden shadow-xl border border-ink-border group">
               <img
-                src="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1000&q=80"
+                src={aboutData.storyImage}
                 alt="ESPACIO Studio Craft"
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-              <div className="absolute bottom-5 left-5 right-5 p-4 rounded-[16px] bg-white/90 backdrop-blur-md border border-white/40">
-                <span className="font-sans text-[10px] font-bold uppercase tracking-wider text-gold">
-                  Engineering Milestone
-                </span>
-                <p className="font-display text-base font-semibold text-ink mt-0.5">
-                  Lakeside residence chosen as filming location for <em>Guntur Kaaram</em>
-                </p>
-              </div>
+              {aboutData.milestoneVisible !== false && (
+                <div className="absolute bottom-5 left-5 right-5 p-4 rounded-[16px] bg-white/90 backdrop-blur-md border border-white/40">
+                  <span className="font-sans text-[10px] font-bold uppercase tracking-wider text-gold">
+                    {aboutData.milestoneLabel}
+                  </span>
+                  <p className="font-display text-base font-semibold text-ink mt-0.5">
+                    {aboutData.milestoneText}
+                  </p>
+                </div>
+              )}
             </div>
           </Reveal>
 
           {/* Right Column — Narrative Story */}
           <Reveal delay={0.15} className="lg:col-span-7 space-y-6 pt-2">
             <h2 className="text-gold leading-tight" style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 'clamp(36px,5.5vw,64px)', fontWeight: 'normal', letterSpacing: '0.02em' }}>
-              Our Origin Story
+              {aboutData.storyBadge}
             </h2>
             <p className="text-ink leading-relaxed" style={{ fontFamily: "'Canela', 'Cormorant Garamond', 'Cinzel', serif", fontSize: 'clamp(18px,2.5vw,28px)', fontWeight: 700 }}>
-              Most interiors don't fail because of bad design. They fail because of what's hiding behind the design — walls that were never built right in the first place.
+              {aboutData.storyMain}
             </p>
             <p className="text-gold" style={{ fontFamily: "'Manrope', sans-serif", fontSize: '20px', fontWeight: 700, lineHeight: 1.9, letterSpacing: '-0.01em' }}>
-              We've spent four generations making sure that never happens.
+              {aboutData.storyHighlight}
             </p>
             <p className="text-ink-soft" style={{ fontFamily: "'Manrope', sans-serif", fontSize: '17px', fontWeight: 400, lineHeight: 1.9, letterSpacing: '-0.01em' }}>
-              Long before Espacio existed, our family was already building, as builders. Our great-grandfather laid the literal foundation of a construction legacy that would run four generations deep, through two companies, <strong>Mantana Constructions</strong> and <strong>Mastana Infra</strong>, and 40+ years of homes, commercial spaces, and landmark builds across Hyderabad.
+              {aboutData.storyP1}
             </p>
             <p className="text-ink-soft" style={{ fontFamily: "'Manrope', sans-serif", fontSize: '17px', fontWeight: 400, lineHeight: 1.9, letterSpacing: '-0.01em' }}>
-              One of those builds is the lakeside home which was later chosen as a filming location for the movie <strong className="text-gold italic" style={{ fontWeight: 800 }}>Guntur Kaaram</strong>. Not because it was decorated well. Because it was built to be unforgettable.
+              {aboutData.storyP2}
             </p>
             <p className="text-ink-soft" style={{ fontFamily: "'Manrope', sans-serif", fontSize: '17px', fontWeight: 400, lineHeight: 1.9, letterSpacing: '-0.01em' }}>
-              That's the world this brand comes from. Not showrooms. Job sites. Not mood boards. Load-bearing walls, material tolerances, what actually holds up over decades and what doesn't.
-            </p>
-            <p className="text-ink-soft" style={{ fontFamily: "'Manrope', sans-serif", fontSize: '17px', fontWeight: 400, lineHeight: 1.9, letterSpacing: '-0.01em' }}>
-              So when we started Espacio, we didn't start where most interior firms start. We didn't start with what looks good on Instagram. We started with what we already knew: that a beautiful interior means nothing if it isn't built right underneath.
+              {aboutData.storyP3}
             </p>
           </Reveal>
 
@@ -295,10 +393,10 @@ const About = () => {
         <div className="max-w-[1440px] mx-auto space-y-12">
           <Reveal className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-ink-border/60 pb-6">
             <div>
-              <span className="font-sans text-[11px] font-bold uppercase tracking-[0.22em] text-gold">The Evolution</span>
-              <h2 className="font-display text-[clamp(28px,3.5vw,48px)] font-bold text-ink mt-1">Four Generations of Mastery</h2>
+              <span className="font-sans text-[11px] font-bold uppercase tracking-[0.22em] text-gold">{aboutData.genBadge}</span>
+              <h2 className="font-display text-[clamp(28px,3.5vw,48px)] font-bold text-ink mt-1">{aboutData.genTitle}</h2>
             </div>
-            <span className="font-sans text-xs text-ink-muted tracking-widest uppercase font-semibold">Hover to Expand Era</span>
+            <span className="font-sans text-xs text-ink-muted tracking-widest uppercase font-semibold">{aboutData.genSubtitle}</span>
           </Reveal>
 
           {/* Expandable Accordion Container */}
@@ -306,7 +404,7 @@ const About = () => {
             className="flex flex-col lg:flex-row gap-5 min-h-[460px] items-stretch"
             onMouseLeave={() => setActiveTimeline(null)}
           >
-            {timelineEvents.map((item, idx) => {
+            {(aboutData.generations || defaultGenerations).map((item, idx) => {
               const isActive = activeTimeline === idx;
               const isHoveringAny = activeTimeline !== null;
               const isDimmed = isHoveringAny && !isActive;
@@ -336,7 +434,7 @@ const About = () => {
                       className="absolute inset-0 pointer-events-none"
                     >
                       <img
-                        src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1000&q=80"
+                        src={item.image || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1000&q=80'}
                         alt="Background Texture"
                         className="w-full h-full object-cover"
                       />
@@ -385,7 +483,7 @@ const About = () => {
         </div>
       </section>
 
-      {/* ── 4. CORE PRINCIPLES GRID ───────────────────────────────────────── */}
+      {/* ── 4. CORE PRINCIPLES GRID (🔒 LOCKED SECTION) ─────────────────── */}
       <section className="py-24 px-6 md:px-12 border-b border-ink-border bg-bg">
         <div className="max-w-[1440px] mx-auto space-y-12">
           <Reveal className="text-center max-w-[700px] mx-auto">
@@ -437,7 +535,7 @@ const About = () => {
               <div className="absolute top-0 left-0 w-1.5 h-full bg-gold" />
               <span className="font-sans text-[11px] font-bold uppercase tracking-[0.22em] text-gold">Our Mission</span>
               <h3 className="font-display text-2xl md:text-3xl font-bold text-ink leading-snug mt-4">
-                "We design spaces with intention — engineered first, styled second — so every home we touch is as functional as it is beautiful."
+                {aboutData.missionQuote}
               </h3>
             </div>
           </Reveal>
@@ -447,7 +545,7 @@ const About = () => {
               <div className="absolute top-0 left-0 w-1.5 h-full bg-gold" />
               <span className="font-sans text-[11px] font-bold uppercase tracking-[0.22em] text-gold">Our Vision</span>
               <h3 className="font-display text-2xl md:text-3xl font-bold text-ink leading-snug mt-4">
-                "To redefine what interior design means — proving that real craftsmanship, not trends, is what makes a space timeless."
+                {aboutData.visionQuote}
               </h3>
             </div>
           </Reveal>
@@ -458,14 +556,14 @@ const About = () => {
       <section className="py-24 px-6 md:px-12 border-b border-ink-border bg-bg">
         <div className="max-w-[1440px] mx-auto space-y-12">
           <Reveal className="text-center max-w-[650px] mx-auto">
-            <span className="font-sans text-[11px] font-bold uppercase tracking-[0.22em] text-gold">Visual Standards</span>
+            <span className="font-sans text-[11px] font-bold uppercase tracking-[0.22em] text-gold">{aboutData.galleryBadge}</span>
             <h2 className="font-display text-[clamp(28px,3.5vw,48px)] font-bold text-ink mt-1">
-              Craftsmanship in Detail
+              {aboutData.galleryTitle}
             </h2>
           </Reveal>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {galleryImages.map((img, i) => (
+            {(aboutData.galleryImages || defaultGalleryImages).map((img, i) => (
               <Reveal key={i} delay={i * 0.1}>
                 <div className="group relative aspect-[3/4] rounded-[20px] overflow-hidden border border-ink-border shadow-sm bg-bg-card cursor-pointer">
                   <img
@@ -494,7 +592,22 @@ const About = () => {
         </div>
       </section>
 
-
+      {/* ── 7. FINAL CALL TO ACTION (CTA BANNER) ───────────────────────────── */}
+      <section className="py-20 px-6 md:px-12 bg-bg-dark text-white text-center">
+        <div className="max-w-[800px] mx-auto space-y-6">
+          <span className="font-sans text-xs uppercase tracking-widest text-gold font-bold">{aboutData.ctaBadge}</span>
+          <h2 className="font-editorial text-4xl md:text-5xl font-bold">{aboutData.ctaTitle}</h2>
+          <p className="font-sans text-sm text-white/70 max-w-[600px] mx-auto leading-relaxed">{aboutData.ctaDesc}</p>
+          <div className="pt-4">
+            <Link
+              to={aboutData.ctaBtnLink || '/contact'}
+              className="inline-flex items-center space-x-2 bg-gold hover:bg-gold-hover text-charcoal font-sans text-xs uppercase tracking-widest font-bold py-4 px-8 rounded-full transition-all duration-300 shadow-xl"
+            >
+              <span>{aboutData.ctaBtnText}</span>
+            </Link>
+          </div>
+        </div>
+      </section>
 
     </div>
   );

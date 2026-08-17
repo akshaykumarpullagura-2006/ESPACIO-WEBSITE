@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Plus, Trash2, Save, Loader2, Upload, CheckCircle, X } from 'lucide-react';
+import { getCMSData, setCMSData, STORAGE_KEYS, notifyCMSUpdate } from '../../utils/cmsStore';
 
 // ─── Admin Testimonials ───────────────────────────────────────────────────────
 export const AdminTestimonials = () => {
@@ -11,8 +12,18 @@ export const AdminTestimonials = () => {
   const [saved, setSaved] = useState(false);
 
   const mockTestimonials = [
-    { _id: '1', clientName: 'Aditya Rao', project: 'The Nirvana Villa', rating: 5, review: 'ESPACIO transformed our villa into something beyond our imagination. The material quality and design precision is outstanding.', status: 'published' },
-    { _id: '2', clientName: 'Priya Mehta', project: 'Slate Office Hub', rating: 5, review: 'Our new workspace feels premium and professional. Every client who visits is impressed.', status: 'published' },
+    { _id: '1', clientName: 'Paladugu Raju', project: 'Full Home Interior', rating: 5, review: 'Good work and good communication 👍 The team at Espacio delivered our project smoothly and transparently.', status: 'published' },
+    { _id: '2', clientName: 'Kishor Kumar', project: 'Modular Kitchen & Interior', rating: 5, review: 'Good experience & good working skills. The team at Espacio Interiors & Modular is dedicated and skilled.', status: 'published' },
+    { _id: '3', clientName: 'Shaik BOB', project: 'Commercial & Residential', rating: 5, review: 'Recently visited the store they have wide range of varieties and the customer service was very good they were very patient and understanding.', status: 'published' },
+    { _id: '4', clientName: 'Lovely boy Laxman', project: 'Luxury Villa Turnkey', rating: 5, review: 'Good equipment and well staff my house is now completely become luxurious with reasonable prices and thanks to espacio.', status: 'published' },
+    { _id: '5', clientName: 'imtiyaz shaik', project: 'Apartment Fitout', rating: 5, review: 'Superb design variety and flawless material quality provided by Espacio Interiors & Modular.', status: 'published' },
+    { _id: '6', clientName: 'Amresh Kumar', project: 'Master Bedroom Suite', rating: 5, review: 'Good experience and excellent service provided by Espacio Interiors & Modular.', status: 'published' },
+    { _id: '7', clientName: 'KoteswaraRao Alaparthi', project: 'Material Sourcing', rating: 5, review: 'Good quality of materials and affordable prices. Great experience working with ESPACIO Interiors & Modular.', status: 'published' },
+    { _id: '8', clientName: 'G Rakesh', project: 'Living Room Renovation', rating: 5, review: 'Good work and very polite team at Espacio Interiors & Modular. Highly recommended!', status: 'published' },
+    { _id: '9', clientName: 'Ajayreddy Gowreddy123', project: 'Turnkey Workspace', rating: 5, review: 'Good service and excellent quality materials offered at competitive pricing by Espacio.', status: 'published' },
+    { _id: '10', clientName: 'Jani Basha', project: 'Villa Interior', rating: 5, review: 'Good service excellent work 👍👏 Very happy with Espacio Interiors & Modular service quality.', status: 'published' },
+    { _id: '11', clientName: 'Shaik Hussain', project: 'Office & Home Interior', rating: 5, review: 'Excellent materials for interior at home or office so pls visit this Espacio interiors and modular. Thank you...! ❤️', status: 'published' },
+    { _id: '12', clientName: 'Venkatesh Mudhiraj', project: 'WPC & Fluted Panel Decor', rating: 5, review: 'Great experience ❣️ Looking forward to working with Espacio Interiors & Modular again.', status: 'published' }
   ];
 
   const emptyForm = { clientName: '', project: '', location: '', rating: 5, review: '', status: 'published' };
@@ -20,11 +31,23 @@ export const AdminTestimonials = () => {
 
   useEffect(() => {
     const fetch = async () => {
+      const stored = getCMSData(STORAGE_KEYS.TESTIMONIALS);
+      if (stored && stored.length > 0) {
+        setTestimonials(stored);
+        setLoading(false);
+      } else {
+        setTestimonials(mockTestimonials);
+        setCMSData(STORAGE_KEYS.TESTIMONIALS, mockTestimonials);
+        setLoading(false);
+      }
       try {
         const res = await axios.get('/testimonials?limit=50');
-        setTestimonials(res.data.data?.testimonials || res.data.data || mockTestimonials);
-      } catch { setTestimonials(mockTestimonials); }
-      finally { setLoading(false); }
+        const fetched = res.data.data?.testimonials || res.data.data;
+        if (fetched && fetched.length > 0 && !stored) {
+          setTestimonials(fetched);
+          setCMSData(STORAGE_KEYS.TESTIMONIALS, fetched);
+        }
+      } catch {}
     };
     fetch();
   }, []);
@@ -33,26 +56,36 @@ export const AdminTestimonials = () => {
   const handleNew = () => { setEditing(null); setForm(emptyForm); };
 
   const handleSave = async (e) => {
-    e.preventDefault(); setSaving(true);
+    e.preventDefault();
+    setSaving(true);
     try {
+      if (editing) await axios.put(`/testimonials/${editing._id}`, form);
+      else await axios.post('/testimonials', form);
+    } catch {}
+
+    setTestimonials((prev) => {
+      let updated;
       if (editing) {
-        await axios.put(`/testimonials/${editing._id}`, form);
-        setTestimonials((prev) => prev.map((t) => t._id === editing._id ? { ...t, ...form } : t));
+        updated = prev.map((t) => (t._id === editing._id ? { ...t, ...form } : t));
       } else {
-        const res = await axios.post('/testimonials', form);
-        setTestimonials((prev) => [res.data.data || { _id: Date.now(), ...form }, ...prev]);
+        updated = [{ _id: String(Date.now()), ...form }, ...prev];
       }
-    } catch {
-      if (!editing) setTestimonials((prev) => [{ _id: String(Date.now()), ...form }, ...prev]);
-      else setTestimonials((prev) => prev.map((t) => t._id === editing._id ? { ...t, ...form } : t));
-    }
-    setSaving(false); setSaved(true);
+      setCMSData(STORAGE_KEYS.TESTIMONIALS, updated);
+      return updated;
+    });
+
+    setSaving(false);
+    setSaved(true);
     setTimeout(() => { setSaved(false); setEditing(null); setForm(emptyForm); }, 1200);
   };
 
   const handleDelete = async (id) => {
     try { await axios.delete(`/testimonials/${id}`); } catch {}
-    setTestimonials((prev) => prev.filter((t) => t._id !== id));
+    setTestimonials((prev) => {
+      const updated = prev.filter((t) => t._id !== id);
+      setCMSData(STORAGE_KEYS.TESTIMONIALS, updated);
+      return updated;
+    });
   };
 
   return (
@@ -119,19 +152,39 @@ export const AdminFAQs = () => {
   const [saved, setSaved] = useState(false);
 
   const mockFAQs = [
-    { _id: '1', question: 'How long does a full home interior take?', answer: 'Typically 45–90 days depending on scope, customisation level, and floor area.', category: 'process', order: 1 },
-    { _id: '2', question: 'Do you handle both design and execution?', answer: 'Yes. ESPACIO is a full-service studio — from concept design to final handover.', category: 'services', order: 2 },
+    { _id: '1', question: 'How long does a project usually take?', answer: 'Typically 2–3 months, depending on the level of detailing and customization involved in your project.', category: 'timeline', order: 1 },
+    { _id: '2', question: 'Do you provide turnkey interior solutions?', answer: 'Yes. Every project we take on, residential or commercial, is delivered turnkey, with design, materials, execution, and finishing handled entirely by our team.', category: 'services', order: 2 },
+    { _id: '3', question: 'What is your consultation process?', answer: 'We begin with a free consultation to understand your space, requirements, and vision, before moving into detailed design and planning.', category: 'process', order: 3 },
+    { _id: '4', question: 'Which locations do you currently serve?', answer: "We're proudly based in Hyderabad and have delivered residential and commercial projects across the city.", category: 'general', order: 4 },
+    { _id: '5', question: 'How can customers request a quotation?', answer: 'Simply fill out our contact form on the website, and our team will get back to you to discuss your project.', category: 'pricing', order: 5 },
+    { _id: '6', question: 'Do you sell materials separately from design services?', answer: 'Yes. Our materials including WPC panels, polygranite sheets, acrylic sheets, and more are available for standalone purchase, without needing to book a full design or execution project with us.', category: 'materials', order: 6 },
+    { _id: '7', question: 'Do I need to be involved throughout the project, or can it be handled remotely?', answer: "We keep you informed at every key stage with regular updates and site visits, so you're never left in the dark, but you don't need to manage day-to-day execution yourself. That's what turnkey means.", category: 'process', order: 7 },
+    { _id: '8', question: 'What if I already have a design in mind, can you just execute it?', answer: 'Absolutely. Whether you come with a finalized design or need us to design from scratch, we can adapt to execution-only or full design-and-build depending on what you need.', category: 'services', order: 8 },
+    { _id: '9', question: 'Can I customize designs, or do you offer fixed packages?', answer: "Every project is fully customized around your space and preferences — we don't work off fixed templates or set packages.", category: 'process', order: 9 },
+    { _id: '10', question: 'What happens if something needs repair after project completion?', answer: "Any issues within our warranty period are addressed directly by our team. Reach out through the contact form and we'll take care of it.", category: 'general', order: 10 }
   ];
   const emptyForm = { question: '', answer: '', category: 'process', order: 1 };
   const [form, setForm] = useState(emptyForm);
 
   useEffect(() => {
     const fetch = async () => {
+      const stored = getCMSData(STORAGE_KEYS.FAQS);
+      if (stored && stored.length > 0) {
+        setFaqs(stored);
+        setLoading(false);
+      } else {
+        setFaqs(mockFAQs);
+        setCMSData(STORAGE_KEYS.FAQS, mockFAQs);
+        setLoading(false);
+      }
       try {
         const res = await axios.get('/faqs');
-        setFaqs(res.data.data || mockFAQs);
-      } catch { setFaqs(mockFAQs); }
-      finally { setLoading(false); }
+        const fetched = res.data.data?.faqs || res.data.data;
+        if (fetched && fetched.length > 0 && !stored) {
+          setFaqs(fetched);
+          setCMSData(STORAGE_KEYS.FAQS, fetched);
+        }
+      } catch {}
     };
     fetch();
   }, []);
@@ -142,19 +195,32 @@ export const AdminFAQs = () => {
   const handleSave = async (e) => {
     e.preventDefault(); setSaving(true);
     try {
-      if (editing) { await axios.put(`/faqs/${editing._id}`, form); setFaqs((prev) => prev.map((f) => f._id === editing._id ? { ...f, ...form } : f)); }
-      else { const res = await axios.post('/faqs', form); setFaqs((prev) => [...prev, res.data.data || { _id: Date.now(), ...form }]); }
-    } catch {
-      if (editing) setFaqs((prev) => prev.map((f) => f._id === editing._id ? { ...f, ...form } : f));
-      else setFaqs((prev) => [...prev, { _id: String(Date.now()), ...form }]);
-    }
+      if (editing) await axios.put(`/faqs/${editing._id}`, form);
+      else await axios.post('/faqs', form);
+    } catch {}
+
+    setFaqs((prev) => {
+      let updated;
+      if (editing) {
+        updated = prev.map((f) => (f._id === editing._id ? { ...f, ...form } : f));
+      } else {
+        updated = [...prev, { _id: String(Date.now()), ...form }];
+      }
+      setCMSData(STORAGE_KEYS.FAQS, updated);
+      return updated;
+    });
+
     setSaving(false); setSaved(true);
     setTimeout(() => { setSaved(false); setEditing(null); setForm(emptyForm); }, 1200);
   };
 
   const handleDelete = async (id) => {
     try { await axios.delete(`/faqs/${id}`); } catch {}
-    setFaqs((prev) => prev.filter((f) => f._id !== id));
+    setFaqs((prev) => {
+      const updated = prev.filter((f) => f._id !== id);
+      setCMSData(STORAGE_KEYS.FAQS, updated);
+      return updated;
+    });
   };
 
   return (
@@ -185,7 +251,7 @@ export const AdminFAQs = () => {
           </form>
         </div>
 
-        <div className="space-y-3">
+        <div data-lenis-prevent className="space-y-3 max-h-[500px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gold/40 scrollbar-track-white/5 hover:scrollbar-thumb-gold transition-all">
           {loading ? [1,2,3].map((n) => <div key={n} className="bg-[#1A1C20] rounded-xl p-5 animate-pulse h-20" />) :
             faqs.map((f) => (
               <div key={f._id} onClick={() => handleEdit(f)} className={`bg-[#1A1C20] border rounded-xl p-5 cursor-pointer transition-all ${editing?._id === f._id ? 'border-gold/30' : 'border-white/5 hover:border-white/10'}`}>
@@ -206,21 +272,52 @@ export const AdminFAQs = () => {
 
 // ─── Admin Settings ────────────────────────────────────────────────────────────
 export const AdminSettings = () => {
-  const [settings, setSettings] = useState({ siteName: 'ESPACIO Interiors', tagline: 'Engineering. Elegance. Experience.', adminEmail: 'tarunuttupulusu@gmail.com', instagram: 'https://www.instagram.com/theespacio.in', pinterest: '', youtube: '', enableChat: false, maintenanceMode: false });
+  const [settings, setSettings] = useState({
+    siteName: 'ESPACIO Interiors',
+    tagline: 'Engineering. Elegance. Experience.',
+    adminEmail: 'tarunuttupulusu@gmail.com',
+    instagram: 'https://www.instagram.com/theespacio.in',
+    pinterest: '',
+    youtube: '',
+    enableChat: false,
+    maintenanceMode: false,
+    maintenance_title: "We're Upgrading Your Experience!",
+    maintenance_message: "ESPACIO website is currently undergoing scheduled maintenance & enhancements. Our flagship experience center studio remains open for visits and immediate consultations.",
+    maintenance_time: "Estimated Back Online: Today at 8:00 PM",
+    maintenance_phone: "+91 95051 51116"
+  });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    const fetch = async () => {
-      try { const res = await axios.get('/settings'); if (res.data.success) setSettings((prev) => ({ ...prev, ...res.data.data })); } catch {}
-    };
-    fetch();
+    const stored = getCMSData(STORAGE_KEYS.SETTINGS);
+    if (stored) {
+      setSettings(prev => ({ ...prev, ...stored }));
+    }
   }, []);
 
   const handleSave = async (e) => {
-    e.preventDefault(); setSaving(true);
-    try { await axios.put('/settings', settings); } catch {}
-    setSaving(false); setSaved(true);
+    e.preventDefault();
+    setSaving(true);
+    
+    // Save to CMS store instantly
+    setCMSData(STORAGE_KEYS.SETTINGS, settings);
+    notifyCMSUpdate();
+
+    // Non-blocking backend save
+    axios.put('/settings', settings).catch(() => {});
+
+    try {
+      const { logAuditEvent } = await import('../../utils/auditStore');
+      await logAuditEvent(
+        settings.maintenanceMode ? 'Enabled Maintenance Mode' : 'Disabled Maintenance Mode',
+        'Settings',
+        `Maintenance Mode status: ${settings.maintenanceMode ? 'ACTIVE (Website hidden)' : 'INACTIVE (Website live)'}`
+      );
+    } catch {}
+
+    setSaving(false);
+    setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
 
@@ -228,7 +325,18 @@ export const AdminSettings = () => {
 
   return (
     <div className="space-y-6">
-      <h1 className="font-editorial text-3xl font-bold text-white">Site Settings</h1>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="font-editorial text-3xl font-bold text-white">Site Settings & Maintenance Control</h1>
+          <p className="font-sans text-xs text-white/40 mt-1">Configure global site settings and toggle website Maintenance Mode</p>
+        </div>
+        {settings.maintenanceMode && (
+          <span className="font-sans text-xs bg-amber-500/20 text-amber-300 border border-amber-500/40 px-3 py-1.5 rounded-full font-bold uppercase animate-pulse">
+            ⚠️ MAINTENANCE MODE ACTIVE
+          </span>
+        )}
+      </div>
+
       <form onSubmit={handleSave} className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <div className="space-y-5 bg-[#1A1C20] border border-white/5 rounded-xl p-6">
           <h2 className="font-editorial text-lg font-bold text-white">Brand Identity</h2>
@@ -242,41 +350,89 @@ export const AdminSettings = () => {
               <input type={type || 'text'} value={settings[key] || ''} onChange={(e) => setSettings({ ...settings, [key]: e.target.value })} placeholder={placeholder} className={inp} />
             </div>
           ))}
+
+          <h2 className="font-editorial text-lg font-bold text-white pt-4 border-t border-white/10">Social Links</h2>
+          {[
+            { label: 'Instagram URL', key: 'instagram', placeholder: 'https://instagram.com/theespacio.in' },
+            { label: 'Pinterest URL', key: 'pinterest', placeholder: 'https://pinterest.com/...' },
+            { label: 'YouTube URL', key: 'youtube', placeholder: 'https://youtube.com/...' },
+          ].map(({ label, key, placeholder }) => (
+            <div key={key} className="space-y-1.5">
+              <label className="font-sans text-[10px] text-white/40 uppercase tracking-widest">{label}</label>
+              <input value={settings[key] || ''} onChange={(e) => setSettings({ ...settings, [key]: e.target.value })} placeholder={placeholder} className={inp} />
+            </div>
+          ))}
         </div>
 
         <div className="space-y-5">
-          <div className="bg-[#1A1C20] border border-white/5 rounded-xl p-6 space-y-4">
-            <h2 className="font-editorial text-lg font-bold text-white">Social Links</h2>
-            {[
-              { label: 'Instagram URL', key: 'instagram', placeholder: 'https://instagram.com/theespacio.in' },
-              { label: 'Pinterest URL', key: 'pinterest', placeholder: 'https://pinterest.com/...' },
-              { label: 'YouTube URL', key: 'youtube', placeholder: 'https://youtube.com/...' },
-            ].map(({ label, key, placeholder }) => (
-              <div key={key} className="space-y-1.5">
-                <label className="font-sans text-[10px] text-white/40 uppercase tracking-widest">{label}</label>
-                <input value={settings[key] || ''} onChange={(e) => setSettings({ ...settings, [key]: e.target.value })} placeholder={placeholder} className={inp} />
+          {/* Maintenance Mode Controls */}
+          <div className={`border rounded-xl p-6 space-y-4 transition-all ${settings.maintenanceMode ? 'bg-amber-500/10 border-amber-500/40' : 'bg-[#1A1C20] border-white/5'}`}>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="font-editorial text-lg font-bold text-white">Maintenance Mode</h2>
+                <p className="font-sans text-xs text-white/50">When turned ON, the public website is replaced by your custom Maintenance screen.</p>
               </div>
-            ))}
-          </div>
+              <div 
+                onClick={() => setSettings({ ...settings, maintenanceMode: !settings.maintenanceMode })}
+                className={`w-12 h-6 rounded-full transition-colors duration-200 relative cursor-pointer ${settings.maintenanceMode ? 'bg-amber-500' : 'bg-white/10'}`}
+              >
+                <div className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${settings.maintenanceMode ? 'translate-x-6' : 'translate-x-0.5'}`} />
+              </div>
+            </div>
 
-          <div className="bg-[#1A1C20] border border-white/5 rounded-xl p-6 space-y-4">
-            <h2 className="font-editorial text-lg font-bold text-white">Site Options</h2>
-            {[
-              { label: 'Enable Chat Widget', key: 'enableChat' },
-              { label: 'Maintenance Mode', key: 'maintenanceMode' },
-            ].map(({ label, key }) => (
-              <label key={key} className="flex items-center justify-between cursor-pointer">
-                <span className="font-sans text-xs text-white/70">{label}</span>
-                <div onClick={() => setSettings({ ...settings, [key]: !settings[key] })}
-                  className={`w-10 h-5 rounded-full transition-colors duration-200 relative ${settings[key] ? 'bg-gold' : 'bg-white/10'}`}>
-                  <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200 ${settings[key] ? 'translate-x-5' : 'translate-x-0.5'}`} />
+            {settings.maintenanceMode && (
+              <div className="space-y-4 pt-4 border-t border-white/10">
+                <div className="space-y-1.5">
+                  <label className="font-sans text-[10px] text-amber-300 uppercase tracking-widest font-bold">Maintenance Heading / Title</label>
+                  <input 
+                    type="text"
+                    value={settings.maintenance_title || ''}
+                    onChange={(e) => setSettings({ ...settings, maintenance_title: e.target.value })}
+                    placeholder="We're Upgrading Your Experience!"
+                    className={inp}
+                  />
                 </div>
-              </label>
-            ))}
+
+                <div className="space-y-1.5">
+                  <label className="font-sans text-[10px] text-amber-300 uppercase tracking-widest font-bold">Maintenance Message</label>
+                  <textarea 
+                    rows={3}
+                    value={settings.maintenance_message || ''}
+                    onChange={(e) => setSettings({ ...settings, maintenance_message: e.target.value })}
+                    placeholder="Explain maintenance details to site visitors..."
+                    className={`${inp} resize-none`}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="font-sans text-[10px] text-amber-300 uppercase tracking-widest font-bold">Estimated Back Online</label>
+                    <input 
+                      type="text"
+                      value={settings.maintenance_time || ''}
+                      onChange={(e) => setSettings({ ...settings, maintenance_time: e.target.value })}
+                      placeholder="Estimated Back Online: Today at 8:00 PM"
+                      className={inp}
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="font-sans text-[10px] text-amber-300 uppercase tracking-widest font-bold">Emergency Phone / WhatsApp</label>
+                    <input 
+                      type="text"
+                      value={settings.maintenance_phone || ''}
+                      onChange={(e) => setSettings({ ...settings, maintenance_phone: e.target.value })}
+                      placeholder="+91 95051 51116"
+                      className={inp}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
-          <button type="submit" disabled={saving || saved} className="w-full flex items-center justify-center space-x-2 bg-gold text-charcoal font-sans text-xs uppercase tracking-widest font-bold py-4 rounded-lg disabled:opacity-60 transition-all">
-            {saved ? <><CheckCircle size={14} /><span>Settings Saved!</span></> : saving ? <Loader2 size={14} className="animate-spin" /> : <><Save size={14} /><span>Save Settings</span></>}
+          <button type="submit" disabled={saving || saved} className="w-full flex items-center justify-center space-x-2 bg-gold hover:bg-gold-hover text-charcoal font-sans text-xs uppercase tracking-widest font-bold py-4 rounded-xl disabled:opacity-60 transition-all shadow-lg">
+            {saved ? <><CheckCircle size={14} /><span>Settings Saved!</span></> : saving ? <Loader2 size={14} className="animate-spin" /> : <><Save size={14} /><span>Save All Settings</span></>}
           </button>
         </div>
       </form>

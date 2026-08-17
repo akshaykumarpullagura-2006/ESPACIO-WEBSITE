@@ -35,7 +35,7 @@ const Navbar = () => {
     setScrolled(false);
   }, [location]);
 
-  const navLinks = [
+  const defaultNavLinks = [
     { name: 'Home',     path: '/' },
     { name: 'Services',  path: '/services' },
     { name: 'Projects',  path: '/projects' },
@@ -44,6 +44,44 @@ const Navbar = () => {
     { name: 'About',     path: '/about' },
     { name: 'FAQs',      path: '/faq' },
   ];
+
+  const [navLinks, setNavLinks] = useState(defaultNavLinks);
+
+  useEffect(() => {
+    const fetchNav = async () => {
+      try {
+        const { getCMSData, STORAGE_KEYS } = await import('../../utils/cmsStore');
+        const stored = getCMSData(STORAGE_KEYS.SETTINGS);
+        if (stored && stored.nav_items) {
+          const cmsLinks = stored.nav_items
+            .filter((item) => item.visible)
+            .map((item) => ({ name: item.label, path: item.path }));
+          if (cmsLinks.length > 0) setNavLinks(cmsLinks);
+        }
+      } catch {}
+
+      try {
+        const { default: axios } = await import('axios');
+        const res = await axios.get('/settings');
+        if (res.data.success && res.data.data && res.data.data.nav_items) {
+          const cmsLinks = res.data.data.nav_items
+            .filter((item) => item.visible)
+            .map((item) => ({ name: item.label, path: item.path }));
+          if (cmsLinks.length > 0) setNavLinks(cmsLinks);
+        }
+      } catch {}
+    };
+
+    fetchNav();
+
+    const handleSync = () => fetchNav();
+    window.addEventListener('espacio_cms_update', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('espacio_cms_update', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
+  }, []);
 
 
 

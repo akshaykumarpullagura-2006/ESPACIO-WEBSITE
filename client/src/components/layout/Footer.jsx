@@ -9,6 +9,71 @@ const Footer = () => {
   const espRef = useRef(null);
   const inView = useInView(espRef, { once: false, margin: '-60px' });
 
+  const [footerSettings, setFooterSettings] = React.useState({
+    address: '1st floor, H.No. 6-63/14B, Moinabad Road, Aziznagar, Hyderabad, Telangana 500075',
+    email: 'Espacio.hyd@gmail.com',
+    hours: '10:00 AM – 7:30 PM',
+    phone: '+91 95051 51116',
+    instagram: 'https://www.instagram.com/theespacio.in',
+    copyright: `© ${year} ESPACIO Interiors & Modular. All Rights Reserved.`,
+    ctaHeadline: 'Ready to Transform Your Space?',
+    ctaSubtext: "Every great space starts with a single conversation. Let's talk about your vision and bring it to life together.",
+    ctaButtonText: "LET'S TALK ↗",
+  });
+
+  React.useEffect(() => {
+    const fetchFooterSettings = async () => {
+      try {
+        const { getCMSData, STORAGE_KEYS } = await import('../../utils/cmsStore');
+        const stored = getCMSData(STORAGE_KEYS.SETTINGS);
+        if (stored) {
+          setFooterSettings((prev) => ({
+            ...prev,
+            address: stored.footer_address || stored.office_info?.address || prev.address,
+            email: stored.footer_email || stored.office_info?.email || prev.email,
+            hours: stored.footer_hours || stored.office_info?.hours || prev.hours,
+            phone: stored.cta_phone || prev.phone,
+            instagram: stored.footer_instagram || stored.office_info?.instagram || prev.instagram,
+            copyright: stored.footer_copyright || prev.copyright,
+            ctaHeadline: stored.cta_headline || prev.ctaHeadline,
+            ctaSubtext: stored.cta_subtext || prev.ctaSubtext,
+            ctaButtonText: stored.cta_button_text ? `${stored.cta_button_text} ↗` : prev.ctaButtonText,
+          }));
+        }
+      } catch {}
+
+      try {
+        const { default: axios } = await import('axios');
+        const res = await axios.get('/settings');
+        if (res.data.success && res.data.data) {
+          const s = res.data.data;
+          setFooterSettings((prev) => ({
+            ...prev,
+            address: s.footer_address || s.office_info?.address || prev.address,
+            email: s.footer_email || s.office_info?.email || prev.email,
+            hours: s.footer_hours || s.office_info?.hours || prev.hours,
+            phone: s.cta_phone || prev.phone,
+            instagram: s.footer_instagram || s.office_info?.instagram || prev.instagram,
+            copyright: s.footer_copyright || prev.copyright,
+            ctaHeadline: s.cta_headline || prev.ctaHeadline,
+            ctaSubtext: s.cta_subtext || prev.ctaSubtext,
+            ctaButtonText: s.cta_button_text ? `${s.cta_button_text} ↗` : prev.ctaButtonText,
+          }));
+        }
+      } catch {}
+    };
+
+    fetchFooterSettings();
+
+    const handleSync = () => fetchFooterSettings();
+    window.addEventListener('espacio_cms_update', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('espacio_cms_update', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
+  }, [year]);
+
   // Scroll animations for the CTA banner
   const ctaRef = useRef(null);
   const { scrollYProgress } = useScroll({
@@ -36,7 +101,7 @@ const Footer = () => {
   ];
 
   const socialLinks = [
-    { name: 'Instagram', href: 'https://www.instagram.com/theespacio.in' },
+    { name: 'Instagram', href: footerSettings.instagram },
     { name: 'Facebook', href: 'https://facebook.com' },
     { name: 'Linkedin', href: 'https://linkedin.com' },
     { name: 'Twitter', href: 'https://twitter.com' },

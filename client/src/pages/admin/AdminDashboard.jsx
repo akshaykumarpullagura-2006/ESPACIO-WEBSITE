@@ -4,7 +4,7 @@ import axios from 'axios';
 import {
   LayoutDashboard, FolderKanban, Package, Mail, Users, Settings,
   LogOut, ChevronRight, TrendingUp, Eye, MessageSquare, Star,
-  Image, FileText, Bell, Menu, X, AlertCircle
+  Image, FileText, Bell, Menu, X, AlertCircle, Layers, HelpCircle, Activity, Shield
 } from 'lucide-react';
 
 // ── AUTH GUARD ────────────────────────────────────────────────────────────────
@@ -19,12 +19,20 @@ export const useAdminAuth = () => {
 // ── SIDEBAR NAV ───────────────────────────────────────────────────────────────
 const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/admin/dashboard' },
+  { icon: Layers, label: 'Home Hero CMS', path: '/admin/hero' },
+  { icon: Package, label: 'Services CMS', path: '/admin/services' },
+  { icon: Layers, label: 'Spaces CMS', path: '/admin/spaces' },
+  { icon: Package, label: 'Materials CMS', path: '/admin/materials' },
+  { icon: FileText, label: 'About CMS', path: '/admin/about' },
+  { icon: HelpCircle, label: 'FAQ CMS', path: '/admin/faqs' },
+  { icon: Mail, label: 'Contact CMS', path: '/admin/contact' },
+  { icon: Star, label: 'Testimonials CMS', path: '/admin/testimonials' },
   { icon: FolderKanban, label: 'Projects', path: '/admin/projects' },
   { icon: Package, label: 'Products', path: '/admin/products' },
   { icon: Mail, label: 'Enquiries', path: '/admin/enquiries' },
-  { icon: Star, label: 'Testimonials', path: '/admin/testimonials' },
   { icon: Image, label: 'Gallery', path: '/admin/gallery' },
-  { icon: FileText, label: 'FAQs', path: '/admin/faqs' },
+  { icon: Users, label: 'Admin Users', path: '/admin/users' },
+  { icon: Activity, label: 'Audit Logs', path: '/admin/audit' },
   { icon: Settings, label: 'Settings', path: '/admin/settings' },
 ];
 
@@ -63,7 +71,7 @@ const AdminLayout = ({ children }) => {
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 px-3 py-5 space-y-1 overflow-y-auto">
+        <nav data-lenis-prevent className="flex-1 px-3 py-5 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
@@ -133,7 +141,7 @@ const AdminDashboardHome = () => {
         if (statsRes.data.success) setStats(statsRes.data.data);
         if (leadsRes.data.success) setLeads(leadsRes.data.data.leads || leadsRes.data.data || []);
       } catch {
-        setStats({ projects: 28, products: 8, leads: 47, testimonials: 12 });
+        setStats({ projects: 30, products: 9, leads: 47, testimonials: 12 });
         setLeads([]);
       } finally {
         setLoading(false);
@@ -143,8 +151,8 @@ const AdminDashboardHome = () => {
   }, []);
 
   const statCards = [
-    { label: 'Total Projects', value: stats?.projects || 28, icon: FolderKanban, trend: '+3 this month', color: 'text-blue-400', bg: 'bg-blue-400/10' },
-    { label: 'Materials Listed', value: stats?.products || 8, icon: Package, trend: 'Premium collection', color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
+    { label: 'Total Projects', value: stats?.projects || 30, icon: FolderKanban, trend: '+3 this month', color: 'text-blue-400', bg: 'bg-blue-400/10' },
+    { label: 'Materials Listed', value: stats?.products || 9, icon: Package, trend: 'Premium collection', color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
     { label: 'New Enquiries', value: stats?.leads || 47, icon: MessageSquare, trend: '+12 this week', color: 'text-gold', bg: 'bg-gold/10' },
     { label: 'Testimonials', value: stats?.testimonials || 12, icon: Star, trend: 'Active reviews', color: 'text-purple-400', bg: 'bg-purple-400/10' },
   ];

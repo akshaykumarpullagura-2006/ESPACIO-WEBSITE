@@ -111,16 +111,65 @@ const heroImages = [
   'https://images.unsplash.com/photo-1613977257363-707ba9348227?auto=format&fit=crop&w=1920&q=90',
 ];
 
+import { getCMSData, STORAGE_KEYS } from '../utils/cmsStore';
+
+const getNonEmpty = (val, fallback) => (val && typeof val === 'string' && val.trim().length > 0 ? val : fallback);
+
 const Services = () => {
   const heroRef = useRef(null);
   const [currentImageIdx, setCurrentImageIdx] = useState(0);
 
+  const [heroContent, setHeroContent] = useState(() => {
+    const s = getCMSData(STORAGE_KEYS.SETTINGS);
+    return {
+      badge: getNonEmpty(s?.services_hero_badge, 'Services'),
+      title: getNonEmpty(s?.services_hero_title, 'Our Services'),
+      subtitle: getNonEmpty(s?.services_hero_subtitle, 'Turnkey design and build with engineering tolerances. No templates. No hidden package tricks.'),
+      images: (Array.isArray(s?.services_hero_images) && s.services_hero_images.length > 0) ? s.services_hero_images : heroImages,
+      visible: true
+    };
+  });
+
+  const [servicesList, setServicesList] = useState(() => {
+    const s = getCMSData(STORAGE_KEYS.SETTINGS);
+    return (Array.isArray(s?.services_list) && s.services_list.length > 0) ? s.services_list : services;
+  });
+
+  useEffect(() => {
+    const syncCMS = () => {
+      const settings = getCMSData(STORAGE_KEYS.SETTINGS);
+      if (settings) {
+        setHeroContent({
+          badge: getNonEmpty(settings.services_hero_badge, 'Services'),
+          title: getNonEmpty(settings.services_hero_title, 'Our Services'),
+          subtitle: getNonEmpty(settings.services_hero_subtitle, 'Turnkey design and build with engineering tolerances. No templates. No hidden package tricks.'),
+          images: (Array.isArray(settings.services_hero_images) && settings.services_hero_images.length > 0)
+            ? settings.services_hero_images
+            : heroImages,
+          visible: settings.services_hero_visible !== false
+        });
+        if (Array.isArray(settings.services_list) && settings.services_list.length > 0) {
+          setServicesList(settings.services_list);
+        }
+      }
+    };
+
+    syncCMS();
+
+    window.addEventListener('espacio_cms_update', syncCMS);
+    window.addEventListener('storage', syncCMS);
+    return () => {
+      window.removeEventListener('espacio_cms_update', syncCMS);
+      window.removeEventListener('storage', syncCMS);
+    };
+  }, []);
+
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentImageIdx((prev) => (prev + 1) % heroImages.length);
+      setCurrentImageIdx((prev) => (prev + 1) % ((heroContent.images || heroImages).length));
     }, 5000);
     return () => clearInterval(timer);
-  }, []);
+  }, [heroContent.images]);
 
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end end'] });
   const bgScale = useTransform(scrollYProgress, [0, 1], [1.05, 0.95]);
@@ -132,41 +181,47 @@ const Services = () => {
     <div className="bg-bg overflow-x-hidden">
       <SEO title="Services — ESPACIO Interiors" description="Full home interiors, modular kitchens, commercial spaces, and renovations. Engineering-first luxury design executed by ESPACIO." url="/services" />
 
-      <section ref={heroRef} className="relative h-[80vh] lg:h-[95vh] px-5 pt-5 pb-[10px] lg:px-12">
-        <div className="relative w-full h-full overflow-hidden will-change-transform rounded-[24px] lg:rounded-[40px]">
-          <motion.div style={{ scale: bgScale, y: bgY }} className="absolute inset-0 will-change-transform overflow-hidden">
-            <AnimatePresence initial={false}>
-              <motion.img key={currentImageIdx} src={heroImages[currentImageIdx]} alt="ESPACIO Services" initial={{ x: '15%', opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: '-15%', opacity: 0 }} transition={{ duration: 1.6, ease: [0.25, 1, 0.5, 1] }} className="absolute inset-0 w-full h-full object-cover" />
-            </AnimatePresence>
-          </motion.div>
-          <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/75 z-10 pointer-events-none" />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/25 to-transparent z-10 pointer-events-none" />
-          <motion.div style={{ y: textY, opacity: textOp }} className="absolute inset-0 z-20 flex flex-col justify-end">
-            <div className="w-full px-8 md:px-12 pb-10 md:pb-14">
-              <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }} className="flex flex-col items-start gap-4">
-                <div className="inline-flex items-center gap-2 bg-black/55 backdrop-blur-md border border-white/20 text-white px-4 py-2 rounded-full">
-                  <span className="w-1.5 h-1.5 rounded-full bg-gold animate-pulse" />
-                  <span className="font-sans text-[11px] font-semibold uppercase tracking-[0.2em]">Services</span>
+      {heroContent.visible !== false && (
+        <section ref={heroRef} className="relative h-[80vh] lg:h-[95vh] px-5 pt-5 pb-[10px] lg:px-12">
+          <div className="relative w-full h-full overflow-hidden will-change-transform rounded-[24px] lg:rounded-[40px]">
+            <motion.div style={{ scale: bgScale, y: bgY }} className="absolute inset-0 will-change-transform overflow-hidden">
+              <AnimatePresence initial={false}>
+                <motion.img key={currentImageIdx} src={(heroContent.images && heroContent.images[currentImageIdx % heroContent.images.length]) || heroImages[0]} alt="ESPACIO Services" initial={{ x: '15%', opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: '-15%', opacity: 0 }} transition={{ duration: 1.6, ease: [0.25, 1, 0.5, 1] }} className="absolute inset-0 w-full h-full object-cover" />
+              </AnimatePresence>
+            </motion.div>
+            <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/75 z-10 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/25 to-transparent z-10 pointer-events-none" />
+            <div className="absolute inset-0 z-20 flex flex-col justify-end pointer-events-none">
+              <div className="w-full px-8 md:px-12 pb-10 md:pb-14 pointer-events-auto">
+                <div className="flex flex-col items-start gap-4">
+                  <div className="inline-flex items-center gap-2 bg-black/55 backdrop-blur-md border border-white/20 text-white px-4 py-2 rounded-full">
+                    <span className="w-1.5 h-1.5 rounded-full bg-gold animate-pulse" />
+                    <span className="font-sans text-[11px] font-semibold uppercase tracking-[0.2em]">{heroContent.badge}</span>
+                  </div>
+                  <h1 className="font-display font-bold leading-none tracking-tight text-white" style={{ fontSize: 'clamp(48px, 8vw, 108px)' }}>
+                    {heroContent.title}
+                  </h1>
+                  <p className="font-sans text-[14px] md:text-[15px] text-white/70 max-w-[500px] leading-relaxed">
+                    {heroContent.subtitle}
+                  </p>
+                  <div className="flex items-center gap-2 mt-1">
+                    {(heroContent.images || heroImages).map((_, i) => (
+                      <button key={i} onClick={() => setCurrentImageIdx(i)} className={`rounded-full transition-all duration-500 ${i === currentImageIdx ? 'w-6 h-1.5 bg-gold' : 'w-1.5 h-1.5 bg-white/40 hover:bg-white/70'}`} />
+                    ))}
+                  </div>
                 </div>
-                <h1 className="font-display font-bold leading-none tracking-tight text-white" style={{ fontSize: 'clamp(48px, 8vw, 108px)' }}>Our Services</h1>
-                <p className="font-sans text-[14px] md:text-[15px] text-white/60 max-w-[420px] leading-relaxed">Turnkey design and build with engineering tolerances. No templates. No hidden package tricks.</p>
-                <div className="flex items-center gap-2 mt-1">
-                  {heroImages.map((_, i) => (
-                    <button key={i} onClick={() => setCurrentImageIdx(i)} className={`rounded-full transition-all duration-500 ${i === currentImageIdx ? 'w-6 h-1.5 bg-gold' : 'w-1.5 h-1.5 bg-white/40 hover:bg-white/70'}`} />
-                  ))}
-                </div>
-              </motion.div>
+              </div>
             </div>
-          </motion.div>
-        </div>
-      </section>
+          </div>
+        </section>
+      )}
 
       <section className="py-24 px-6 md:px-10 overflow-hidden">
         <div className="max-w-[1440px] mx-auto divide-y divide-ink-border">
-          {services.map((s, i) => {
+          {servicesList.filter((s) => s.visible !== false).map((s, i) => {
             const isOdd = i % 2 === 1;
             return (
-              <div key={s.num} className="py-16 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              <div key={s.num || i} className="py-16 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                 <Reveal delay={0.05} direction={isOdd ? 'right' : 'left'} className={isOdd ? 'lg:order-2' : ''}>
                   <div className="aspect-[4/3] rounded-card overflow-hidden bg-bg-card">
                     <img src={s.img} alt={s.title} loading="lazy" decoding="async" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
@@ -174,20 +229,24 @@ const Services = () => {
                 </Reveal>
                 <Reveal delay={0.15} direction={isOdd ? 'left' : 'right'} className={`space-y-6 ${isOdd ? 'lg:order-1' : ''}`}>
                   <div className="flex items-center gap-4">
-                    <span className="font-sans text-[11px] font-semibold text-gold">{s.num}</span>
+                    <span className="font-sans text-[11px] font-semibold text-gold">{String(i + 1).padStart(2, '0')}</span>
                     <span className="font-sans text-[10px] font-semibold uppercase tracking-widest text-ink-muted bg-bg-card px-3 py-1 rounded-pill">{s.tag}</span>
                   </div>
                   <h2 className="font-display text-[clamp(28px,3vw,42px)] font-bold tracking-tight text-ink leading-tight">{s.title}</h2>
                   <p className="font-sans text-[15px] text-ink-soft leading-relaxed">{s.desc}</p>
                   <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {s.includes.map((item) => (
-                      <li key={item} className="flex items-center gap-2 font-sans text-[13px] text-ink-soft">
+                    {(Array.isArray(s.includes) ? s.includes : []).map((item, fIdx) => (
+                      <li key={fIdx} className="flex items-center gap-2 font-sans text-[13px] text-ink-soft">
                         <CheckCircle2 size={14} className="text-gold shrink-0" />
                         {item}
                       </li>
                     ))}
                   </ul>
-                  <Link to="/contact" className="btn-primary w-fit">Enquire About This <ArrowUpRight size={13} /></Link>
+                  {s.ctaVisible !== false && (
+                    <Link to={s.ctaLink || "/contact"} className="btn-primary w-fit">
+                      {s.ctaText || "Enquire About This"} <ArrowUpRight size={13} />
+                    </Link>
+                  )}
                 </Reveal>
               </div>
             );

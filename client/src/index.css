@@ -9,6 +9,30 @@
   font-style: normal;
 }
 
+/* ── Global Custom Scrollbar ──────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #101014;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #C9A96E;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #B8924A;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #C9A96E #101014;
+}
+
 :root {
   --logo-kerning: -2px;
 }

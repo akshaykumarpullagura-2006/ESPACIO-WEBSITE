@@ -133,24 +133,60 @@ const QuoteModal = () => {
 
     try {
       const isCatalogue = modalMode === 'catalogue';
-      const response = await axios.post('/leads', {
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone2 ? `${formData.phone1} / ${formData.phone2}` : formData.phone1,
-        location: formData.location,
-        projectType: isCatalogue ? 'Catalogue Request' : 'Free Estimate Request',
-        catalogueMaterial: isCatalogue ? productContext : undefined,
-        message: isCatalogue 
-          ? `Catalogue Material: ${productContext || 'N/A'}. Location: ${formData.location || 'N/A'}` 
-          : `Location: ${formData.location || 'N/A'}. Secondary Phone: ${formData.phone2 || 'None'}`,
-      });
-
-      if (response.status === 201 || response.status === 200) {
-        setSubmitted(true);
-        sessionStorage.setItem('quote_modal_dismissed', 'true');
-      } else {
-        setErrorMsg("We're unable to submit your request at the moment. Please try again in a few minutes.");
+      const type = isCatalogue ? 'CATALOGUE_REQUEST' : 'FREE_ESTIMATE';
+      const source = isCatalogue ? 'CATALOGUE_REQUEST' : 'GET_FREE_ESTIMATE';
+      
+      // Save structured enquiry into local CMS store for real-time admin sync
+      try {
+        const { getCMSData, setCMSData, STORAGE_KEYS, notifyCMSUpdate } = await import('../../utils/cmsStore');
+        const existing = getCMSData(STORAGE_KEYS.ENQUIRIES) || [];
+        const count = existing.length + 1;
+        const prefix = isCatalogue ? 'ESP-CR' : 'ESP-FE';
+        const enquiryId = `${prefix}-${String(count).padStart(5, '0')}`;
+        
+        const newRecord = {
+          id: enquiryId,
+          enquiryId,
+          type,
+          source,
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone1,
+          phone2: formData.phone2 || '',
+          location: formData.location || '',
+          catalogueMaterial: isCatalogue ? (productContext || '') : '',
+          status: 'NEW',
+          read: false,
+          submittedAt: new Date().toISOString(),
+          notes: [],
+          followUp: null
+        };
+        
+        setCMSData(STORAGE_KEYS.ENQUIRIES, [newRecord, ...existing]);
+        notifyCMSUpdate();
+      } catch (cmsErr) {
+        console.warn('CMS store error:', cmsErr);
       }
+
+      // Perform non-blocking backend call
+      try {
+        await axios.post('/leads', {
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone2 ? `${formData.phone1} / ${formData.phone2}` : formData.phone1,
+          location: formData.location,
+          projectType: isCatalogue ? 'Catalogue Request' : 'Free Estimate Request',
+          catalogueMaterial: isCatalogue ? productContext : undefined,
+          message: isCatalogue 
+            ? `Catalogue Material: ${productContext || 'N/A'}. Location: ${formData.location || 'N/A'}` 
+            : `Location: ${formData.location || 'N/A'}. Secondary Phone: ${formData.phone2 || 'None'}`,
+        });
+      } catch (backendErr) {
+        console.warn('Backend leads API warning:', backendErr.message);
+      }
+
+      setSubmitted(true);
+      sessionStorage.setItem('quote_modal_dismissed', 'true');
     } catch (err) {
       console.error('Lead submission error:', err);
       const errMsg = err.response?.data?.message || "We're unable to submit your request at the moment. Please try again in a few minutes.";

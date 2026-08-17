@@ -9,6 +9,7 @@ import DecryptedText from '../components/ui/DecryptedText';
 import { StickyScroll } from '../components/ui/sticky-scroll-reveal';
 import { HeroParallax } from '../components/ui/hero-parallax';
 import Testimonials from '../components/ui/Testimonials';
+import { getCMSData, STORAGE_KEYS } from '../utils/cmsStore';
 
 const Reveal = ({ children, delay = 0, className = '' }) => {
   const ref = useRef(null);
@@ -139,7 +140,8 @@ const teamProjectsData = [
   }
 ];
 
-const TeamProjectsShowcase = () => {
+const TeamProjectsShowcase = ({ customSlides }) => {
+  const slides = (Array.isArray(customSlides) && customSlides.length > 0) ? customSlides : teamProjectsData;
   const [idx, setIdx] = useState(0);
   const [direction, setDirection] = useState(1);
   const [progress, setProgress] = useState(0);
@@ -165,7 +167,7 @@ const TeamProjectsShowcase = () => {
     startProgress();
     timerRef.current = setInterval(() => {
       setDirection(1);
-      setIdx((prev) => (prev + 1) % teamProjectsData.length);
+      setIdx((prev) => (prev + 1) % slides.length);
       startProgress();
     }, INTERVAL);
   };
@@ -176,23 +178,23 @@ const TeamProjectsShowcase = () => {
       if (timerRef.current) clearInterval(timerRef.current);
       if (progressRef.current) cancelAnimationFrame(progressRef.current);
     };
-  }, []);
+  }, [slides]);
 
   const handleNext = (e) => {
     if (e) e.stopPropagation();
     setDirection(1);
-    setIdx((prev) => (prev + 1) % teamProjectsData.length);
+    setIdx((prev) => (prev + 1) % slides.length);
     resetTimer();
   };
 
   const handlePrev = (e) => {
     if (e) e.stopPropagation();
     setDirection(-1);
-    setIdx((prev) => (prev - 1 + teamProjectsData.length) % teamProjectsData.length);
+    setIdx((prev) => (prev - 1 + slides.length) % slides.length);
     resetTimer();
   };
 
-  const current = teamProjectsData[idx];
+  const current = slides[idx % slides.length] || teamProjectsData[0];
 
   const slideVariants = {
     enter: (dir) => ({
@@ -300,7 +302,7 @@ const TeamProjectsShowcase = () => {
 
       {/* ── Dot indicators ── */}
       <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
-        {teamProjectsData.map((_, i) => (
+        {slides.map((_, i) => (
           <motion.button
             key={i}
             onClick={() => { setDirection(i > idx ? 1 : -1); setIdx(i); resetTimer(); }}
@@ -473,6 +475,70 @@ const Home = () => {
   const [showIntro, setShowIntro] = useState(() => !sessionStorage.getItem('espacio_intro_played'));
   const [hoveredStatIdx, setHoveredStatIdx] = useState(null);
 
+  const [homeSettings, setHomeSettings] = useState({
+    hero_title: 'Engineering. Elegance. Experience.',
+    hero_subtitle: 'Bespoke Luxury Interiors & Turned-Key Executions in Hyderabad',
+    hero_cta_text: 'Get Free Estimate',
+    hero_visible: true,
+
+    hero_bg_images: HERO_IMAGES,
+    hero_card_image: '',
+    hero_card_heading: 'We Craft the Future Dwelling',
+    hero_card_cta_text: 'Our Projects',
+    hero_card_cta_link: '/projects',
+    hero_card_cta_visible: true,
+
+    hero_stat1_value: '25+',
+    hero_stat1_label: 'Projects Completed',
+    hero_stat1_visible: true,
+    hero_stat1_order: 1,
+
+    hero_stat2_value: '1 Year',
+    hero_stat2_label: 'Since 2025',
+    hero_stat2_visible: true,
+    hero_stat2_order: 2,
+
+    hero_stat3_value: '40+',
+    hero_stat3_label: 'Years of Family Legacy',
+    hero_stat3_visible: true,
+    hero_stat3_order: 3,
+
+    about_title: 'Four Decades of Structural Excellence',
+    about_subtitle: 'HERITAGE & CRAFTSMANSHIP',
+    about_description: 'Born out of a multi-generational legacy in civil construction, ESPACIO brings structural rigor and high-tolerance engineering to luxury interior architecture across Hyderabad.',
+    about_experience_years: '40+',
+    about_visible: true,
+  });
+
+  useEffect(() => {
+    const loadHomeCMS = async () => {
+      try {
+        const { getCMSData, STORAGE_KEYS } = await import('../utils/cmsStore');
+        const stored = getCMSData(STORAGE_KEYS.SETTINGS);
+        if (stored) {
+          setHomeSettings((prev) => ({ ...prev, ...stored }));
+        }
+      } catch {}
+
+      try {
+        const res = await axios.get('/settings');
+        if (res.data.success && res.data.data) {
+          setHomeSettings((prev) => ({ ...prev, ...res.data.data }));
+        }
+      } catch {}
+    };
+
+    loadHomeCMS();
+
+    const handleSync = () => loadHomeCMS();
+    window.addEventListener('espacio_cms_update', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('espacio_cms_update', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
+  }, []);
+
 
   const handleIntroComplete = () => {
     setShowIntro(false);
@@ -490,7 +556,7 @@ const Home = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const faqData = [
+  const defaultHomeFaqItems = [
     {
       q: "How long does a project usually take?",
       a: "Typically 2–3 months, depending on the level of detailing and customization involved in your project."
@@ -510,37 +576,66 @@ const Home = () => {
     {
       q: "How can customers request a quotation?",
       a: "Simply fill out our contact form on the website, and our team will get back to you to discuss your project."
-    },
-    {
-      q: "Do you sell materials separately from design services?",
-      a: "Yes. Our materials including WPC panels, polygranite sheets, acrylic sheets, and more are available for standalone purchase, without needing to book a full design or execution project with us."
-    },
-    {
-      q: "Do I need to be involved throughout the project, or can it be handled remotely?",
-      a: "We keep you informed at every key stage with regular updates and site visits, so you're never left in the dark, but you don't need to manage day-to-day execution yourself. That's what turnkey means."
-    },
-    {
-      q: "What if I already have a design in mind, can you just execute it?",
-      a: "Absolutely. Whether you come with a finalized design or need us to design from scratch, we can adapt to execution-only or full design-and-build depending on what you need."
-    },
-    {
-      q: "Can I customize designs, or do you offer fixed packages?",
-      a: "Every project is fully customized around your space and preferences — we don't work off fixed templates or set packages."
-    },
-    {
-      q: "What happens if something needs repair after project completion?",
-      a: "Any issues within our warranty period are addressed directly by our team. Reach out through the contact form and we'll take care of it."
     }
   ];
+
+  const [faqData, setFaqData] = useState(() => {
+    const stored = getCMSData(STORAGE_KEYS.FAQS);
+    if (Array.isArray(stored) && stored.length > 0) {
+      const filtered = stored.filter(item => item.status !== 'Draft' && item.status !== 'Archived').map(item => ({
+        q: item.question || item.q,
+        a: item.answer || item.a
+      }));
+      return filtered.length > 0 ? filtered : defaultHomeFaqItems;
+    }
+    return defaultHomeFaqItems;
+  });
+
+  useEffect(() => {
+    const syncHomeFaqs = async () => {
+      try {
+        const { getCMSData, STORAGE_KEYS } = await import('../utils/cmsStore');
+        const stored = getCMSData(STORAGE_KEYS.FAQS);
+        if (Array.isArray(stored) && stored.length > 0) {
+          const filtered = stored.filter(item => item.status !== 'Draft' && item.status !== 'Archived').map(item => ({
+            q: item.question || item.q,
+            a: item.answer || item.a
+          }));
+          if (filtered.length > 0) {
+            setFaqData(filtered);
+          }
+        }
+      } catch {}
+    };
+
+    syncHomeFaqs();
+
+    window.addEventListener('espacio_cms_update', syncHomeFaqs);
+    window.addEventListener('storage', syncHomeFaqs);
+    return () => {
+      window.removeEventListener('espacio_cms_update', syncHomeFaqs);
+      window.removeEventListener('storage', syncHomeFaqs);
+    };
+  }, []);
+
+  const activeHeroBgImages = (Array.isArray(homeSettings.hero_bg_images) && homeSettings.hero_bg_images.length > 0)
+    ? homeSettings.hero_bg_images
+    : HERO_IMAGES;
+
+  const activeHomeStats = [
+    { val: homeSettings.hero_stat1_value || '25+', desc: homeSettings.hero_stat1_label || 'Projects Completed', visible: homeSettings.hero_stat1_visible !== false, order: Number(homeSettings.hero_stat1_order) || 1 },
+    { val: homeSettings.hero_stat2_value || '1 Year', desc: homeSettings.hero_stat2_label || 'Since 2025', visible: homeSettings.hero_stat2_visible !== false, order: Number(homeSettings.hero_stat2_order) || 2 },
+    { val: homeSettings.hero_stat3_value || '40+', desc: homeSettings.hero_stat3_label || 'Years of Family Legacy', visible: homeSettings.hero_stat3_visible !== false, order: Number(homeSettings.hero_stat3_order) || 3 },
+  ].filter(s => s.visible).sort((a, b) => a.order - b.order);
 
   const [currentImageIdx, setCurrentImageIdx] = useState(0);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentImageIdx((prev) => (prev + 1) % HERO_IMAGES.length);
-    }, 2000);
+      setCurrentImageIdx((prev) => (prev + 1) % activeHeroBgImages.length);
+    }, 4000);
     return () => clearInterval(timer);
-  }, []);
+  }, [activeHeroBgImages.length]);
 
   // Page-level scroll for subtle parallax on the background image
   const { scrollYProgress } = useScroll();
@@ -557,9 +652,36 @@ const Home = () => {
   const heroExitY = useTransform(heroScroll, [0, 1], ["0%", "25%"]);
 
   useEffect(() => {
-    axios.get('/projects?limit=6&featured=true')
-      .then(r => { if (r.data.success) setProjects(r.data.data); })
-      .catch(() => {});
+    const loadFeaturedProjects = async () => {
+      try {
+        const { getCMSData, STORAGE_KEYS } = await import('../utils/cmsStore');
+        const storedProjects = getCMSData(STORAGE_KEYS.PROJECTS);
+        if (storedProjects && Array.isArray(storedProjects) && storedProjects.length > 0) {
+          const featuredOnly = storedProjects.filter(p => p.featured === true || p.featured === 'true');
+          if (featuredOnly.length > 0) {
+            setProjects(featuredOnly.slice(0, 6));
+            return;
+          }
+        }
+      } catch {}
+
+      try {
+        const r = await axios.get('/projects?limit=6&featured=true');
+        if (r.data.success && Array.isArray(r.data.data) && r.data.data.length > 0) {
+          setProjects(r.data.data);
+        }
+      } catch {}
+    };
+
+    loadFeaturedProjects();
+
+    const handleSync = () => loadFeaturedProjects();
+    window.addEventListener('espacio_cms_update', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('espacio_cms_update', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
   }, []);
 
   const mockProjects = [
@@ -834,7 +956,7 @@ const Home = () => {
             <AnimatePresence initial={false}>
               <motion.img
                 key={currentImageIdx}
-                src={HERO_IMAGES[currentImageIdx]}
+                src={activeHeroBgImages[currentImageIdx % activeHeroBgImages.length]}
                 alt="ESPACIO Luxury Background"
                 initial={{ x: '15%', opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
@@ -895,7 +1017,7 @@ const Home = () => {
                         <AnimatePresence initial={false}>
                           <motion.img
                             key={currentImageIdx}
-                            src={HERO_IMAGES[currentImageIdx]}
+                            src={homeSettings.hero_card_image || activeHeroBgImages[currentImageIdx % activeHeroBgImages.length]}
                             alt="Luxury interior showcase"
                             initial={{ x: '15%', opacity: 0 }}
                             animate={{ x: 0, opacity: 1 }}
@@ -908,34 +1030,36 @@ const Home = () => {
 
                       {/* Headline */}
                       <h2 className="font-display text-[28px] sm:text-[36px] lg:text-[32px] font-semibold leading-tight tracking-tight text-white mb-6 text-center">
-                        We Craft the Future Dwelling
+                        {homeSettings.hero_card_heading || 'We Craft the Future Dwelling'}
                       </h2>
 
                       {/* Bottom Row */}
-                      <div className="flex items-center justify-center">
-                        <Link 
-                          to="/projects"
-                          className="group relative inline-flex items-center justify-center overflow-hidden rounded-full border border-white/30 bg-white/15 backdrop-blur-md px-5 py-2.5 text-[11px] md:text-[12px] font-bold text-white hover:bg-white hover:text-[#101014] shadow-md transition-all duration-300 shrink-0"
-                        >
-                          {/* Sizing span (invisible, sets exact container width for Discover Our Works ↗) */}
-                          <span className="inline-flex items-center gap-1.5 opacity-0 pointer-events-none select-none whitespace-nowrap">
-                            <span>Discover Our Works</span>
-                            <ArrowUpRight size={14} className="shrink-0" />
-                          </span>
+                      {homeSettings.hero_card_cta_visible !== false && (
+                        <div className="flex items-center justify-center">
+                          <Link 
+                            to={homeSettings.hero_card_cta_link || "/projects"}
+                            className="group relative inline-flex items-center justify-center overflow-hidden rounded-full border border-white/30 bg-white/15 backdrop-blur-md px-5 py-2.5 text-[11px] md:text-[12px] font-bold text-white hover:bg-white hover:text-[#101014] shadow-md transition-all duration-300 shrink-0"
+                          >
+                            {/* Sizing span (invisible, sets exact container width for Discover Our Works ↗) */}
+                            <span className="inline-flex items-center gap-1.5 opacity-0 pointer-events-none select-none whitespace-nowrap">
+                              <span>Discover Our Works</span>
+                              <ArrowUpRight size={14} className="shrink-0" />
+                            </span>
 
-                          {/* Default State: Our Projects ↗ */}
-                          <span className="absolute inset-0 flex items-center justify-center gap-1.5 transition-all duration-300 group-hover:-translate-y-full group-hover:opacity-0 text-white whitespace-nowrap">
-                            <span>Our Projects</span>
-                            <ArrowUpRight size={14} className="shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                          </span>
+                            {/* Default State: CTA Text ↗ */}
+                            <span className="absolute inset-0 flex items-center justify-center gap-1.5 transition-all duration-300 group-hover:-translate-y-full group-hover:opacity-0 text-white whitespace-nowrap">
+                              <span>{homeSettings.hero_card_cta_text || 'Our Projects'}</span>
+                              <ArrowUpRight size={14} className="shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                            </span>
 
-                          {/* Hover State: Discover Our Works ↗ */}
-                          <span className="absolute inset-0 flex items-center justify-center gap-1.5 transition-all duration-300 translate-y-full opacity-0 group-hover:translate-y-0 group-hover:opacity-100 text-[#101014] font-bold whitespace-nowrap">
-                            <span style={{ color: '#101014' }}>Discover Our Works</span>
-                            <ArrowUpRight size={14} className="shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" style={{ color: '#101014', stroke: '#101014', strokeWidth: 2.5 }} />
-                          </span>
-                        </Link>
-                      </div>
+                            {/* Hover State: Discover Our Works ↗ */}
+                            <span className="absolute inset-0 flex items-center justify-center gap-1.5 transition-all duration-300 translate-y-full opacity-0 group-hover:translate-y-0 group-hover:opacity-100 text-[#101014] font-bold whitespace-nowrap">
+                              <span style={{ color: '#101014' }}>Discover Our Works</span>
+                              <ArrowUpRight size={14} className="shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" style={{ color: '#101014', stroke: '#101014', strokeWidth: 2.5 }} />
+                            </span>
+                          </Link>
+                        </div>
+                      )}
                     </div>
                   </motion.div>
                 </motion.div>
@@ -958,11 +1082,7 @@ const Home = () => {
                   
                   {/* Stats Row */}
                   <div className="hidden sm:flex flex-row gap-3 md:gap-4 justify-center lg:justify-end items-center h-26 translate-y-0 lg:-translate-y-10 mt-2 lg:mt-0">
-                    {[
-                      { val: '25+', desc: 'Projects Completed', hoverLabel: '25+ Projects Completed' },
-                      { val: '1 Year', desc: 'Since 2025', hoverLabel: 'Established Since 2025' },
-                      { val: '40+', desc: 'Years of Family Legacy', hoverLabel: '40+ Years of Family Construction Legacy' },
-                    ].map((s, index) => {
+                    {activeHomeStats.map((s, index) => {
                       const isHovered = hoveredStatIdx === index;
                       return (
                         <motion.div 
@@ -1063,27 +1183,27 @@ const Home = () => {
             
             <Reveal delay={0.1}>
               <h2 className="font-display text-[clamp(34px,4.2vw,56px)] font-medium leading-[1.1] tracking-tight text-ink">
-                From Concept to Handover — ESPACIO Delivers Complete Interiors.
+                {homeSettings.intro_heading || 'From Concept to Handover — ESPACIO Delivers Complete Interiors.'}
               </h2>
             </Reveal>
             
             <Reveal delay={0.2}>
               <p className="font-sans text-[15.5px] text-ink-soft leading-relaxed max-w-[520px]">
-                We bring 40+ years of family construction heritage to luxury interior design. Every space we create is backed by structural thinking, premium materials sourced directly from our own warehouses, and meticulous execution.
+                {homeSettings.intro_description || 'We bring 40+ years of family construction heritage to luxury interior design. Every space we create is backed by structural thinking, premium materials sourced directly from our own warehouses, and meticulous execution.'}
               </p>
             </Reveal>
             
             <Reveal delay={0.3}>
-              <Link to="/about" className="btn-sliding-cta-dark">
-                <span className="btn-sliding-cta-dark-text-one">Our Story ↗</span>
-                <span className="btn-sliding-cta-dark-text-two">Read More ↗</span>
+              <Link to={homeSettings.intro_cta_link || "/about"} className="btn-sliding-cta-dark">
+                <span className="btn-sliding-cta-dark-text-one">{homeSettings.intro_cta_text1 || 'Our Story ↗'}</span>
+                <span className="btn-sliding-cta-dark-text-two">{homeSettings.intro_cta_text2 || 'Read More ↗'}</span>
               </Link>
             </Reveal>
           </div>
           
           {/* Right Column: Visual Team & Projects Showcase (lg:col-span-6) */}
           <div className="lg:col-span-6">
-            <TeamProjectsShowcase />
+            <TeamProjectsShowcase customSlides={homeSettings.showcase_slides} />
           </div>
           
         </div>
@@ -1093,9 +1213,13 @@ const Home = () => {
       {/* ── 2.5 STATS GRID SECTION ── */}
       <section className="pb-12 px-6 md:px-12 max-w-[1440px] mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 text-left">
-          {statsData.map((stat, i) => (
+          {[
+            { value: homeSettings.grid_stat1_val || "25+", label: homeSettings.grid_stat1_label || "Projects Completed", progressWidth: "60%", dots: [true, false, false] },
+            { value: homeSettings.grid_stat2_val || "100+", label: homeSettings.grid_stat2_label || "Happy Clients (including materials clients)", progressWidth: "80%", dots: [false, true, false] },
+            { value: homeSettings.grid_stat3_val || "40+", label: homeSettings.grid_stat3_label || "Years Combined Legacy", progressWidth: "90%", dots: [false, false, true] }
+          ].map((stat, i) => (
             <motion.div
-              key={stat.label}
+              key={i}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: false, amount: 0.1 }}

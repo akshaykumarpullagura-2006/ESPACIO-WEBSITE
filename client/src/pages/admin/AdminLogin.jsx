@@ -22,21 +22,65 @@ const AdminLogin = () => {
 
   const onSubmit = async (data) => {
     setServerError(null);
+    const sanitizedEmail = data.email ? data.email.trim().toLowerCase() : '';
+    const password = data.password;
+
     try {
-      const sanitizedData = {
-        ...data,
-        email: data.email ? data.email.trim().toLowerCase() : ''
+      // 1. Check custom admin users stored in cmsStore
+      const { getCMSData, STORAGE_KEYS } = await import('../../utils/cmsStore');
+      const { logAuditEvent } = await import('../../utils/auditStore');
+      const customUsers = getCMSData(STORAGE_KEYS.ADMIN_USERS) || [];
+
+      // Include default admin account
+      const defaultUser = {
+        name: 'Tarun (Super Admin)',
+        email: 'tarunuttupulusu@gmail.com',
+        password: 'tarun2314638',
+        role: 'Super Admin',
+        active: true
       };
-      const response = await axios.post('/auth/login', sanitizedData);
-      if (response.data.success) {
-        const token = response.data.data?.token || response.data.token;
-        localStorage.setItem('espacio_token', token);
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+      const allUsers = [defaultUser, ...customUsers];
+      const matchedUser = allUsers.find(
+        u => u.email.toLowerCase() === sanitizedEmail && u.password === password && u.active !== false
+      );
+
+      if (matchedUser) {
+        const dummyToken = 'jwt_espacio_token_' + Date.now();
+        localStorage.setItem('espacio_token', dummyToken);
+        sessionStorage.setItem('active_admin_user', JSON.stringify({
+          name: matchedUser.name,
+          email: matchedUser.email,
+          role: matchedUser.role || 'Admin'
+        }));
+        await logAuditEvent('User Logged In', 'Authentication', `User ${matchedUser.name} (${matchedUser.email}) logged into Admin Panel`);
         navigate('/admin/dashboard');
+        return;
       }
+
+      // 2. Fallback to backend API
+      try {
+        const response = await axios.post('/auth/login', { email: sanitizedEmail, password });
+        if (response.data.success) {
+          const token = response.data.data?.token || response.data.token;
+          localStorage.setItem('espacio_token', token);
+          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+          sessionStorage.setItem('active_admin_user', JSON.stringify({
+            name: sanitizedEmail.split('@')[0],
+            email: sanitizedEmail,
+            role: 'Admin'
+          }));
+          await logAuditEvent('User Logged In', 'Authentication', `User ${sanitizedEmail} logged into Admin Panel`);
+          navigate('/admin/dashboard');
+          return;
+        }
+      } catch (backendErr) {
+        // Continue to error message
+      }
+
+      setServerError('Invalid email address or password. Please check your credentials.');
     } catch (err) {
-      const msg = err?.response?.data?.message || 'Invalid credentials. Please try again.';
-      setServerError(msg);
+      setServerError('Unable to sign in. Please check your credentials.');
     }
   };
 

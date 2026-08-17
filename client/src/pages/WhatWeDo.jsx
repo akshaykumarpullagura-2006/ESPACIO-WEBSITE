@@ -556,6 +556,10 @@ const getTagsForImage = (imgUrl) => {
   return [];
 };
 
+import { getCMSData, STORAGE_KEYS } from '../utils/cmsStore';
+
+const getNonEmpty = (val, fallback) => (val && typeof val === 'string' && val.trim().length > 0 ? val : fallback);
+
 const WhatWeDo = () => {
   const { slug } = useParams();
   const [activeFilter, setActiveFilter] = useState('All');
@@ -564,6 +568,49 @@ const WhatWeDo = () => {
   const [containerWidth, setContainerWidth] = useState(0);
   const [visibleCount, setVisibleCount] = useState(6);
 
+  const [spacesHeroState, setSpacesHeroState] = useState(() => {
+    const s = getCMSData(STORAGE_KEYS.SETTINGS);
+    return {
+      beforeLabel: getNonEmpty(s?.spaces_before_label, 'BEFORE'),
+      afterLabel: getNonEmpty(s?.spaces_after_label, 'AFTER'),
+      beforeImage: getNonEmpty(s?.spaces_before_image, 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1920&q=90'),
+      afterImage: getNonEmpty(s?.spaces_after_image, 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1920&q=90'),
+      visible: s?.spaces_hero_visible !== false
+    };
+  });
+
+  const [spacesList, setSpacesList] = useState(() => {
+    const s = getCMSData(STORAGE_KEYS.SETTINGS);
+    return (Array.isArray(s?.spaces_list) && s.spaces_list.length > 0) ? s.spaces_list : mockCategories;
+  });
+
+  useEffect(() => {
+    const syncCMS = () => {
+      const settings = getCMSData(STORAGE_KEYS.SETTINGS);
+      if (settings) {
+        setSpacesHeroState({
+          beforeLabel: getNonEmpty(settings.spaces_before_label, 'BEFORE'),
+          afterLabel: getNonEmpty(settings.spaces_after_label, 'AFTER'),
+          beforeImage: getNonEmpty(settings.spaces_before_image, 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1920&q=90'),
+          afterImage: getNonEmpty(settings.spaces_after_image, 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1920&q=90'),
+          visible: settings.spaces_hero_visible !== false
+        });
+        if (Array.isArray(settings.spaces_list) && settings.spaces_list.length > 0) {
+          setSpacesList(settings.spaces_list);
+        }
+      }
+    };
+
+    syncCMS();
+
+    window.addEventListener('espacio_cms_update', syncCMS);
+    window.addEventListener('storage', syncCMS);
+    return () => {
+      window.removeEventListener('espacio_cms_update', syncCMS);
+      window.removeEventListener('storage', syncCMS);
+    };
+  }, []);
+
   useEffect(() => {
     setVisibleCount(6);
   }, [activeFilter, slug]);
@@ -571,13 +618,15 @@ const WhatWeDo = () => {
   const [currentSlideIdx, setCurrentSlideIdx] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
+  const activeSlides = spacesHeroState.slides || slides;
+
   useEffect(() => {
-    if (isPaused) return;
+    if (isPaused || !activeSlides || activeSlides.length === 0) return;
     const timer = setInterval(() => {
-      setCurrentSlideIdx((prev) => (prev + 1) % slides.length);
+      setCurrentSlideIdx((prev) => (prev + 1) % activeSlides.length);
     }, 6000);
     return () => clearInterval(timer);
-  }, [isPaused]);
+  }, [isPaused, activeSlides]);
 
   // Measure container width for the absolute before image scaling
   useEffect(() => {
@@ -640,7 +689,7 @@ const WhatWeDo = () => {
   const textY   = useTransform(scrollYProgress, [0, 1], ['0px', '-40px']);
   const textOp  = useTransform(scrollYProgress, [0, 0.6, 1], [1, 0.9, 0]);
 
-  const displayCategories = mockCategories;
+  const displayCategories = spacesList;
   const activeCategory = slug ? displayCategories.find(c => c.slug === slug) : null;
 
   // ── CATEGORY DETAIL PAGE ───────────────────────────────────────────────────
@@ -700,8 +749,8 @@ const WhatWeDo = () => {
               <Reveal delay={0.12}>
                 <p className="font-sans text-[11px] font-semibold uppercase tracking-widest text-ink-muted mb-5">What's Included</p>
                 <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {activeCategory.details.includes.map((item) => (
-                    <li key={item} className="flex items-start gap-3 font-sans text-[13.5px] text-ink-soft">
+                  {(activeCategory.details.includes || []).map((item, fIdx) => (
+                    <li key={fIdx} className="flex items-start gap-3 font-sans text-[13.5px] text-ink-soft">
                       <span className="mt-1 w-4 h-4 rounded-full bg-gold/20 flex items-center justify-center shrink-0">
                         <span className="w-1.5 h-1.5 rounded-full bg-gold block" />
                       </span>
@@ -718,68 +767,27 @@ const WhatWeDo = () => {
         <section className="max-w-[1440px] mx-auto px-6 md:px-10 py-16">
           {filteredImages.length > 0 ? (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                {visibleImages.map((img, idx) => (
-                  <Reveal key={img} delay={Math.min(idx * 0.03, 0.12)}>
-                    <div className={`rounded-card overflow-hidden group ${idx % 3 === 0 ? 'md:col-span-2' : ''}`}>
-                      <img src={img} alt={`${activeCategory.name} ${idx + 1}`} loading="lazy" decoding="async"
-                        className={`w-full object-cover group-hover:scale-105 transition-transform duration-700 ${idx % 3 === 0 ? 'aspect-video' : 'aspect-[4/3]'}`} />
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {visibleImages.map((img, i) => (
+                  <Reveal key={i} delay={Math.min(i * 0.05, 0.2)}>
+                    <div className="group relative rounded-card overflow-hidden aspect-[4/3] bg-bg-card">
+                      <img src={img} alt={`${activeCategory.name} ${i + 1}`} loading="lazy" decoding="async" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
                     </div>
                   </Reveal>
                 ))}
               </div>
-              {activeFilter === 'All' && filteredImages.length > visibleCount && (
-                <div className="flex justify-center mt-12">
-                  <button
-                    onClick={() => setVisibleCount(filteredImages.length)}
-                    className="font-sans text-[11px] font-bold uppercase tracking-widest px-8 py-4 border border-ink hover:bg-ink hover:text-bg transition-all duration-300 rounded-pill"
-                  >
-                    See More
+              {filteredImages.length > visibleCount && (
+                <div className="mt-12 text-center">
+                  <button onClick={() => setVisibleCount(prev => prev + 6)} className="btn-secondary">
+                    Load More Designs
                   </button>
                 </div>
               )}
             </>
           ) : (
-            <div className="text-center py-20">
-              <p className="font-sans text-sm text-ink-soft">No designs found matching the selected style.</p>
-            </div>
+            <p className="text-ink-muted font-sans text-sm text-center py-12">No designs match the selected filter.</p>
           )}
         </section>
-
-        {/* Related Spaces */}
-        <section className="max-w-[1440px] mx-auto px-6 md:px-10 py-14 border-t border-ink-border">
-          <Reveal>
-            <div className="flex items-center justify-between mb-8">
-              <div>
-                <span className="font-sans text-[11px] font-bold uppercase tracking-[0.2em] text-gold">Explore All Categories</span>
-                <h2 className="font-display text-[24px] md:text-[28px] font-bold text-ink mt-1">Explore Related Spaces & Services</h2>
-              </div>
-              <span className="font-sans text-xs text-ink-muted uppercase tracking-wider font-semibold hidden sm:block">Scroll to view all 15+ spaces →</span>
-            </div>
-          </Reveal>
-
-          <div className="flex gap-5 overflow-x-auto pb-6 pt-2 scrollbar-thin scrollbar-thumb-gold/30">
-            {displayCategories.filter(c => c.slug !== activeCategory.slug).map((cat, idx) => (
-              <Link key={idx} to={`/what-we-do/${cat.slug}`} className="shrink-0 w-52 sm:w-60 group">
-                <div className="aspect-[3/4] rounded-card overflow-hidden mb-3 relative border border-ink-border/20 shadow-sm group-hover:shadow-xl group-hover:border-gold/50 transition-all duration-500">
-                  <img src={cat.heroImage} alt={cat.name} className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-bg-dark/90 via-bg-dark/30 to-transparent" />
-                  <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
-                    <div>
-                      <span className="font-sans text-[10px] font-bold uppercase tracking-widest text-gold block mb-0.5">{cat.details?.tag || 'Space'}</span>
-                      <span className="font-display text-[15px] font-bold text-bg leading-tight block group-hover:text-gold transition-colors">{cat.name}</span>
-                    </div>
-                    <div className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-bg group-hover:bg-gold group-hover:text-ink transition-all shrink-0">
-                      <ArrowUpRight size={14} />
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-
-
       </div>
     );
   }
@@ -790,129 +798,94 @@ const WhatWeDo = () => {
       <SEO title="Space Explorer — ESPACIO Interiors" description="Browse room design categories: kitchens, living rooms, bedrooms, offices, pooja rooms, and wardrobes by ESPACIO." url="/what-we-do" />
 
       {/* ── ROUNDED CARD HERO (Interactive Before/After Slider) ── */}
-      <section
-        ref={heroRef}
-        className="relative h-[80vh] lg:h-[95vh] px-5 pt-5 pb-[10px] lg:px-12 select-none"
-        onMouseDown={onStart}
-        onMouseMove={onMouseMove}
-        onTouchStart={() => { setIsPaused(true); onStart(); }}
-        onTouchMove={onTouchMove}
-        onTouchEnd={() => { setIsPaused(false); onEnd(); }}
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
-        onClick={(e) => handleMove(e.clientX)}
-      >
-        {/* The rounded card container */}
-        <div
-          className="relative w-full h-full overflow-hidden rounded-[24px] lg:rounded-[40px] cursor-ew-resize bg-bg-dark"
+      {spacesHeroState.visible !== false && (
+        <section
+          ref={heroRef}
+          className="relative h-[80vh] lg:h-[95vh] px-5 pt-5 pb-[10px] lg:px-12 select-none"
+          onMouseDown={onStart}
+          onMouseMove={onMouseMove}
+          onTouchStart={() => { setIsPaused(true); onStart(); }}
+          onTouchMove={onTouchMove}
+          onTouchEnd={() => { setIsPaused(false); onEnd(); }}
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+          onClick={(e) => handleMove(e.clientX)}
         >
-          {/* AFTER Image Layers (Base Layers - Parallax applied) */}
-          {slides.map((slide, idx) => (
+          {/* The rounded card container */}
+          <div className="relative w-full h-full overflow-hidden rounded-[24px] lg:rounded-[40px] cursor-ew-resize bg-bg-dark">
+            {/* AFTER Image Layer */}
             <motion.div
-              key={`after-${idx}`}
               style={{ scale: bgScale, y: bgY }}
               className="absolute inset-0 w-full h-full will-change-transform overflow-hidden pointer-events-none"
-              animate={{ opacity: idx === currentSlideIdx ? 1 : 0 }}
-              transition={{ duration: 0.8, ease: 'easeInOut' }}
             >
               <img
-                src={slide.after}
-                alt={`After ${slide.title}`}
+                src={spacesHeroState.afterImage || (activeSlides[0] && activeSlides[0].after) || 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1920&q=90'}
+                alt="After Transformation"
                 className="absolute inset-0 w-full h-full object-cover"
               />
             </motion.div>
-          ))}
-          
-          {/* AFTER Label */}
-          <div className="absolute right-8 bottom-8 z-0 bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 pointer-events-none">
-            <span className="font-sans text-[11px] font-bold uppercase tracking-wider text-white">AFTER</span>
-          </div>
+            
+            {/* AFTER Label */}
+            <div className="absolute right-8 bottom-8 z-20 bg-black/65 backdrop-blur-md px-5 py-2.5 rounded-full border border-white/20 pointer-events-none shadow-2xl">
+              <span className="font-sans text-[12px] font-bold uppercase tracking-widest text-white">
+                {spacesHeroState.afterLabel || 'AFTER'}
+              </span>
+            </div>
 
-          {/* BEFORE Image Layers (Overlay Crop Layer) */}
-          <div
-            className="absolute inset-y-0 left-0 overflow-hidden pointer-events-none z-10"
-            style={{ width: `${sliderPos}%` }}
-          >
-            {/* Wrapper forced to full client width to prevent distortion */}
-            <div className="absolute inset-y-0 left-0 h-full" style={{ width: containerWidth || '100vw' }}>
-              {slides.map((slide, idx) => (
+            {/* BEFORE Image Layer */}
+            <div
+              className="absolute inset-y-0 left-0 overflow-hidden pointer-events-none z-10"
+              style={{ width: `${sliderPos}%` }}
+            >
+              <div className="absolute inset-y-0 left-0 h-full" style={{ width: containerWidth || '100vw' }}>
                 <motion.div
-                  key={`before-${idx}`}
                   style={{ scale: bgScale, y: bgY }}
                   className="absolute inset-0 w-full h-full will-change-transform overflow-hidden pointer-events-none"
-                  animate={{ opacity: idx === currentSlideIdx ? 1 : 0 }}
-                  transition={{ duration: 0.8, ease: 'easeInOut' }}
                 >
                   <img
-                    src={slide.before}
-                    alt={`Before ${slide.title}`}
+                    src={spacesHeroState.beforeImage || (activeSlides[0] && activeSlides[0].before) || 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1920&q=90'}
+                    alt="Before Transformation"
                     className="absolute inset-0 w-full h-full object-cover"
                   />
                 </motion.div>
-              ))}
+              </div>
+            </div>
+            {/* BEFORE Label */}
+            <div 
+              className="absolute left-8 bottom-8 z-20 bg-black/65 backdrop-blur-md px-5 py-2.5 rounded-full border border-white/20 pointer-events-none shadow-2xl transition-opacity duration-150"
+              style={{ opacity: sliderPos > 12 ? 1 : 0 }}
+            >
+              <span className="font-sans text-[12px] font-bold uppercase tracking-widest text-white">
+                {spacesHeroState.beforeLabel || 'BEFORE'}
+              </span>
+            </div>
+
+            {/* Slider Line Divider */}
+            <div
+              className="absolute inset-y-0 w-0.5 bg-gold/90 z-25 pointer-events-none shadow-[0_0_15px_rgba(212,175,55,0.6)]"
+              style={{ left: `${sliderPos}%` }}
+            />
+
+            {/* Slider Drag Handle */}
+            <div
+              className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-gold hover:scale-105 active:scale-95 transition-transform flex items-center justify-center cursor-ew-resize shadow-2xl border-2 border-white/10 z-30"
+              style={{ left: `${sliderPos}%` }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-bg-dark">
+                <polyline points="8 18 2 12 8 6" />
+                <polyline points="16 6 22 12 16 18" />
+                <line x1="2" y1="12" x2="22" y2="12" />
+              </svg>
             </div>
           </div>
-          {/* BEFORE Label */}
-          <div 
-            className="absolute left-8 bottom-8 z-20 bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 pointer-events-none transition-opacity duration-150"
-            style={{ opacity: sliderPos > 12 ? 1 : 0 }}
-          >
-            <span className="font-sans text-[11px] font-bold uppercase tracking-wider text-white">BEFORE</span>
-          </div>
-
-          {/* Slider Line Divider */}
-          <div
-            className="absolute inset-y-0 w-0.5 bg-gold/90 z-25 pointer-events-none shadow-[0_0_15px_rgba(212,175,55,0.6)]"
-            style={{ left: `${sliderPos}%` }}
-          />
-
-          {/* Slider Drag Handle */}
-          <div
-            className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-gold hover:scale-105 active:scale-95 transition-transform flex items-center justify-center cursor-ew-resize shadow-2xl border-2 border-white/10 z-30"
-            style={{ left: `${sliderPos}%` }}
-          >
-            {/* Drag Handle Icon (Left/Right Arrows) */}
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="text-bg-dark">
-              <polyline points="8 18 2 12 8 6" />
-              <polyline points="16 6 22 12 16 18" />
-              <line x1="2" y1="12" x2="22" y2="12" />
-            </svg>
-          </div>
-
-          {/* Text block overlay (Parallax matching main layout) */}
-          <motion.div
-            style={{ y: textY, opacity: textOp }}
-            className="absolute inset-0 z-20 flex flex-col justify-end pointer-events-none"
-          >
-            <div className="w-full px-8 md:px-12 pb-10 md:pb-14">
-              <motion.div
-                initial={{ opacity: 0, y: 40 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 1, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                className="flex flex-col items-start gap-4"
-              >
-                {/* Pill label */}
-                <div className="inline-flex items-center gap-2 bg-black/55 backdrop-blur-md border border-white/20 text-white px-4 py-2 rounded-full">
-                  <span className="w-1.5 h-1.5 rounded-full bg-gold animate-pulse" />
-                  <span className="font-sans text-[11px] font-semibold uppercase tracking-[0.2em]">Spaces</span>
-                </div>
-
-                {/* Main heading */}
-                <h1 className="font-display font-bold leading-none tracking-tight text-white transition-all duration-500"
-                  style={{ fontSize: 'clamp(44px, 7vw, 96px)' }}>
-                  {slides[currentSlideIdx].title}
-                </h1>
-              </motion.div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Category Grid */}
       <section className="max-w-[1440px] mx-auto px-6 md:px-10 py-24">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {displayCategories.map((cat, idx) => (
-            <Reveal key={idx} delay={Math.min((idx % 2) * 0.05, 0.1)}>
+          {displayCategories.filter(c => c.visible !== false).map((cat, idx) => (
+            <Reveal key={cat.slug || idx} delay={Math.min((idx % 2) * 0.05, 0.1)}>
               <Link to={`/what-we-do/${cat.slug}`}
                 className="group relative rounded-card overflow-hidden aspect-[4/3] bg-bg-dark block">
                   <img src={cat.heroImage} alt={cat.name} loading="lazy" decoding="async"
@@ -937,8 +910,6 @@ const WhatWeDo = () => {
           }
         </div>
       </section>
-
-
     </div>
   );
 };

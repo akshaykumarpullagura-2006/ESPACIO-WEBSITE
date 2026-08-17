@@ -175,11 +175,90 @@ const Badge = ({ num, isOpen }) => (
 );
 
 /* ── Main FAQ Component ─────────────────────────────────────────────────── */
+import { getCMSData, STORAGE_KEYS } from '../utils/cmsStore';
+
 const FAQ = () => {
+  const [faqs, setFaqs] = useState(() => {
+    const stored = getCMSData(STORAGE_KEYS.FAQS);
+    if (Array.isArray(stored) && stored.length > 0) {
+      return stored.filter(item => item.status !== 'Draft' && item.status !== 'Archived').map((item, idx) => ({
+        q: item.question || item.q,
+        a: item.answer || item.a,
+        tag: (item.category || item.tag || 'GENERAL').toUpperCase(),
+        img: item.image || item.img || faqItems[idx % faqItems.length]?.img,
+      }));
+    }
+    return faqItems;
+  });
+
+  const defaultSlides = [
+    { image: 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=800&q=80', tag: 'TIMELINE', caption: 'How long does a project usually take?' },
+    { image: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=800&q=80', tag: 'SERVICES', caption: 'Do you provide turnkey interior solutions?' },
+    { image: 'https://images.unsplash.com/photo-1507089947368-19c1da9775ae?auto=format&fit=crop&w=800&q=80', tag: 'PROCESS', caption: 'What is your consultation process?' },
+    { image: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=800&q=80', tag: 'LOCATION', caption: 'Which locations do you currently serve?' },
+    { image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=800&q=80', tag: 'PRICING', caption: 'How can customers request a quotation?' }
+  ];
+
+  const [showcaseSlides, setShowcaseSlides] = useState(() => {
+    const s = getCMSData(STORAGE_KEYS.SETTINGS);
+    if (Array.isArray(s?.faq_showcase_slides) && s.faq_showcase_slides.length > 0) {
+      return s.faq_showcase_slides;
+    }
+    return defaultSlides;
+  });
+
+  const [headerState, setHeaderState] = useState(() => {
+    const s = getCMSData(STORAGE_KEYS.SETTINGS);
+    return {
+      eyebrow: s?.faq_eyebrow || 'Frequently Asked',
+      title: s?.faq_title || 'Got Questions?\nWe Have Answers.',
+      desc: s?.faq_description || 'Everything you need to know about working with ESPACIO — from first call to final handover.'
+    };
+  });
+
+  const [activeCategory, setActiveCategory] = useState('ALL');
   const [openIndex, setOpenIndex] = useState(null);
   const [activeImageIdx, setActiveImageIdx] = useState(0);
   const [particles, setParticles] = useState([]);
   const autoCloseRef = useRef(null);
+
+  useEffect(() => {
+    const syncCMS = () => {
+      const stored = getCMSData(STORAGE_KEYS.FAQS);
+      const settings = getCMSData(STORAGE_KEYS.SETTINGS);
+
+      if (settings) {
+        setHeaderState({
+          eyebrow: settings.faq_eyebrow || 'Frequently Asked',
+          title: settings.faq_title || 'Got Questions?\nWe Have Answers.',
+          desc: settings.faq_description || 'Everything you need to know about working with ESPACIO — from first call to final handover.'
+        });
+
+        if (Array.isArray(settings.faq_showcase_slides) && settings.faq_showcase_slides.length > 0) {
+          setShowcaseSlides(settings.faq_showcase_slides);
+        }
+      }
+
+      if (Array.isArray(stored) && stored.length > 0) {
+        const filtered = stored.filter(item => item.status !== 'Draft' && item.status !== 'Archived').map((item, idx) => ({
+          q: item.question || item.q,
+          a: item.answer || item.a,
+          tag: (item.category || item.tag || 'GENERAL').toUpperCase(),
+          img: item.image || item.img || faqItems[idx % faqItems.length]?.img,
+        }));
+        setFaqs(filtered);
+      }
+    };
+
+    syncCMS();
+
+    window.addEventListener('espacio_cms_update', syncCMS);
+    window.addEventListener('storage', syncCMS);
+    return () => {
+      window.removeEventListener('espacio_cms_update', syncCMS);
+      window.removeEventListener('storage', syncCMS);
+    };
+  }, []);
 
   // Generate particles
   useEffect(() => {
@@ -203,10 +282,10 @@ const FAQ = () => {
   // Auto-advance image slider
   useEffect(() => {
     const timer = setInterval(() => {
-      setActiveImageIdx((prev) => (prev + 1) % faqItems.length);
+      setActiveImageIdx((prev) => (prev + 1) % (faqs.length || 1));
     }, 3000);
     return () => clearInterval(timer);
-  }, []);
+  }, [faqs.length]);
 
   useEffect(() => {
     return () => { if (autoCloseRef.current) clearTimeout(autoCloseRef.current); };
@@ -288,25 +367,16 @@ const FAQ = () => {
               animate={{ scale: [1, 1.5, 1], opacity: [1, 0.5, 1] }}
               transition={{ duration: 1.2, repeat: Infinity }}
             />
-            Frequently Asked
+            {headerState.eyebrow}
           </motion.div>
 
           <motion.h1
-            className="font-display text-[clamp(36px,5vw,72px)] font-medium leading-[1.08] tracking-tight text-ink"
+            className="font-display text-[clamp(36px,5vw,72px)] font-medium leading-[1.08] tracking-tight text-ink whitespace-pre-line"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
           >
-            Got{' '}
-            <motion.span
-              className="relative inline-block"
-              style={{ color: 'transparent', WebkitTextStroke: '1.5px #c5a572' }}
-              whileHover={{ WebkitTextStroke: '0px', color: '#c5a572' }}
-              transition={{ duration: 0.3 }}
-            >
-              Questions?
-            </motion.span>
-            <br />We Have Answers.
+            {headerState.title}
           </motion.h1>
 
           <motion.p
@@ -315,7 +385,7 @@ const FAQ = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5, duration: 0.7 }}
           >
-            Everything you need to know about working with ESPACIO — from first call to final handover.
+            {headerState.desc}
           </motion.p>
         </motion.div>
 
@@ -336,8 +406,8 @@ const FAQ = () => {
                   <AnimatePresence mode="sync">
                     <motion.img
                       key={activeImageIdx}
-                      src={faqItems[activeImageIdx].img}
-                      alt={faqItems[activeImageIdx].q}
+                      src={showcaseSlides[activeImageIdx % showcaseSlides.length]?.image || showcaseSlides[0]?.image}
+                      alt={showcaseSlides[activeImageIdx % showcaseSlides.length]?.caption || 'Showcase'}
                       initial={{ opacity: 0, scale: 1.08, filter: 'blur(8px)' }}
                       animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
                       exit={{ opacity: 0, scale: 0.96, filter: 'blur(6px)' }}
@@ -349,7 +419,7 @@ const FAQ = () => {
                   {/* Overlay gradient */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
-                  {/* Active tag */}
+                  {/* Active tag & caption */}
                   <AnimatePresence mode="wait">
                     <motion.div
                       key={activeImageIdx}
@@ -360,10 +430,10 @@ const FAQ = () => {
                       transition={{ duration: 0.5 }}
                     >
                       <span className="inline-block bg-gold/90 backdrop-blur-sm text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full mb-2">
-                        {faqItems[activeImageIdx].tag}
+                        {showcaseSlides[activeImageIdx % showcaseSlides.length]?.tag || 'FAQ'}
                       </span>
                       <p className="text-white font-display text-[16px] font-medium leading-snug line-clamp-2">
-                        {faqItems[activeImageIdx].q}
+                        {showcaseSlides[activeImageIdx % showcaseSlides.length]?.caption || ''}
                       </p>
                     </motion.div>
                   </AnimatePresence>
@@ -389,7 +459,7 @@ const FAQ = () => {
 
               {/* Progress dots */}
               <div className="flex justify-center gap-1.5 mt-6">
-                {faqItems.map((_, i) => (
+                {showcaseSlides.map((_, i) => (
                   <motion.button
                     key={i}
                     onClick={() => { setActiveImageIdx(i); if (openIndex !== i) setOpenIndex(null); }}
@@ -400,25 +470,31 @@ const FAQ = () => {
                 ))}
               </div>
 
-              {/* Tag cloud */}
+              {/* Category Filter Pills */}
               <div className="flex flex-wrap gap-2 mt-8 justify-center">
-                {faqItems.map((item, i) => (
-                  <motion.button
-                    key={i}
-                    onClick={() => toggleFAQ(i)}
-                    className="font-sans text-[11px] font-semibold tracking-wider uppercase px-3 py-1.5 rounded-full border transition-all duration-300"
-                    animate={{
-                      borderColor: openIndex === i ? '#c5a572' : 'rgba(0,0,0,0.12)',
-                      background: openIndex === i ? 'rgba(197,165,114,0.12)' : 'transparent',
-                      color: openIndex === i ? '#c5a572' : '#9ca3af',
-                      scale: openIndex === i ? 1.05 : 1,
-                    }}
-                    whileHover={{ scale: 1.08, borderColor: '#c5a572' }}
-                    transition={{ duration: 0.25 }}
-                  >
-                    {item.tag}
-                  </motion.button>
-                ))}
+                {['ALL', ...Array.from(new Set(faqs.map(item => (item.tag || 'GENERAL').toUpperCase())))].map((cat, i) => {
+                  const isCatActive = activeCategory === cat;
+                  return (
+                    <motion.button
+                      key={cat || i}
+                      onClick={() => {
+                        setActiveCategory(cat);
+                        setOpenIndex(null);
+                      }}
+                      className="font-sans text-[11px] font-semibold tracking-wider uppercase px-3 py-1.5 rounded-full border transition-all duration-300"
+                      animate={{
+                        borderColor: isCatActive ? '#c5a572' : 'rgba(0,0,0,0.12)',
+                        background: isCatActive ? '#c5a572' : 'transparent',
+                        color: isCatActive ? '#ffffff' : '#9ca3af',
+                        scale: isCatActive ? 1.05 : 1,
+                      }}
+                      whileHover={{ scale: 1.08, borderColor: '#c5a572' }}
+                      transition={{ duration: 0.25 }}
+                    >
+                      {cat}
+                    </motion.button>
+                  );
+                })}
               </div>
             </motion.div>
           </div>
@@ -426,7 +502,7 @@ const FAQ = () => {
           {/* ── RIGHT: FAQ Accordion ── */}
           <div className="lg:col-span-8 flex flex-col justify-start lg:pt-4">
             <div className="border-t border-ink/10">
-              {faqItems.map((faq, idx) => {
+              {(activeCategory === 'ALL' ? faqs : faqs.filter(item => (item.tag || '').toUpperCase() === activeCategory)).map((faq, idx) => {
                 const isOpen = openIndex === idx;
                 return (
                   <MagneticItem

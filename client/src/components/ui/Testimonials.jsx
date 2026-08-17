@@ -158,27 +158,39 @@ const TestimonialCard = ({ t }) => (
       {/* Star Rating & Verified Badge */}
       <div className="flex items-center justify-between">
         <StarRating rating={t.rating} />
-        <div className="inline-flex items-center gap-1.5 bg-stone-100/90 border border-stone-200/60 px-2.5 py-1 rounded-full text-[11px] font-sans font-semibold text-stone-700">
-          <GoogleGLogo />
-          <span>Verified Review</span>
-        </div>
+        {t.source === 'MANUAL' ? (
+          <div className="inline-flex items-center gap-1.5 bg-amber-50 border border-amber-200/60 px-2.5 py-1 rounded-full text-[11px] font-sans font-semibold text-amber-800">
+            <span>Client Testimonial</span>
+          </div>
+        ) : (
+          <div className="inline-flex items-center gap-1.5 bg-stone-100/90 border border-stone-200/60 px-2.5 py-1 rounded-full text-[11px] font-sans font-semibold text-stone-700">
+            <GoogleGLogo />
+            <span>Verified Review</span>
+          </div>
+        )}
       </div>
 
       <h4 className="font-editorial text-[17px] md:text-[20px] font-medium text-[#101014] leading-[1.3] m-0">
         "{t.title}"
       </h4>
-      <p className="font-sans text-[12.5px] md:text-[13.5px] font-normal text-[#4a4a55] leading-[1.65] m-0">
+      <p className="font-sans text-[12.5px] md:text-[13.5px] font-normal text-[#4a4a55] leading-[1.65] m-0 line-clamp-2">
         {t.body}
       </p>
     </div>
 
     <div className="flex items-center gap-3 pt-3.5 border-t border-[#f0f0f2] mt-4">
-      <img src={t.avatar} alt={t.name} className="w-9 h-9 md:w-10 md:h-10 rounded-full object-cover shrink-0 border-2 border-amber-400/30" />
-      <div className="flex-1">
-        <p className="font-sans text-[12px] md:text-[13px] font-bold text-[#101014] m-0 leading-tight">
+      {t.avatar ? (
+        <img src={t.avatar} alt={t.name} className="w-9 h-9 md:w-10 md:h-10 rounded-full object-cover shrink-0 border-2 border-amber-400/30" />
+      ) : (
+        <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-charcoal font-sans text-xs font-bold flex items-center justify-center shrink-0 shadow-sm border border-amber-300">
+          {(t.name || 'C').charAt(0).toUpperCase()}
+        </div>
+      )}
+      <div className="flex-1 truncate">
+        <p className="font-sans text-[12px] md:text-[13px] font-bold text-[#101014] m-0 leading-tight truncate">
           {t.name}
         </p>
-        <p className="font-sans text-[11px] font-normal text-[#80808e] m-0 leading-tight mt-0.5">{t.role}</p>
+        <p className="font-sans text-[11px] font-normal text-[#80808e] m-0 leading-tight mt-0.5 truncate">{t.role || t.designation}</p>
       </div>
     </div>
   </div>
@@ -263,46 +275,92 @@ const MarqueeRow = ({ items, speed = 1.2, reverse = false }) => {
   );
 };
 
-const Testimonials = () => (
-  <section style={{ position: "relative", padding: "96px 0", overflow: "hidden" }}>
+const Testimonials = () => {
+  const [topItems, setTopItems] = React.useState(topTestimonials);
+  const [bottomItems, setBottomItems] = React.useState(bottomTestimonials);
 
-    {/* Background */}
-    <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
-      <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1800&q=80" alt="bg" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }} />
-      <div style={{ position: "absolute", inset: 0, background: "rgba(16,16,20,0.82)", backdropFilter: "blur(2px)" }} />
-    </div>
+  React.useEffect(() => {
+    const fetchCMSTestimonials = async () => {
+      try {
+        const { getCMSData, STORAGE_KEYS } = await import('../../utils/cmsStore');
+        const stored = getCMSData(STORAGE_KEYS.TESTIMONIALS);
+        if (stored && Array.isArray(stored) && stored.length > 0) {
+          const visibleOnly = stored.filter(item => item.visible !== false);
+          if (visibleOnly.length > 0) {
+            const cmsData = visibleOnly.map((item) => ({
+              source: item.source || 'GOOGLE',
+              rating: item.rating || 5,
+              title: item.title || `${item.name || 'Client'} Review`,
+              body: item.body || item.reviewText || item.review || '',
+              name: item.name || item.clientName || 'Anonymous Client',
+              role: item.designation || item.role || 'Homeowner • ESPACIO Client',
+              avatar: item.avatar || item.photo || '',
+              date: item.date || 'Recently'
+            }));
+            const mid = Math.ceil(cmsData.length / 2);
+            setTopItems([...cmsData.slice(0, mid)]);
+            setBottomItems([...cmsData.slice(mid)]);
+            return;
+          }
+        }
+      } catch {}
+    };
 
-    <div style={{ position: "relative", zIndex: 10 }}>
+    fetchCMSTestimonials();
 
-      {/* Header */}
-      <motion.div initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }} style={{ textAlign: "center", marginBottom: "48px", padding: "0 24px" }}>
-        
-        {/* Testimonials Badge */}
-        <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", padding: "6px 16px", borderRadius: "999px", fontSize: "11px", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "24px", fontFamily: "Manrope, sans-serif" }}>
-          <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#facc15" }} />
-          Testimonials
+    const handleSync = () => fetchCMSTestimonials();
+    window.addEventListener('espacio_cms_update', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('espacio_cms_update', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
+  }, []);
+
+  const rowA = [...topItems, ...topItems];
+  const rowB = [...bottomItems, ...bottomItems];
+
+  return (
+    <section style={{ position: "relative", padding: "96px 0", overflow: "hidden" }}>
+
+      {/* Background */}
+      <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
+        <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1800&q=80" alt="bg" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }} />
+        <div style={{ position: "absolute", inset: 0, background: "rgba(16,16,20,0.82)", backdropFilter: "blur(2px)" }} />
+      </div>
+
+      <div style={{ position: "relative", zIndex: 10 }}>
+
+        {/* Header */}
+        <motion.div initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }} style={{ textAlign: "center", marginBottom: "48px", padding: "0 24px" }}>
+          
+          {/* Testimonials Badge */}
+          <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", padding: "6px 16px", borderRadius: "999px", fontSize: "11px", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: "24px", fontFamily: "Manrope, sans-serif" }}>
+            <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#facc15" }} />
+            Testimonials
+          </div>
+
+          <h2 className="font-editorial text-4xl sm:text-5xl md:text-6xl font-normal text-white leading-[1.12] mb-4 tracking-tight">
+            Client Reviews & Ratings
+          </h2>
+          <p className="font-sans text-base md:text-lg font-medium text-white/90 max-w-[540px] mx-auto leading-relaxed">
+            40+ Years of Experience in the Service Industry
+          </p>
+        </motion.div>
+
+        {/* Row 1 — Auto-scrolls Right-to-Left */}
+        <div style={{ position: "relative", marginBottom: "16px" }}>
+          <MarqueeRow items={rowA} speed={1.2} reverse={false} />
         </div>
 
-        <h2 className="font-editorial text-4xl sm:text-5xl md:text-6xl font-normal text-white leading-[1.12] mb-4 tracking-tight">
-          Client Reviews & Ratings
-        </h2>
-        <p className="font-sans text-base md:text-lg font-medium text-white/90 max-w-[540px] mx-auto leading-relaxed">
-          40+ Years of Experience in the Service Industry
-        </p>
-      </motion.div>
+        {/* Row 2 — Auto-scrolls Left-to-Right */}
+        <div style={{ position: "relative" }}>
+          <MarqueeRow items={rowB} speed={1.1} reverse={true} />
+        </div>
 
-      {/* Row 1 — Auto-scrolls Right-to-Left */}
-      <div style={{ position: "relative", marginBottom: "16px" }}>
-        <MarqueeRow items={rowA} speed={1.2} reverse={false} />
       </div>
-
-      {/* Row 2 — Auto-scrolls Left-to-Right */}
-      <div style={{ position: "relative" }}>
-        <MarqueeRow items={rowB} speed={1.1} reverse={true} />
-      </div>
-
-    </div>
-  </section>
-);
+    </section>
+  );
+};
 
 export default Testimonials;

@@ -29,9 +29,20 @@ import FAQ from './pages/FAQ';
 // Admin / CMS Pages
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminLayout, { AdminDashboardHome } from './pages/admin/AdminDashboard';
+import AdminHomeHeroCMS from './pages/admin/AdminHomeHeroCMS';
+import AdminServicesCMS from './pages/admin/AdminServicesCMS';
+import AdminSpacesCMS from './pages/admin/AdminSpacesCMS';
+import AdminMaterialsCMS from './pages/admin/AdminMaterialsCMS';
+import AdminAboutCMS from './pages/admin/AdminAboutCMS';
+import AdminFAQCMS from './pages/admin/AdminFAQCMS';
+import AdminContactCMS from './pages/admin/AdminContactCMS';
+import AdminTestimonialsCMS from './pages/admin/AdminTestimonialsCMS';
+import AdminPagesCMS from './pages/admin/AdminPagesCMS';
 import AdminEnquiries from './pages/admin/AdminEnquiries';
 import AdminProjects from './pages/admin/AdminProjects';
 import AdminProducts from './pages/admin/AdminProducts';
+import AdminUsers from './pages/admin/AdminUsers';
+import AdminAuditLogs from './pages/admin/AdminAuditLogs';
 import { AdminTestimonials, AdminFAQs, AdminSettings, AdminMedia } from './pages/admin/AdminCMS';
 
 // ── Scroll to top on every route change ─────────────────────────────────────
@@ -70,10 +81,32 @@ const FloatingLogo = () => {
   );
 };
 
+import MaintenanceMode from './components/common/MaintenanceMode';
+import { getCMSData, STORAGE_KEYS } from './utils/cmsStore';
+
 // Shared Layout Wrapper with Page Transitions
 const MainLayout = () => {
   const location = useLocation();
   const isContactSuccess = location.pathname === '/contact' && location.search.includes('success=true');
+  const [settings, setSettings] = React.useState(() => getCMSData(STORAGE_KEYS.SETTINGS) || {});
+
+  React.useEffect(() => {
+    const syncSettings = () => {
+      const s = getCMSData(STORAGE_KEYS.SETTINGS);
+      if (s) setSettings(s);
+    };
+    syncSettings();
+    window.addEventListener('espacio_cms_update', syncSettings);
+    window.addEventListener('storage', syncSettings);
+    return () => {
+      window.removeEventListener('espacio_cms_update', syncSettings);
+      window.removeEventListener('storage', syncSettings);
+    };
+  }, []);
+
+  if (settings?.maintenanceMode) {
+    return <MaintenanceMode settings={settings} />;
+  }
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -144,10 +177,20 @@ function App() {
             {/* ── Admin Routes (No Navbar/Footer) ───────────────────── */}
             <Route path="/admin" element={<AdminLogin />} />
             <Route path="/admin/dashboard" element={<AdminLayout><AdminDashboardHome /></AdminLayout>} />
+            <Route path="/admin/hero" element={<AdminLayout><AdminHomeHeroCMS /></AdminLayout>} />
+            <Route path="/admin/services" element={<AdminLayout><AdminServicesCMS /></AdminLayout>} />
+            <Route path="/admin/spaces" element={<AdminLayout><AdminSpacesCMS /></AdminLayout>} />
+            <Route path="/admin/materials" element={<AdminLayout><AdminMaterialsCMS /></AdminLayout>} />
+            <Route path="/admin/about" element={<AdminLayout><AdminAboutCMS /></AdminLayout>} />
+            <Route path="/admin/faqs" element={<AdminLayout><AdminFAQCMS /></AdminLayout>} />
+            <Route path="/admin/contact" element={<AdminLayout><AdminContactCMS /></AdminLayout>} />
+            <Route path="/admin/testimonials" element={<AdminLayout><AdminTestimonialsCMS /></AdminLayout>} />
+            <Route path="/admin/pages" element={<AdminLayout><AdminPagesCMS /></AdminLayout>} />
             <Route path="/admin/enquiries" element={<AdminLayout><AdminEnquiries /></AdminLayout>} />
             <Route path="/admin/projects" element={<AdminLayout><AdminProjects /></AdminLayout>} />
             <Route path="/admin/products" element={<AdminLayout><AdminProducts /></AdminLayout>} />
-            <Route path="/admin/testimonials" element={<AdminLayout><AdminTestimonials /></AdminLayout>} />
+            <Route path="/admin/users" element={<AdminLayout><AdminUsers /></AdminLayout>} />
+            <Route path="/admin/audit" element={<AdminLayout><AdminAuditLogs /></AdminLayout>} />
             <Route path="/admin/gallery" element={<AdminLayout><AdminMedia /></AdminLayout>} />
             <Route path="/admin/faqs" element={<AdminLayout><AdminFAQs /></AdminLayout>} />
             <Route path="/admin/settings" element={<AdminLayout><AdminSettings /></AdminLayout>} />

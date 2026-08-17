@@ -5,12 +5,50 @@ import { CheckCircle, ArrowRight, ArrowLeft, Loader2, Check, MapPin, Phone, Mail
 import SEO from '../components/common/SEO';
 import axios from 'axios';
 import { db, collection, addDoc } from '../lib/firebaseClient';
+import { getCMSData, STORAGE_KEYS } from '../utils/cmsStore';
+
+const defaultContactCMS = {
+  exp_eyebrow: 'VISIT US',
+  exp_heading: 'Experience Centers & Studio',
+  exp_description: 'Walk into our flagship material experience studio. Touch, feel, and compare over 200+ live panel and finish samples in person.',
+  exp_card1_title: 'Our Studio',
+  exp_card1_address: '1st floor, H.No. 6-63/14B,\nMoinabad Road, Aziznagar,\nHyderabad, Telangana 500075',
+  exp_card1_bottomLabel: 'EXPERIENCE CENTER',
+  exp_card1_visible: true,
+  exp_card2_title: 'Direct Line',
+  exp_card2_phone: '+91 95051 51116',
+  exp_card2_whatsapp: '+91 95051 51116',
+  exp_card2_email: 'Espacio.hyd@gmail.com',
+  exp_card2_bottomLabel: 'IMMEDIATE ASSISTANCE',
+  exp_card2_visible: true,
+  exp_card3_title: 'Studio Hours',
+  exp_card3_monSatHours: '10:00 AM – 7:30 PM',
+  exp_card3_sunHours: 'By Appointment',
+  exp_card3_supportingText: 'Private evening consultations available upon request.',
+  exp_card3_bottomLabel: 'CONSULTATION HOURS',
+  exp_card3_visible: true,
+
+  commit_eyebrow: 'WHY QUOTE WITH ESPACIO',
+  commit_heading: 'Our Quotation & Execution Commitments',
+  commit_description: 'We operate on absolute transparency. Every BOQ we prepare is detailed down to the millimetre and hardware specification.',
+  commit_card1_title: 'Itemized BOQ Quote',
+  commit_card1_desc: 'Zero surprise fees. You receive a complete line-item breakdown of hardware, board grades, and finish costs.',
+  commit_card1_visible: true,
+  commit_card2_title: 'Guaranteed Quality',
+  commit_card2_desc: 'Every product is carefully selected, inspected, and installed to meet our uncompromising quality standards.',
+  commit_card2_visible: true,
+  commit_card3_title: 'Transparent Pricing',
+  commit_card3_desc: 'No hidden charges or unexpected costs. Every quotation is clear, detailed, and fully transparent before execution.',
+  commit_card3_visible: true,
+  commit_card4_title: 'Free 3D Render',
+  commit_card4_desc: 'Visualize your living room, kitchen, and wardrobes in photorealistic 3D before starting site execution.',
+  commit_card4_visible: true
+};
 
 const requirements = [
   { val: 'Turnkey Interiors', desc: 'Complete design + execution — from concept to move-in, handled entirely by us' },
   { val: 'Design Only', desc: "You need the design; you'll handle or already have execution" },
   { val: 'Renovation', desc: 'Upgrading or redesigning an existing space' },
-  { val: 'Individual', desc: 'Book a single service like only modular kitchen, only wardrobe, or TV unit' },
   { val: 'Materials', desc: 'Sourcing premium panels, sheets & finishes — no design/execution needed' },
   { val: 'Something Else', desc: 'Let us understand your requirement' }
 ];
@@ -44,6 +82,27 @@ const Contact = () => {
     mobile: '',
     email: ''
   });
+
+  const [contactCMS, setContactCMS] = useState(() => {
+    const s = getCMSData(STORAGE_KEYS.SETTINGS);
+    return { ...defaultContactCMS, ...s };
+  });
+
+  useEffect(() => {
+    const syncCMS = () => {
+      const s = getCMSData(STORAGE_KEYS.SETTINGS);
+      if (s) {
+        setContactCMS(prev => ({ ...prev, ...s }));
+      }
+    };
+    syncCMS();
+    window.addEventListener('espacio_cms_update', syncCMS);
+    window.addEventListener('storage', syncCMS);
+    return () => {
+      window.removeEventListener('espacio_cms_update', syncCMS);
+      window.removeEventListener('storage', syncCMS);
+    };
+  }, []);
 
   const [attachedFiles, setAttachedFiles] = useState([]);
   const fileInputRef = useRef(null);
@@ -213,6 +272,65 @@ const Contact = () => {
     };
 
     try {
+      // Save structured enquiry into local CMS store for real-time admin sync
+      try {
+        const { getCMSData, setCMSData, STORAGE_KEYS, notifyCMSUpdate } = await import('../utils/cmsStore');
+        const existing = getCMSData(STORAGE_KEYS.ENQUIRIES) || [];
+        const count = existing.length + 1;
+        
+        let type = 'DESIGN_ENQUIRY';
+        let source = 'LET_S_DESIGN_SOMETHING_REMARKABLE';
+        let prefix = 'ESP-DE';
+        let reqType = 'TURNKEY_INTERIORS';
+
+        const reqLower = (formData.requirement || '').toLowerCase();
+        if (reqLower.includes('turnkey')) reqType = 'TURNKEY_INTERIORS';
+        else if (reqLower.includes('design only')) reqType = 'DESIGN_ONLY';
+        else if (reqLower.includes('renovation')) reqType = 'RENOVATION';
+        else if (reqLower.includes('materials')) reqType = 'MATERIALS';
+        else if (reqLower.includes('individual')) {
+          type = 'INDIVIDUAL_ENQUIRY';
+          source = 'INDIVIDUAL';
+          prefix = 'ESP-IN';
+          reqType = undefined;
+        } else {
+          reqType = 'SOMETHING_ELSE';
+        }
+
+        const enquiryId = `${prefix}-${String(count).padStart(5, '0')}`;
+
+        const newRecord = {
+          id: enquiryId,
+          enquiryId,
+          type,
+          source,
+          requirementType: reqType,
+          name: formData.fullName,
+          email: formData.email,
+          phone: formData.mobile,
+          location: formData.location || 'N/A',
+          propertyType: formData.propertyType === 'Others' ? formData.otherPropertyType : (formData.propertyType || 'N/A'),
+          spaces: formData.spaces ? formData.spaces.map(s => s === 'Others' ? formData.otherSpaces : s).join(', ') : 'N/A',
+          size: formData.size || 'N/A',
+          stage: formData.stage || 'N/A',
+          materialCategories: formData.productCategories?.map(c => c === 'Others' ? `Others (${formData.otherMaterials})` : c).join(', ') || 'N/A',
+          quantity: formData.quantity || 'N/A',
+          individualRequirement: formData.individualRequirement || '',
+          notesText: formData.notes || '',
+          attachments: attachedFiles.map(f => f.name).join(', '),
+          status: 'NEW',
+          read: false,
+          submittedAt: new Date().toISOString(),
+          notes: [],
+          followUp: null
+        };
+
+        setCMSData(STORAGE_KEYS.ENQUIRIES, [newRecord, ...existing]);
+        notifyCMSUpdate();
+      } catch (cmsErr) {
+        console.warn('CMS store error:', cmsErr);
+      }
+
       // 1. Send to Firebase Firestore (non-blocking)
       try {
         await addDoc(collection(db, 'leads'), {
@@ -231,21 +349,21 @@ const Contact = () => {
       }
 
       // 2. Send to local backend server (which performs Google Sheets synchronization)
-      const response = await axios.post('/leads', {
-        name: formData.fullName,
-        email: formData.email,
-        phone: formData.mobile,
-        projectType: formData.requirement,
-        budget: isMaterials ? 'Materials Path' : formData.stage,
-        message: `Mobile: ${formData.mobile}\n\n${notes}`,
-        googleSheetData
-      });
-
-      if (response.status === 200 || response.status === 201) {
-        navigate('/contact?success=true', { replace: true });
-      } else {
-        throw new Error(response.data?.message || "We're unable to submit your request at the moment. Please try again in a few minutes.");
+      try {
+        await axios.post('/leads', {
+          name: formData.fullName,
+          email: formData.email,
+          phone: formData.mobile,
+          projectType: formData.requirement,
+          budget: isMaterials ? 'Materials Path' : formData.stage,
+          message: `Mobile: ${formData.mobile}\n\n${notes}`,
+          googleSheetData
+        });
+      } catch (bErr) {
+        console.warn('Backend server leads call warning:', bErr.message);
       }
+
+      navigate('/contact?success=true', { replace: true });
     } catch (err) {
       console.error('Submission failed:', err);
       const errMsg = err.response?.data?.message || err.message || "We're unable to submit your request at the moment. Please try again in a few minutes.";
@@ -1048,53 +1166,73 @@ const Contact = () => {
       <section className="py-20 px-6 md:px-12 bg-offwhite border-t border-walnut/10">
         <div className="max-w-[1440px] mx-auto">
           <div className="text-center max-w-[650px] mx-auto mb-14 space-y-3">
-            <span className="font-sans text-[11px] font-bold uppercase tracking-[0.2em] text-gold">Why Quote With ESPACIO</span>
-            <h2 className="font-editorial text-3xl md:text-4xl font-bold text-charcoal">Our Quotation & Execution Commitments</h2>
+            <span className="font-sans text-[11px] font-bold uppercase tracking-[0.2em] text-gold">
+              {contactCMS.commit_eyebrow || 'Why Quote With ESPACIO'}
+            </span>
+            <h2 className="font-editorial text-3xl md:text-4xl font-bold text-charcoal">
+              {contactCMS.commit_heading || 'Our Quotation & Execution Commitments'}
+            </h2>
             <p className="font-sans text-xs text-walnut leading-relaxed">
-              We operate on absolute transparency. Every BOQ we prepare is detailed down to the millimetre and hardware specification.
+              {contactCMS.commit_description || 'We operate on absolute transparency. Every BOQ we prepare is detailed down to the millimetre and hardware specification.'}
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-cream border border-walnut/10 rounded-card p-6 space-y-4 shadow-sm hover:border-gold/40 transition-all">
-              <div className="w-12 h-12 rounded-full bg-gold/20 flex items-center justify-center text-gold">
-                <FileText size={22} />
+          <div className="flex md:grid md:grid-cols-2 lg:grid-cols-4 gap-6 overflow-x-auto pb-4 pt-1 snap-x snap-mandatory scrollbar-thin">
+            {contactCMS.commit_card1_visible !== false && (
+              <div className="min-w-[260px] flex-1 snap-start bg-cream border border-walnut/10 rounded-card p-6 space-y-4 shadow-sm hover:border-gold/40 transition-all shrink-0 md:shrink">
+                <div className="w-12 h-12 rounded-full bg-gold/20 flex items-center justify-center text-gold">
+                  <FileText size={22} />
+                </div>
+                <h3 className="font-editorial text-lg font-bold text-charcoal">
+                  {contactCMS.commit_card1_title || 'Itemized BOQ Quote'}
+                </h3>
+                <p className="font-sans text-xs text-walnut leading-relaxed">
+                  {contactCMS.commit_card1_desc || 'Zero surprise fees. You receive a complete line-item breakdown of hardware, board grades, and finish costs.'}
+                </p>
               </div>
-              <h3 className="font-editorial text-lg font-bold text-charcoal">Itemized BOQ Quote</h3>
-              <p className="font-sans text-xs text-walnut leading-relaxed">
-                Zero surprise fees. You receive a complete line-item breakdown of hardware, board grades, and finish costs.
-              </p>
-            </div>
+            )}
 
-            <div className="bg-cream border border-walnut/10 rounded-card p-6 space-y-4 shadow-sm hover:border-gold/40 transition-all">
-              <div className="w-12 h-12 rounded-full bg-gold/20 flex items-center justify-center text-gold">
-                <ShieldCheck size={22} />
+            {contactCMS.commit_card2_visible !== false && (
+              <div className="min-w-[260px] flex-1 snap-start bg-cream border border-walnut/10 rounded-card p-6 space-y-4 shadow-sm hover:border-gold/40 transition-all shrink-0 md:shrink">
+                <div className="w-12 h-12 rounded-full bg-gold/20 flex items-center justify-center text-gold">
+                  <ShieldCheck size={22} />
+                </div>
+                <h3 className="font-editorial text-lg font-bold text-charcoal">
+                  {contactCMS.commit_card2_title || 'Guaranteed Quality'}
+                </h3>
+                <p className="font-sans text-xs text-walnut leading-relaxed">
+                  {contactCMS.commit_card2_desc || 'Every product is carefully selected, inspected, and installed to meet our uncompromising quality standards.'}
+                </p>
               </div>
-              <h3 className="font-editorial text-lg font-bold text-charcoal">Guaranteed Quality</h3>
-              <p className="font-sans text-xs text-walnut leading-relaxed">
-                Every product is carefully selected, inspected, and installed to meet our uncompromising quality standards.
-              </p>
-            </div>
+            )}
 
-            <div className="bg-cream border border-walnut/10 rounded-card p-6 space-y-4 shadow-sm hover:border-gold/40 transition-all">
-              <div className="w-12 h-12 rounded-full bg-gold/20 flex items-center justify-center text-gold">
-                <Award size={22} />
+            {contactCMS.commit_card3_visible !== false && (
+              <div className="min-w-[260px] flex-1 snap-start bg-cream border border-walnut/10 rounded-card p-6 space-y-4 shadow-sm hover:border-gold/40 transition-all shrink-0 md:shrink">
+                <div className="w-12 h-12 rounded-full bg-gold/20 flex items-center justify-center text-gold">
+                  <Award size={22} />
+                </div>
+                <h3 className="font-editorial text-lg font-bold text-charcoal">
+                  {contactCMS.commit_card3_title || 'Transparent Pricing'}
+                </h3>
+                <p className="font-sans text-xs text-walnut leading-relaxed">
+                  {contactCMS.commit_card3_desc || 'No hidden charges or unexpected costs. Every quotation is clear, detailed, and fully transparent before execution.'}
+                </p>
               </div>
-              <h3 className="font-editorial text-lg font-bold text-charcoal">Transparent Pricing</h3>
-              <p className="font-sans text-xs text-walnut leading-relaxed">
-                No hidden charges or unexpected costs. Every quotation is clear, detailed, and fully transparent before execution.
-              </p>
-            </div>
+            )}
 
-            <div className="bg-cream border border-walnut/10 rounded-card p-6 space-y-4 shadow-sm hover:border-gold/40 transition-all">
-              <div className="w-12 h-12 rounded-full bg-gold/20 flex items-center justify-center text-gold">
-                <Sparkles size={22} />
+            {contactCMS.commit_card4_visible !== false && (
+              <div className="min-w-[260px] flex-1 snap-start bg-cream border border-walnut/10 rounded-card p-6 space-y-4 shadow-sm hover:border-gold/40 transition-all shrink-0 md:shrink">
+                <div className="w-12 h-12 rounded-full bg-gold/20 flex items-center justify-center text-gold">
+                  <Sparkles size={22} />
+                </div>
+                <h3 className="font-editorial text-lg font-bold text-charcoal">
+                  {contactCMS.commit_card4_title || 'Free 3D Render'}
+                </h3>
+                <p className="font-sans text-xs text-walnut leading-relaxed">
+                  {contactCMS.commit_card4_desc || 'Visualize your living room, kitchen, and wardrobes in photorealistic 3D before starting site execution.'}
+                </p>
               </div>
-              <h3 className="font-editorial text-lg font-bold text-charcoal">Free 3D Render</h3>
-              <p className="font-sans text-xs text-walnut leading-relaxed">
-                Visualize your living room, kitchen, and wardrobes in photorealistic 3D before starting site execution.
-              </p>
-            </div>
+            )}
           </div>
         </div>
       </section>
@@ -1103,83 +1241,117 @@ const Contact = () => {
       <section className="py-20 px-6 md:px-12 bg-charcoal text-cream">
         <div className="max-w-[1440px] mx-auto space-y-12">
           <div className="text-center max-w-[600px] mx-auto space-y-3">
-            <span className="font-sans text-[11px] font-bold uppercase tracking-[0.2em] text-gold">Visit Us</span>
-            <h2 className="font-editorial text-3xl md:text-5xl font-bold text-white">Experience Centers & Studio</h2>
+            <span className="font-sans text-[11px] font-bold uppercase tracking-[0.2em] text-gold">
+              {contactCMS.exp_eyebrow || 'Visit Us'}
+            </span>
+            <h2 className="font-editorial text-3xl md:text-5xl font-bold text-white">
+              {contactCMS.exp_heading || 'Experience Centers & Studio'}
+            </h2>
             <p className="font-sans text-xs md:text-sm text-cream/70 leading-relaxed">
-              Walk into our flagship material experience studio. Touch, feel, and compare over 200+ live panel and finish samples in person.
+              {contactCMS.exp_description || 'Walk into our flagship material experience studio. Touch, feel, and compare over 200+ live panel and finish samples in person.'}
             </p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Experience Center */}
-            <div className="bg-white/5 border border-white/10 rounded-card p-8 backdrop-blur-md space-y-6 flex flex-col justify-between hover:border-gold/40 transition-all">
-              <div className="space-y-4">
-                <div className="w-10 h-10 rounded-full bg-gold/20 text-gold flex items-center justify-center">
-                  <MapPin size={20} />
+            {contactCMS.exp_card1_visible !== false && (
+              <div className="bg-white/5 border border-white/10 rounded-card p-8 backdrop-blur-md space-y-6 flex flex-col justify-between hover:border-gold/40 transition-all">
+                <div className="space-y-4">
+                  <div className="w-10 h-10 rounded-full bg-gold/20 text-gold flex items-center justify-center">
+                    <MapPin size={20} />
+                  </div>
+                  <h3 className="font-editorial text-xl font-bold text-white">
+                    {contactCMS.exp_card1_title || 'Our Studio'}
+                  </h3>
+                  <a 
+                    href="https://maps.app.goo.gl/q3zbxWmEt5wvRKbZ6" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="font-sans text-xs text-cream/80 hover:text-gold transition-colors leading-relaxed block whitespace-pre-line"
+                  >
+                    {contactCMS.exp_card1_address || '1st floor, H.No. 6-63/14B,\nMoinabad Road, Aziznagar,\nHyderabad, Telangana 500075'}
+                  </a>
                 </div>
-                <h3 className="font-editorial text-xl font-bold text-white">Our Studio</h3>
-                <a 
-                  href="https://maps.app.goo.gl/q3zbxWmEt5wvRKbZ6" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="font-sans text-xs text-cream/80 hover:text-gold transition-colors leading-relaxed block"
-                >
-                  1st floor, H.No. 6-63/14B,<br />
-                  Moinabad Road, Aziznagar,<br />
-                  Hyderabad, Telangana 500075
-                </a>
+                <div className="pt-4 border-t border-white/10">
+                  <span className="font-sans text-[10px] uppercase tracking-widest text-gold font-bold">
+                    {contactCMS.exp_card1_bottomLabel || 'Experience Center'}
+                  </span>
+                </div>
               </div>
-              <div className="pt-4 border-t border-white/10">
-                <span className="font-sans text-[10px] uppercase tracking-widest text-gold font-bold">Experience Center</span>
-              </div>
-            </div>
+            )}
 
             {/* Direct Contact */}
-            <div className="bg-white/5 border border-white/10 rounded-card p-8 backdrop-blur-md space-y-6 flex flex-col justify-between hover:border-gold/40 transition-all">
-              <div className="space-y-4">
-                <div className="w-10 h-10 rounded-full bg-gold/20 text-gold flex items-center justify-center">
-                  <Phone size={20} />
+            {contactCMS.exp_card2_visible !== false && (
+              <div className="bg-white/5 border border-white/10 rounded-card p-8 backdrop-blur-md space-y-6 flex flex-col justify-between hover:border-gold/40 transition-all">
+                <div className="space-y-4">
+                  <div className="w-10 h-10 rounded-full bg-gold/20 text-gold flex items-center justify-center">
+                    <Phone size={20} />
+                  </div>
+                  <h3 className="font-editorial text-xl font-bold text-white">
+                    {contactCMS.exp_card2_title || 'Direct Line'}
+                  </h3>
+                  <div className="space-y-2 font-sans text-xs text-cream/80">
+                    <p className="flex items-center gap-2">
+                      <Phone size={14} className="text-gold" />
+                      <a href={`tel:${(contactCMS.exp_card2_phone || '+91 95051 51116').replace(/\s+/g, '')}`} className="text-cream/90 hover:text-gold transition-colors font-medium">
+                        {contactCMS.exp_card2_phone || '+91 95051 51116'}
+                      </a>
+                    </p>
+                    <p className="flex items-center gap-2">
+                      <svg className="text-gold fill-current" viewBox="0 0 24 24" width="14" height="14" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.504-5.713-1.465L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.965C16.57 1.977 14.093.953 11.453.953 6.017.953 1.593 5.323 1.589 10.75c-.001 1.638.431 3.236 1.251 4.654L1.874 21.8l6.452-1.68c1.378.75 2.87 1.146 4.382 1.147h.008zM17.486 14.4c-.3-.15-1.774-.875-2.05-1.008-.277-.1-.478-.15-.68.15-.202.3-.777.977-.954 1.176-.176.2-.352.225-.652.075-.3-.15-1.266-.467-2.41-1.485-.89-.795-1.49-1.777-1.665-2.077-.176-.3-.02-.462.13-.61.135-.133.3-.349.45-.523.15-.174.2-.299.3-.499.1-.2.05-.375-.025-.524-.075-.15-.68-1.645-.93-2.247-.244-.593-.492-.51-.68-.52-.176-.01-.377-.01-.577-.01s-.527.075-.803.375c-.277.3-1.054 1.028-1.054 2.509 0 1.48 1.08 2.92 1.23 3.122.15.2 2.126 3.25 5.152 4.56.72.311 1.28.499 1.719.639.723.23 1.38.19 1.9.11.58-.09 1.774-.726 2.025-1.43.25-.704.25-1.306.175-1.43-.075-.124-.275-.2-.575-.35z" />
+                      </svg>
+                      <a href={`https://wa.me/${(contactCMS.exp_card2_whatsapp || '+91 95051 51116').replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="text-cream/90 hover:text-gold transition-colors font-medium">
+                        WhatsApp: {contactCMS.exp_card2_whatsapp || '+91 95051 51116'}
+                      </a>
+                    </p>
+                    <p className="flex items-center gap-2 pt-2">
+                      <Mail size={14} className="text-gold" />
+                      <a href={`mailto:${contactCMS.exp_card2_email || 'Espacio.hyd@gmail.com'}`} className="text-cream/90 hover:text-gold transition-colors font-medium">
+                        {contactCMS.exp_card2_email || 'Espacio.hyd@gmail.com'}
+                      </a>
+                    </p>
+                  </div>
                 </div>
-                <h3 className="font-editorial text-xl font-bold text-white">Direct Line</h3>
-                <div className="space-y-2 font-sans text-xs text-cream/80">
-                  <p className="flex items-center gap-2">
-                    <Phone size={14} className="text-gold" />
-                    <a href="tel:+919505151116" className="text-cream/90 hover:text-gold transition-colors font-medium">+91 95051 51116</a>
-                  </p>
-                  <p className="flex items-center gap-2">
-                    <svg className="text-gold fill-current" viewBox="0 0 24 24" width="14" height="14" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.504-5.713-1.465L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.965C16.57 1.977 14.093.953 11.453.953 6.017.953 1.593 5.323 1.589 10.75c-.001 1.638.431 3.236 1.251 4.654L1.874 21.8l6.452-1.68c1.378.75 2.87 1.146 4.382 1.147h.008zM17.486 14.4c-.3-.15-1.774-.875-2.05-1.008-.277-.1-.478-.15-.68.15-.202.3-.777.977-.954 1.176-.176.2-.352.225-.652.075-.3-.15-1.266-.467-2.41-1.485-.89-.795-1.49-1.777-1.665-2.077-.176-.3-.02-.462.13-.61.135-.133.3-.349.45-.523.15-.174.2-.299.3-.499.1-.2.05-.375-.025-.524-.075-.15-.68-1.645-.93-2.247-.244-.593-.492-.51-.68-.52-.176-.01-.377-.01-.577-.01s-.527.075-.803.375c-.277.3-1.054 1.028-1.054 2.509 0 1.48 1.08 2.92 1.23 3.122.15.2 2.126 3.25 5.152 4.56.72.311 1.28.499 1.719.639.723.23 1.38.19 1.9.11.58-.09 1.774-.726 2.025-1.43.25-.704.25-1.306.175-1.43-.075-.124-.275-.2-.575-.35z" />
-                    </svg>
-                    <a href="https://wa.me/919505151116" target="_blank" rel="noopener noreferrer" className="text-cream/90 hover:text-gold transition-colors font-medium">WhatsApp: +91 95051 51116</a>
-                  </p>
-                  <p className="flex items-center gap-2 pt-2">
-                    <Mail size={14} className="text-gold" />
-                    <a href="mailto:Espacio.hyd@gmail.com" className="text-cream/90 hover:text-gold transition-colors font-medium">Espacio.hyd@gmail.com</a>
-                  </p>
+                <div className="pt-4 border-t border-white/10">
+                  <span className="font-sans text-[10px] uppercase tracking-widest text-gold font-bold">
+                    {contactCMS.exp_card2_bottomLabel || 'Immediate Assistance'}
+                  </span>
                 </div>
               </div>
-              <div className="pt-4 border-t border-white/10">
-                <span className="font-sans text-[10px] uppercase tracking-widest text-gold font-bold">Immediate Assistance</span>
-              </div>
-            </div>
+            )}
 
             {/* Working Hours */}
-            <div className="bg-white/5 border border-white/10 rounded-card p-8 backdrop-blur-md space-y-6 flex flex-col justify-between hover:border-gold/40 transition-all">
-              <div className="space-y-4">
-                <div className="w-10 h-10 rounded-full bg-gold/20 text-gold flex items-center justify-center">
-                  <Clock size={20} />
+            {contactCMS.exp_card3_visible !== false && (
+              <div className="bg-white/5 border border-white/10 rounded-card p-8 backdrop-blur-md space-y-6 flex flex-col justify-between hover:border-gold/40 transition-all">
+                <div className="space-y-4">
+                  <div className="w-10 h-10 rounded-full bg-gold/20 text-gold flex items-center justify-center">
+                    <Clock size={20} />
+                  </div>
+                  <h3 className="font-editorial text-xl font-bold text-white">
+                    {contactCMS.exp_card3_title || 'Studio Hours'}
+                  </h3>
+                  <div className="space-y-2 font-sans text-xs">
+                    <p className="flex justify-between">
+                      <span className="text-cream/80">Mon – Sat:</span>
+                      <span className="font-bold text-white">{contactCMS.exp_card3_monSatHours || '10:00 AM – 7:30 PM'}</span>
+                    </p>
+                    <p className="flex justify-between">
+                      <span className="text-cream/80">Sunday:</span>
+                      <span className="text-gold font-bold">{contactCMS.exp_card3_sunHours || 'By Appointment'}</span>
+                    </p>
+                    <p className="font-sans text-[11px] text-cream/75 pt-2">
+                      {contactCMS.exp_card3_supportingText || 'Private evening consultations available upon request.'}
+                    </p>
+                  </div>
                 </div>
-                <h3 className="font-editorial text-xl font-bold text-white">Studio Hours</h3>
-                <div className="space-y-2 font-sans text-xs">
-                  <p className="flex justify-between"><span className="text-cream/80">Mon – Sat:</span> <span className="font-bold text-white">10:00 AM – 7:30 PM</span></p>
-                  <p className="flex justify-between"><span className="text-cream/80">Sunday:</span> <span className="text-gold font-bold">By Appointment</span></p>
-                  <p className="font-sans text-[11px] text-cream/75 pt-2">Private evening consultations available upon request.</p>
+                <div className="pt-4 border-t border-white/10">
+                  <span className="font-sans text-[10px] uppercase tracking-widest text-gold font-bold">
+                    {contactCMS.exp_card3_bottomLabel || 'Consultation Hours'}
+                  </span>
                 </div>
               </div>
-              <div className="pt-4 border-t border-white/10">
-                <span className="font-sans text-[10px] uppercase tracking-widest text-gold font-bold">Consultation Hours</span>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </section>

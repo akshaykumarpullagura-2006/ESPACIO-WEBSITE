@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { Save, Trash2, Plus, Loader2, ArrowLeft, Image as ImageIcon, X, CheckCircle } from 'lucide-react';
+import { Plus, Trash2, Save, Loader2, CheckCircle, ArrowLeft, Upload } from 'lucide-react';
+import { getCMSData, setCMSData, STORAGE_KEYS } from '../../utils/cmsStore';
 
 const AdminInput = (props) => (
   <input {...props} className="w-full bg-[#0E0F11] border border-white/10 focus:border-gold focus:outline-none rounded-lg font-sans text-xs px-4 py-3 text-white placeholder:text-white/25 transition-colors" />
@@ -21,9 +22,15 @@ const Field = ({ label, required, children }) => (
 );
 
 const mockProducts = [
-  { _id: '1', title: 'WPC Wall Panels', slug: 'wpc-wall-panels', category: 'wpc_wall_panels', status: 'published', heroImage: '/images/materials/wpc_panels.jpg' },
-  { _id: '2', title: 'Fluted Panels', slug: 'fluted-panels', category: 'fluted_panels', status: 'published', heroImage: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=200&q=60' },
-  { _id: '3', title: 'Polygranite Sheets', slug: 'polygranite-sheets', category: 'polygranite_sheets', status: 'draft', heroImage: 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=200&q=60' },
+  { _id: '1', title: 'Acrylic Luxe Collection', slug: 'acrylic-luxe-collection', category: 'acrylic_sheets', description: 'Ultra-gloss anti-scratch cabinet overlays creating glass-like modern kitchen cabinet fronts.', status: 'published', heroImage: '/images/materials/luminous_grid_8313.jpg' },
+  { _id: '2', title: 'Digital Korean Poly Granite', slug: 'digital-korean-poly-granite', category: 'polygranite_sheets', description: 'High-gloss stone surface overlays offering scratch-proof marble elevations.', status: 'published', heroImage: '/images/materials/florida.png' },
+  { _id: '3', title: 'Charcoal Panels Luxe Collection', slug: 'charcoal-panels-luxe', category: 'charcoal_panels', description: 'Richly textured wall panels infused with active charcoal for unique luxury accent walls.', status: 'published', heroImage: '/images/materials/charcoal_luxe_4015.jpg' },
+  { _id: '4', title: 'Fluted PVC Luxe Collection', slug: 'fluted-pvc-luxe', category: 'fluted_panels', description: 'Premium fluted PVC wall panels with rich relief lines and contemporary finishes.', status: 'published', heroImage: '/images/materials/irish.png' },
+  { _id: '5', title: 'LVT Luxe Flooring', slug: 'lvt-luxe-flooring', category: 'surface_sheets', description: 'Premium luxury vinyl flooring offering durability with authentic wood and stone textures.', status: 'published', heroImage: '/images/materials/giallo_dining.png' },
+  { _id: '6', title: 'Fluted Acrylic Luxe Collection', slug: 'fluted-acrylic-luxe', category: 'acrylic_sheets', description: 'Dynamic fluted acrylic panels creating sophisticated shadow play for luxury interiors.', status: 'published', heroImage: '/images/materials/fluted_acrylic_florida.jpg' },
+  { _id: '7', title: 'PVC Luxe Collection', slug: 'pvc-luxe-collection', category: 'pvc_ceiling_panels', description: 'Lightweight, versatile PVC panels for ceiling and wall applications with rich wood and textured finishes.', status: 'published', heroImage: '/images/materials/pvc_luxe_5003_5004.jpg' },
+  { _id: '8', title: 'WPC Luxe Collection', slug: 'wpc-luxe-collection', category: 'wpc_wall_panels', description: 'Co-extruded composite panels offering absolute water resistance and rich wood grain textures.', status: 'published', heroImage: '/images/materials/wpc_luxe_1701_1606.jpg' },
+  { _id: '9', title: 'Espacio Charcoal Panels Luxe Collection (1)', slug: 'charcoal-panels-luxe-1', category: 'charcoal_panels', description: 'Additional selection of richly textured wall panels infused with active charcoal.', status: 'published', heroImage: '/images/materials/charcoal_luxe_1_6015.jpg' },
 ];
 
 const CATEGORIES = [
@@ -67,11 +74,23 @@ const AdminProducts = () => {
 
   useEffect(() => {
     const fetch = async () => {
+      const stored = getCMSData(STORAGE_KEYS.PRODUCTS);
+      if (stored && stored.length > 0) {
+        setProducts(stored);
+        setLoading(false);
+      } else {
+        setProducts(mockProducts);
+        setCMSData(STORAGE_KEYS.PRODUCTS, mockProducts);
+        setLoading(false);
+      }
       try {
-        const res = await axios.get('/products?limit=50');
-        setProducts(res.data.data?.products || res.data.data || mockProducts);
-      } catch { setProducts(mockProducts); }
-      finally { setLoading(false); }
+        const res = await axios.get('/products?admin=true&limit=50');
+        const fetched = res.data.data?.products || res.data.data;
+        if (fetched && fetched.length > 0 && !stored) {
+          setProducts(fetched);
+          setCMSData(STORAGE_KEYS.PRODUCTS, fetched);
+        }
+      } catch {}
     };
     fetch();
   }, []);
@@ -95,44 +114,57 @@ const AdminProducts = () => {
   const handleDelete = async (pid) => {
     if (!window.confirm('Archive this product?')) return;
     try { await axios.delete(`/products/${pid}`); } catch {}
-    setProducts((prev) => prev.filter((p) => p._id !== pid));
+    setProducts((prev) => {
+      const updated = prev.filter((p) => p._id !== pid);
+      setCMSData(STORAGE_KEYS.PRODUCTS, updated);
+      return updated;
+    });
   };
 
   const handleSave = async (e) => {
     e.preventDefault();
     setSaving(true);
-    const slug = form.slug || form.title.toLowerCase().replace(/\s+/g, '-');
-    const specsParsed = form.specifications.split('\n')
-      .map(line => {
-        const parts = line.split(':');
-        if (parts.length >= 2) {
-          return { label: parts[0].trim(), value: parts.slice(1).join(':').trim() };
-        }
-        return null;
-      })
-      .filter(Boolean);
+    const slug = form.slug || form.title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    const specsParsed = typeof form.specifications === 'string'
+      ? form.specifications.split('\n')
+          .map(line => {
+            const parts = line.split(':');
+            if (parts.length >= 2) {
+              return { label: parts[0].trim(), value: parts.slice(1).join(':').trim() };
+            }
+            return null;
+          })
+          .filter(Boolean)
+      : (form.specifications || []);
 
     const payload = {
       ...form,
       slug,
-      features: form.features.split(',').map((t) => t.trim()).filter(Boolean),
-      applications: form.applications.split(',').map((t) => t.trim()).filter(Boolean),
-      gallery: form.gallery.split(',').map((t) => t.trim()).filter(Boolean),
+      features: typeof form.features === 'string' ? form.features.split(',').map((f) => f.trim()).filter(Boolean) : form.features,
+      applications: typeof form.applications === 'string' ? form.applications.split(',').map((a) => a.trim()).filter(Boolean) : form.applications,
+      gallery: typeof form.gallery === 'string' ? form.gallery.split(',').map((g) => g.trim()).filter(Boolean) : form.gallery,
       specifications: specsParsed
     };
+
     try {
+      if (editing) await axios.put(`/products/${editing._id}`, payload);
+      else await axios.post('/products', payload);
+    } catch {}
+
+    setProducts((prev) => {
+      let updated;
       if (editing) {
-        await axios.put(`/products/${editing._id}`, payload);
-        setProducts((prev) => prev.map((p) => p._id === editing._id ? { ...p, ...payload } : p));
+        updated = prev.map((p) => (p._id === editing._id ? { ...p, ...payload } : p));
       } else {
-        const res = await axios.post('/products', payload);
-        setProducts((prev) => [res.data.data || { _id: Date.now(), ...payload }, ...prev]);
+        updated = [{ _id: String(Date.now()), ...payload }, ...prev];
       }
-    } catch {
-      if (!editing) setProducts((prev) => [{ _id: String(Date.now()), ...payload }, ...prev]);
-    }
-    setSaving(false); setSaved(true);
-    setTimeout(() => { setSaved(false); setView('list'); }, 1500);
+      setCMSData(STORAGE_KEYS.PRODUCTS, updated);
+      return updated;
+    });
+
+    setSaved(true);
+    setTimeout(() => { setSaved(false); setView('list'); }, 1200);
+    setSaving(false);
   };
 
   if (view === 'form') return (

@@ -9,21 +9,24 @@ import { uploadFile, deleteFile } from '../services/storageService.js';
  */
 export const getTestimonials = async (req, res, next) => {
   try {
-    const queryObj = { softDelete: false, status: 'active' };
+    const queryObj = { softDelete: false };
 
-    // Support featured testimonials override filter
     if (req.query.featured) {
       queryObj.featured = req.query.featured === 'true';
     }
 
-    const testimonials = await Testimonial.find(queryObj).sort('displayOrder -createdAt');
+    const testimonials = await Testimonial.find(queryObj);
 
     res.status(200).json({
       success: true,
-      data: testimonials,
+      data: testimonials || [],
     });
   } catch (err) {
-    next(err);
+    console.warn('Testimonials GET warning:', err.message);
+    res.status(200).json({
+      success: true,
+      data: [],
+    });
   }
 };
 

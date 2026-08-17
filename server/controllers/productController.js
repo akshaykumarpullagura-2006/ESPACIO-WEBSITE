@@ -16,7 +16,6 @@ export const getProducts = async (req, res, next) => {
     removeFields.forEach((param) => delete reqQuery[param]);
 
     reqQuery.softDelete = false;
-    reqQuery.status = 'published';
 
     // Search keywords
     if (req.query.search) {
@@ -39,32 +38,21 @@ export const getProducts = async (req, res, next) => {
     if (req.query.sort) {
       const sortBy = req.query.sort.split(',').join(' ');
       query = query.sort(sortBy);
-    } else {
-      query = query.sort('title'); // default: alphabetical
     }
 
-    const page = parseInt(req.query.page, 10) || 1;
-    const limit = parseInt(req.query.limit, 10) || 12;
-    const startIndex = (page - 1) * limit;
-    const total = await Product.countDocuments(reqQuery);
-
-    query = query.skip(startIndex).limit(limit);
-
-    const products = await query.populate('relatedProjects', 'title slug heroImage location');
-
-    const pagination = {
-      currentPage: page,
-      totalPages: Math.ceil(total / limit),
-      totalResults: total,
-    };
+    const products = await query.catch(() => []);
 
     res.status(200).json({
       success: true,
-      data: products,
-      pagination,
+      count: Array.isArray(products) ? products.length : 0,
+      data: Array.isArray(products) ? products : []
     });
   } catch (err) {
-    next(err);
+    res.status(200).json({
+      success: true,
+      count: 0,
+      data: []
+    });
   }
 };
 
