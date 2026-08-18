@@ -3,7 +3,7 @@ import axios from 'axios';
 import { 
   Search, Filter, Eye, CheckCircle, Clock, XCircle, AlertCircle, Mail, Phone, 
   MapPin, Download, MessageSquare, Calendar, ChevronRight, User, Layers, FileText, 
-  Sparkles, Package, ArrowUpRight, CheckCircle2, UserCheck, PhoneCall, RefreshCw, Send
+  Sparkles, Package, ArrowUpRight, CheckCircle2, UserCheck, PhoneCall, RefreshCw, Send, Calculator
 } from 'lucide-react';
 import { getCMSData, setCMSData, STORAGE_KEYS, notifyCMSUpdate } from '../../utils/cmsStore';
 import { db, collection, getDocs, updateDoc, doc, query, orderBy } from '../../lib/firebaseClient';
@@ -21,14 +21,35 @@ const statusConfig = {
 
 // Main Type Badges
 const typeConfig = {
+  INSTANT_ESTIMATE: { label: 'INSTANT PROJECT ESTIMATE', color: 'text-cyan-400', bg: 'bg-cyan-500/15 border-cyan-500/30', prefix: 'ESP-EST' },
   FREE_ESTIMATE: { label: 'FREE ESTIMATE', color: 'text-amber-400', bg: 'bg-amber-500/15 border-amber-500/30', prefix: 'ESP-FE' },
   CATALOGUE_REQUEST: { label: 'CATALOGUE REQUEST', color: 'text-emerald-400', bg: 'bg-emerald-500/15 border-emerald-500/30', prefix: 'ESP-CR' },
   DESIGN_ENQUIRY: { label: 'DESIGN ENQUIRY', color: 'text-gold', bg: 'bg-gold/15 border-gold/30', prefix: 'ESP-DE' },
   INDIVIDUAL_ENQUIRY: { label: 'INDIVIDUAL', color: 'text-purple-400', bg: 'bg-purple-500/15 border-purple-500/30', prefix: 'ESP-IN' }
 };
 
-// Initial Seed Dataset (strictly containing the 4 valid types)
+// Initial Seed Dataset
 const seedEnquiries = [
+  {
+    id: 'ESP-EST-00001',
+    enquiryId: 'ESP-EST-00001',
+    type: 'INSTANT_ESTIMATE',
+    source: 'INSTANT_PROJECT_ESTIMATE',
+    requirementType: 'INSTANT_ESTIMATE',
+    name: 'Vikram Rao',
+    email: 'vikram.rao@gmail.com',
+    phone: '+91 98490 12345',
+    location: 'Property: 3 BHK',
+    propertyType: '3 BHK',
+    scopeOfWork: 'Turnkey Full Home',
+    finishGrade: 'Premium',
+    status: 'NEW',
+    read: false,
+    submittedAt: new Date(Date.now() - 1800000).toISOString(),
+    notesText: 'Instant Project Estimate Submission — Property: 3 BHK, Scope: Turnkey Full Home, Grade: Premium',
+    notes: [{ id: 'n-est-1', text: 'Captured via Instant Project Estimate calculator on Services page.', createdAt: new Date(Date.now() - 1800000).toISOString() }],
+    followUp: null
+  },
   {
     id: 'ESP-DE-00001',
     enquiryId: 'ESP-DE-00001',
@@ -258,6 +279,7 @@ const AdminEnquiries = () => {
   const filteredEnquiries = enquiries.filter(item => {
     // 1. Tab Filter
     if (activeTab === 'FREE_ESTIMATE' && item.type !== 'FREE_ESTIMATE') return false;
+    if (activeTab === 'INSTANT_ESTIMATE' && item.type !== 'INSTANT_ESTIMATE') return false;
     if (activeTab === 'CATALOGUE_REQUEST' && item.type !== 'CATALOGUE_REQUEST') return false;
     if (activeTab === 'DESIGN_ENQUIRY' && item.type !== 'DESIGN_ENQUIRY') return false;
     if (activeTab === 'INDIVIDUAL_ENQUIRY' && item.type !== 'INDIVIDUAL_ENQUIRY') return false;
@@ -301,6 +323,7 @@ const AdminEnquiries = () => {
   const stats = {
     total: enquiries.length,
     freeEstimates: enquiries.filter(e => e.type === 'FREE_ESTIMATE').length,
+    instantEstimates: enquiries.filter(e => e.type === 'INSTANT_ESTIMATE').length,
     catalogues: enquiries.filter(e => e.type === 'CATALOGUE_REQUEST').length,
     designEnquiries: enquiries.filter(e => e.type === 'DESIGN_ENQUIRY').length,
     individualEnquiries: enquiries.filter(e => e.type === 'INDIVIDUAL_ENQUIRY').length,
@@ -382,7 +405,7 @@ const AdminEnquiries = () => {
       </div>
 
       {/* ─── Top Metric Overview Cards ─── */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
         <div 
           onClick={() => setActiveTab('ALL')}
           className={`p-4 rounded-xl border cursor-pointer transition-all ${
@@ -394,6 +417,19 @@ const AdminEnquiries = () => {
             <Layers size={14} className="text-gold" />
           </div>
           <p className="font-editorial text-2xl font-bold text-white mt-2">{stats.total}</p>
+        </div>
+
+        <div 
+          onClick={() => setActiveTab('INSTANT_ESTIMATE')}
+          className={`p-4 rounded-xl border cursor-pointer transition-all ${
+            activeTab === 'INSTANT_ESTIMATE' ? 'bg-cyan-500/20 border-cyan-400 shadow-lg' : 'bg-[#141518] border-white/5 hover:border-white/20'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="font-sans text-[10px] text-white/40 uppercase font-bold tracking-widest">Instant Estimates</span>
+            <Calculator size={14} className="text-cyan-400" />
+          </div>
+          <p className="font-editorial text-2xl font-bold text-cyan-400 mt-2">{stats.instantEstimates}</p>
         </div>
 
         <div 
@@ -454,6 +490,7 @@ const AdminEnquiries = () => {
         <div className="flex items-center space-x-2 shrink-0">
           {[
             { key: 'ALL', label: `All Enquiries (${stats.total})` },
+            { key: 'INSTANT_ESTIMATE', label: `Instant Estimates (${stats.instantEstimates})` },
             { key: 'FREE_ESTIMATE', label: `Get Free Estimates (${stats.freeEstimates})` },
             { key: 'CATALOGUE_REQUEST', label: `Catalogue Requests (${stats.catalogues})` },
             { key: 'DESIGN_ENQUIRY', label: `Design Enquiries (${stats.designEnquiries})` },
@@ -673,7 +710,9 @@ const AdminEnquiries = () => {
                   href={(() => {
                     const phone = (selectedEnquiry.phone || '').replace(/\D/g, '');
                     let msg = `Hello ${selectedEnquiry.name || 'Client'},\n\nThank you for reaching out to ESPACIO Interiors & Modular regarding your enquiry (${selectedEnquiry.enquiryId || selectedEnquiry.id}).\n\n`;
-                    if (selectedEnquiry.type === 'FREE_ESTIMATE') {
+                    if (selectedEnquiry.type === 'INSTANT_ESTIMATE') {
+                      msg += `We received your Instant Project Estimate request for a ${selectedEnquiry.propertyType || 'Property'} (${selectedEnquiry.scopeOfWork || 'Interiors'}). We would love to share your personalized estimate details.`;
+                    } else if (selectedEnquiry.type === 'FREE_ESTIMATE') {
                       msg += `We received your request for a Free Estimate at ${selectedEnquiry.location || 'your location'}. We would love to discuss your BOQ and design requirements.`;
                     } else if (selectedEnquiry.type === 'CATALOGUE_REQUEST') {
                       msg += `We received your request for our Material & Product Catalogues (${selectedEnquiry.catalogueMaterial || 'Product Catalogue'}).`;
@@ -698,7 +737,9 @@ const AdminEnquiries = () => {
                   href={(() => {
                     const subject = `ESPACIO Interiors & Modular — Response to Enquiry ${selectedEnquiry.enquiryId || selectedEnquiry.id}`;
                     let body = `Dear ${selectedEnquiry.name || 'Client'},\n\nThank you for reaching out to ESPACIO Interiors & Modular.\n\n`;
-                    if (selectedEnquiry.type === 'FREE_ESTIMATE') {
+                    if (selectedEnquiry.type === 'INSTANT_ESTIMATE') {
+                      body += `We received your Instant Project Estimate request for a ${selectedEnquiry.propertyType || 'Property'} (${selectedEnquiry.scopeOfWork || 'Interiors'}).\n\nOur principal design team is preparing your personalized estimate details.`;
+                    } else if (selectedEnquiry.type === 'FREE_ESTIMATE') {
                       body += `We received your request for a Free Estimate at ${selectedEnquiry.location || 'your location'}.\n\nOur design team is preparing your initial consultation details.`;
                     } else if (selectedEnquiry.type === 'CATALOGUE_REQUEST') {
                       body += `We received your request for our material & product catalogues (${selectedEnquiry.catalogueMaterial || 'Product Catalogue'}).`;
@@ -764,6 +805,30 @@ const AdminEnquiries = () => {
                       <p className="text-white leading-relaxed bg-purple-500/10 p-3 rounded-lg border border-purple-500/20 mt-1">
                         {selectedEnquiry.individualRequirement || selectedEnquiry.notesText || 'Individual service request'}
                       </p>
+                    </div>
+                  )}
+
+                  {selectedEnquiry.type === 'INSTANT_ESTIMATE' && (
+                    <div className="space-y-2 bg-cyan-500/10 p-3 rounded-lg border border-cyan-500/20">
+                      <span className="text-cyan-400 block text-[10px] uppercase font-bold">Instant Project Estimate Details</span>
+                      {selectedEnquiry.propertyType && (
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-white/50">1. Property Type:</span>
+                          <span className="text-white font-bold">{selectedEnquiry.propertyType}</span>
+                        </div>
+                      )}
+                      {selectedEnquiry.scopeOfWork && (
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-white/50">2. Scope of Work:</span>
+                          <span className="text-gold font-bold">{selectedEnquiry.scopeOfWork}</span>
+                        </div>
+                      )}
+                      {selectedEnquiry.finishGrade && (
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-white/50">Finish Tier:</span>
+                          <span className="text-cyan-400 capitalize">{selectedEnquiry.finishGrade}</span>
+                        </div>
+                      )}
                     </div>
                   )}
 

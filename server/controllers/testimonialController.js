@@ -50,7 +50,7 @@ export const createTestimonial = async (req, res, next) => {
       }
     }
 
-    data.createdBy = req.user.id;
+    data.createdBy = req.user?.id || 'admin';
 
     const testimonial = await Testimonial.create(data);
 
@@ -90,7 +90,7 @@ export const updateTestimonial = async (req, res, next) => {
       }
     }
 
-    data.updatedBy = req.user.id;
+    data.updatedBy = req.user?.id || 'admin';
 
     testimonial = await Testimonial.findByIdAndUpdate(req.params.id, data, {
       new: true,

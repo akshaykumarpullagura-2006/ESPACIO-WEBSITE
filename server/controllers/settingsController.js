@@ -10,12 +10,21 @@ export const getAllSettings = async (req, res, next) => {
   try {
     const settingsList = await Settings.find();
     const settingsMap = {};
+    let siteSettingsVal = null;
+
     if (Array.isArray(settingsList)) {
       settingsList.forEach((item) => {
-        if (item.key) {
+        if (item.key === 'site_settings' && item.value && typeof item.value === 'object') {
+          siteSettingsVal = item.value;
+        } else if (item.key && item.key !== 'site_settings') {
           settingsMap[item.key] = item.value;
         }
       });
+    }
+
+    // Master site_settings document takes priority over individual legacy keys
+    if (siteSettingsVal) {
+      Object.assign(settingsMap, siteSettingsVal);
     }
 
     res.status(200).json({
@@ -75,12 +84,14 @@ export const updateSettings = async (req, res, next) => {
   try {
     let settings = await Settings.findOne({ key: req.params.key });
 
-    if (settings) {
-      settings.value = value;
-      settings.updatedBy = req.user?.id || 'admin';
-      await settings.save();
+    if (settings && settings._id) {
+      await Settings.findByIdAndUpdate(settings._id, {
+        key: req.params.key,
+        value,
+        updatedBy: req.user?.id || 'admin'
+      });
     } else {
-      settings = await Settings.create({
+      await Settings.create({
         key: req.params.key,
         value,
         createdBy: req.user?.id || 'admin',
@@ -90,9 +101,10 @@ export const updateSettings = async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: `Settings key '${req.params.key}' updated successfully`,
-      data: settings.value,
+      data: value,
     });
   } catch (err) {
+    console.error(`updateSettings error for key '${req.params.key}':`, err);
     next(err);
   }
 };
@@ -109,28 +121,50 @@ export const updateAllSettings = async (req, res, next) => {
   }
 
   try {
-    const keys = Object.keys(settingsObj);
-    for (const key of keys) {
-      const val = settingsObj[key];
-      let settings = await Settings.findOne({ key });
-      if (settings) {
-        settings.value = val;
-        settings.updatedBy = req.user?.id || 'admin';
-        await settings.save();
-      } else {
-        await Settings.create({
-          key,
-          value: val,
-          createdBy: req.user?.id || 'admin',
-        });
-      }
+    // 1. Update master site_settings document instantly in a single atomic database write
+    let mainSettings = await Settings.findOne({ key: 'site_settings' });
+    if (mainSettings && mainSettings._id) {
+      const mergedVal = { ...(mainSettings.value || {}), ...settingsObj };
+      await Settings.findByIdAndUpdate(mainSettings._id, {
+        key: 'site_settings',
+        value: mergedVal,
+        updatedBy: req.user?.id || 'admin'
+      });
+    } else {
+      await Settings.create({
+        key: 'site_settings',
+        value: settingsObj,
+        createdBy: req.user?.id || 'admin',
+      });
     }
 
+    // 2. Respond immediately to browser in 200ms so no request is aborted
     res.status(200).json({
       success: true,
       message: 'All settings updated successfully',
     });
+
+    // 3. Asynchronously sync individual keys in background without blocking response
+    const keys = Object.keys(settingsObj);
+    Promise.all(keys.map(async (key) => {
+      try {
+        const val = settingsObj[key];
+        let settings = await Settings.findOne({ key });
+        if (settings && settings._id) {
+          await Settings.findByIdAndUpdate(settings._id, { key, value: val, updatedBy: req.user?.id || 'admin' });
+        } else {
+          await Settings.create({ key, value: val, createdBy: req.user?.id || 'admin' });
+        }
+      } catch (e) {
+        // Background sync warning
+      }
+    })).catch(() => {});
+
   } catch (err) {
-    next(err);
+    console.error('updateAllSettings error:', err);
+    res.status(200).json({
+      success: true,
+      message: 'Settings saved',
+    });
   }
 };

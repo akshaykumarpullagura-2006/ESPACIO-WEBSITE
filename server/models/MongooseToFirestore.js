@@ -3,6 +3,25 @@ import { getFirestore, collection, doc, getDoc, getDocs, addDoc, updateDoc, dele
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
+// Helper to remove any undefined fields so Firebase Firestore SDK does not reject updateDoc / addDoc calls
+const sanitizePayload = (obj) => {
+  if (obj === null || obj === undefined) return null;
+  if (Array.isArray(obj)) {
+    return obj.map(sanitizePayload).filter(val => val !== undefined);
+  }
+  if (typeof obj === 'object') {
+    const clean = {};
+    Object.keys(obj).forEach(key => {
+      const val = obj[key];
+      if (val !== undefined) {
+        clean[key] = sanitizePayload(val);
+      }
+    });
+    return clean;
+  }
+  return obj;
+};
+
 const firebaseConfig = {
   apiKey: process.env.FIREBASE_API_KEY || "AIzaSyA1ISD8zLtXM7K3XA9nVP6UCfG93g3mOAA",
   authDomain: process.env.FIREBASE_AUTH_DOMAIN || "espacio-website-admin-portal.firebaseapp.com",
@@ -43,15 +62,27 @@ export class FirestoreModelAdapter {
   _toDoc(docSnap) {
     if (!docSnap.exists()) return null;
     const data = docSnap.data();
-    return {
+    const adapter = this;
+    const docObj = {
       _id: docSnap.id,
       id: docSnap.id,
       ...data,
+      save: async function() {
+        const docId = this._id || docSnap.id;
+        const copy = { ...this };
+        delete copy._id;
+        delete copy.id;
+        delete copy.save;
+        delete copy.comparePassword;
+        await adapter.findByIdAndUpdate(docId, copy);
+        return this;
+      },
       comparePassword: async function(candidatePassword) {
         if (!this.password) return false;
         return await bcrypt.compare(candidatePassword, this.password);
       }
     };
+    return docObj;
   }
 
   find(filter = {}) {
@@ -157,7 +188,7 @@ export class FirestoreModelAdapter {
 
   async create(data) {
     if (!db) return data;
-    const payload = {
+    const rawPayload = {
       ...data,
       softDelete: false,
       createdAt: new Date().toISOString(),
@@ -165,11 +196,12 @@ export class FirestoreModelAdapter {
     };
     
     // Hash password if we are creating a User
-    if (this.collectionName === 'users' && payload.password) {
+    if (this.collectionName === 'users' && rawPayload.password) {
       const salt = await bcrypt.genSalt(10);
-      payload.password = await bcrypt.hash(payload.password, salt);
+      rawPayload.password = await bcrypt.hash(rawPayload.password, salt);
     }
 
+    const payload = sanitizePayload(rawPayload);
     const docRef = await addDoc(collection(db, this.collectionName), payload);
     return { _id: docRef.id, id: docRef.id, ...payload };
   }
@@ -177,7 +209,8 @@ export class FirestoreModelAdapter {
   async findByIdAndUpdate(id, data, options = {}) {
     if (!db || !id) return null;
     const docRef = doc(db, this.collectionName, id);
-    const payload = { ...data, updatedAt: new Date().toISOString() };
+    const rawPayload = { ...data, updatedAt: new Date().toISOString() };
+    const payload = sanitizePayload(rawPayload);
     await updateDoc(docRef, payload);
     const docSnap = await getDoc(docRef);
     return this._toDoc(docSnap);

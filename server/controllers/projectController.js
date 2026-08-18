@@ -164,7 +164,7 @@ export const createProject = async (req, res, next) => {
     }
 
     // Set auditing
-    projectData.createdBy = req.user.id;
+    projectData.createdBy = req.user?.id || 'admin';
 
     // Save project
     const project = await Project.create(projectData);
@@ -239,7 +239,7 @@ export const updateProject = async (req, res, next) => {
       }
     }
 
-    projectData.updatedBy = req.user.id;
+    projectData.updatedBy = req.user?.id || 'admin';
 
     // Update DB record
     project = await Project.findByIdAndUpdate(req.params.id, projectData, {

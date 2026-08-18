@@ -36,7 +36,7 @@ export const getFAQs = async (req, res, next) => {
  */
 export const createFAQ = async (req, res, next) => {
   try {
-    req.body.createdBy = req.user.id;
+    req.body.createdBy = req.user?.id || 'admin';
     const faq = await FAQ.create(req.body);
 
     res.status(201).json({
@@ -62,7 +62,7 @@ export const updateFAQ = async (req, res, next) => {
       return next(new ErrorResponse(`FAQ not found with ID of ${req.params.id}`, 404));
     }
 
-    req.body.updatedBy = req.user.id;
+    req.body.updatedBy = req.user?.id || 'admin';
     faq = await FAQ.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,

@@ -4,23 +4,27 @@ import {
   ImageIcon, Save, CheckCircle, Loader2, Plus, Trash2,
   Eye, Sliders, ArrowUpRight, Check, AlertCircle, RefreshCw
 } from 'lucide-react';
-import { getCMSData, setCMSData, STORAGE_KEYS } from '../../utils/cmsStore';
+import { getCMSData, setCMSData, STORAGE_KEYS, uploadImageFile } from '../../utils/cmsStore';
+import CTASectionEditor from '../../components/admin/CTASectionEditor';
+import MediaPickerModal from '../../components/admin/MediaPickerModal';
 
 const AdminHomeHeroCMS = () => {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
   const [toastMessage, setToastMessage] = useState('');
+  const [bgPickerOpen, setBgPickerOpen] = useState(false);
+  const [cardPickerOpen, setCardPickerOpen] = useState(false);
   const fileInputBgRef = useRef(null);
   const fileInputCardRef = useRef(null);
 
   // Home Hero CMS State
   const [heroState, setHeroState] = useState({
     hero_bg_images: [
+      '/images/user_uploaded_bedroom.jpg',
+      'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?auto=format&fit=crop&w=1920&q=90',
       'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1920&q=90',
-      'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1920&q=90',
-      'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1920&q=90',
-      'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1920&q=90'
+      'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1920&q=90'
     ],
     hero_card_image: '',
     hero_card_heading: 'We Craft the Future Dwelling',
@@ -70,21 +74,23 @@ const AdminHomeHeroCMS = () => {
   useEffect(() => {
     const fetchCMSData = async () => {
       const storedSettings = getCMSData(STORAGE_KEYS.SETTINGS);
-      if (storedSettings) {
+      if (storedSettings && Object.keys(storedSettings).length > 0) {
         setHeroState((prev) => ({ ...prev, ...storedSettings }));
         setLoading(false);
       }
       try {
         const res = await axios.get('/settings');
-        if (res.data.success && res.data.data) {
+        if (res.data && res.data.success && res.data.data && Object.keys(res.data.data).length > 0) {
+          const apiData = res.data.data;
           setHeroState((prev) => {
-            const merged = { ...prev, ...res.data.data };
+            const merged = { ...prev, ...apiData };
             setCMSData(STORAGE_KEYS.SETTINGS, merged);
             return merged;
           });
         }
-      } catch {}
-      finally {
+      } catch (err) {
+        console.warn('API load settings warning:', err);
+      } finally {
         setLoading(false);
       }
     };
@@ -104,13 +110,15 @@ const AdminHomeHeroCMS = () => {
     const existing = getCMSData(STORAGE_KEYS.SETTINGS) || {};
     const updatedSettings = { ...existing, ...heroState };
 
+    // Immediately persist to local storage and broadcast to open tabs
+    setCMSData(STORAGE_KEYS.SETTINGS, updatedSettings);
+
     try {
       await axios.put('/settings', updatedSettings);
     } catch (err) {
-      console.warn('Database sync offline, updated in local CMS store.');
+      console.warn('Database sync offline, updated in local CMS store.', err);
     }
 
-    setCMSData(STORAGE_KEYS.SETTINGS, updatedSettings);
     setSaving(false);
     setSaved(true);
     showNotification('Hero section updated successfully.');
@@ -121,21 +129,18 @@ const AdminHomeHeroCMS = () => {
     setHeroState((prev) => ({ ...prev, [key]: val }));
   };
 
-  // Image Upload helper (converts uploaded file to Data URL & allows URL replacement)
-  const handleFileUpload = (e, callback) => {
+  // Image Upload helper (converts uploaded file to clean short URL & allows replacement)
+  const handleFileUpload = async (e, callback) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) {
       alert('Please upload a valid image file (JPG, PNG, WebP).');
       return;
     }
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      if (evt.target?.result) {
-        callback(evt.target.result);
-      }
-    };
-    reader.readAsDataURL(file);
+    const uploadedUrl = await uploadImageFile(file);
+    if (uploadedUrl) {
+      callback(uploadedUrl);
+    }
   };
 
   const inpClass = "w-full bg-[#0E0F11] border border-white/10 focus:border-gold focus:outline-none rounded-lg font-sans text-xs px-4 py-3 text-white placeholder:text-white/25 transition-all";
@@ -157,8 +162,8 @@ const AdminHomeHeroCMS = () => {
     { key: 3, val: heroState.hero_stat3_value, label: heroState.hero_stat3_label, visible: heroState.hero_stat3_visible, order: Number(heroState.hero_stat3_order) || 3 },
   ].filter(s => s.visible).sort((a, b) => a.order - b.order);
 
-  const heroBgPreview = heroState.hero_bg_images?.[0] || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1920&q=90';
-  const cardImgPreview = heroState.hero_card_image || heroBgPreview;
+  const heroBgPreview = (heroState.hero_bg_images?.[0] === '/api/user-uploaded-bedroom.jpg') ? '/images/user_uploaded_bedroom.jpg' : (heroState.hero_bg_images?.[0] || '/images/user_uploaded_bedroom.jpg');
+  const cardImgPreview = (heroState.hero_card_image === '/api/user-uploaded-bedroom.jpg' || !heroState.hero_card_image) ? heroBgPreview : heroState.hero_card_image;
 
   return (
     <div className="space-y-8 pb-16">
@@ -232,14 +237,24 @@ const AdminHomeHeroCMS = () => {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <label className={labelClass}>Background Carousel Image URLs</label>
-                <button
-                  type="button"
-                  onClick={() => fileInputBgRef.current?.click()}
-                  className="flex items-center space-x-1.5 bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-lg font-sans text-[11px] font-bold uppercase transition-all"
-                >
-                  <Plus size={12} />
-                  <span>Upload Image File</span>
-                </button>
+                <div className="flex items-center space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => setBgPickerOpen(true)}
+                    className="flex items-center space-x-1.5 bg-gold/15 hover:bg-gold text-gold hover:text-charcoal border border-gold/40 px-3 py-1.5 rounded-lg font-sans text-[11px] font-bold uppercase transition-all"
+                  >
+                    <ImageIcon size={12} />
+                    <span>Select from Gallery</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => fileInputBgRef.current?.click()}
+                    className="flex items-center space-x-1.5 bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-lg font-sans text-[11px] font-bold uppercase transition-all"
+                  >
+                    <Plus size={12} />
+                    <span>Upload File</span>
+                  </button>
+                </div>
               </div>
 
               {(heroState.hero_bg_images || []).map((imgUrl, i) => (
@@ -326,6 +341,14 @@ const AdminHomeHeroCMS = () => {
                     className={inpClass}
                     placeholder="Leave empty to auto-sync with main background carousel"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setCardPickerOpen(true)}
+                    className="flex items-center space-x-1 bg-gold/15 hover:bg-gold text-gold hover:text-charcoal border border-gold/40 px-3 py-3 rounded-lg font-sans text-[11px] font-bold uppercase shrink-0 transition-all"
+                  >
+                    <ImageIcon size={12} />
+                    <span>Gallery</span>
+                  </button>
                   <button
                     type="button"
                     onClick={() => fileInputCardRef.current?.click()}
@@ -836,6 +859,11 @@ const AdminHomeHeroCMS = () => {
               </button>
             </div>
           </div>
+
+          {/* SECTION 7: HOME CTA SECTION */}
+          <div className="bg-[#141518] border border-white/5 rounded-2xl p-6 md:p-8">
+            <CTASectionEditor pageKey="home" pageTitle="Home" />
+          </div>
         </div>
 
         {/* Live Website Component Preview (5 cols) */}
@@ -902,6 +930,34 @@ const AdminHomeHeroCMS = () => {
         </div>
 
       </div>
+
+      {/* Media Picker Modal for Background Slider */}
+      <MediaPickerModal
+        isOpen={bgPickerOpen}
+        onClose={() => setBgPickerOpen(false)}
+        multiple={true}
+        initialSelection={heroState.hero_bg_images || []}
+        title="Select Hero Background Carousel Images"
+        onSelect={(selectedUrls) => {
+          if (Array.isArray(selectedUrls) && selectedUrls.length > 0) {
+            handleFieldChange('hero_bg_images', selectedUrls);
+          }
+        }}
+      />
+
+      {/* Media Picker Modal for Feature Card Photo */}
+      <MediaPickerModal
+        isOpen={cardPickerOpen}
+        onClose={() => setCardPickerOpen(false)}
+        multiple={false}
+        initialSelection={heroState.hero_card_image || ''}
+        title="Select Feature Card Custom Photo"
+        onSelect={(selectedUrl) => {
+          if (typeof selectedUrl === 'string') {
+            handleFieldChange('hero_card_image', selectedUrl);
+          }
+        }}
+      />
     </div>
   );
 };

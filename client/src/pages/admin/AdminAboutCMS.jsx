@@ -6,6 +6,7 @@ import {
   Sparkles, Layers
 } from 'lucide-react';
 import { getCMSData, setCMSData, STORAGE_KEYS } from '../../utils/cmsStore';
+import CTASectionEditor from '../../components/admin/CTASectionEditor';
 
 const defaultStats = [
   { value: '25+', label: 'Projects Completed' },
@@ -270,13 +271,15 @@ const AdminAboutCMS = () => {
       ...aboutState
     };
 
+    // Immediately persist to local storage and broadcast live update
+    setCMSData(STORAGE_KEYS.SETTINGS, updatedSettings);
+
     try {
       await axios.put('/settings', updatedSettings);
     } catch (err) {
-      console.warn('Database sync offline, updated in local CMS store.');
+      console.warn('Database sync offline, updated in local CMS store.', err);
     }
 
-    setCMSData(STORAGE_KEYS.SETTINGS, updatedSettings);
     setSaving(false);
     setSaved(true);
     showNotification('About page updated successfully.');
@@ -352,7 +355,8 @@ const AdminAboutCMS = () => {
           { id: 'story', label: '2. Origin Story' },
           { id: 'gen', label: '3. 4 Generations' },
           { id: 'mission', label: '4. Mission & Vision' },
-          { id: 'gallery', label: '5. Gallery & CTA' }
+          { id: 'gallery', label: '5. Gallery' },
+          { id: 'cta', label: '6. CTA Section' }
         ].map((tab) => (
           <button
             key={tab.id}
@@ -367,6 +371,13 @@ const AdminAboutCMS = () => {
           </button>
         ))}
       </div>
+
+      {/* TAB: CTA SECTION */}
+      {activeTab === 'cta' && (
+        <div className="bg-[#141518] border border-white/5 rounded-2xl p-6 md:p-8 max-w-4xl">
+          <CTASectionEditor pageKey="about" pageTitle="About" />
+        </div>
+      )}
 
       {/* TAB 1: HERO & STATS */}
       {activeTab === 'hero' && (

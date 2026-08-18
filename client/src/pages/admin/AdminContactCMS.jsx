@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
   Mail, Save, CheckCircle, Loader2, MapPin, Phone, Clock,
-  ShieldCheck, FileText, Sparkles, Award, Eye, EyeOff, Lock
+  ShieldCheck, FileText, Sparkles, Award, Eye, EyeOff, Lock, HelpCircle
 } from 'lucide-react';
 import { getCMSData, setCMSData, STORAGE_KEYS } from '../../utils/cmsStore';
+import CTASectionEditor from '../../components/admin/CTASectionEditor';
 
 const defaultContactSettings = {
   // SECTION 01: Experience Centers & Studio
@@ -196,7 +197,25 @@ const AdminContactCMS = () => {
           <Award size={16} />
           <span>Section 02: Quotation Commitments</span>
         </button>
+        <button
+          onClick={() => setActiveTab('cta')}
+          className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-sans text-xs uppercase tracking-wider font-bold transition-all shadow-md ${
+            activeTab === 'cta'
+              ? 'bg-gold text-charcoal border border-gold shadow-[0_0_20px_rgba(201,169,110,0.3)]'
+              : 'bg-[#141518] text-white/70 hover:text-white hover:bg-white/5 border border-white/10'
+          }`}
+        >
+          <HelpCircle size={16} />
+          <span>CTA Section</span>
+        </button>
       </div>
+
+      {/* TAB: CTA SECTION EDITOR */}
+      {activeTab === 'cta' && (
+        <div className="bg-[#141518] border border-white/5 rounded-2xl p-6 md:p-8 max-w-4xl">
+          <CTASectionEditor pageKey="contact" pageTitle="Contact" />
+        </div>
+      )}
 
       {/* SECTION 01: EXPERIENCE CENTERS & STUDIO */}
       {activeTab === 'exp' && (

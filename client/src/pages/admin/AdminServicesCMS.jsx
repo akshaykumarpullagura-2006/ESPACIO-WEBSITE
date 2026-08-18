@@ -3,9 +3,10 @@ import axios from 'axios';
 import {
   Package, Save, CheckCircle, Loader2, Plus, Trash2,
   Eye, Sliders, ArrowUpRight, Check, ImageIcon, ArrowUp, ArrowDown,
-  Layers, CheckCircle2, Edit3, X
+  Layers, CheckCircle2, Edit3, X, HelpCircle
 } from 'lucide-react';
-import { getCMSData, setCMSData, STORAGE_KEYS } from '../../utils/cmsStore';
+import { getCMSData, setCMSData, STORAGE_KEYS, uploadImageFile } from '../../utils/cmsStore';
+import CTASectionEditor from '../../components/admin/CTASectionEditor';
 
 const defaultHeroImages = [
   'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=1920&q=90',
@@ -163,13 +164,15 @@ const AdminServicesCMS = () => {
       services_list: servicesList
     };
 
+    // Immediately persist to local storage and broadcast live update
+    setCMSData(STORAGE_KEYS.SETTINGS, updatedSettings);
+
     try {
       await axios.put('/settings', updatedSettings);
     } catch (err) {
-      console.warn('Database sync offline, updated in local CMS store.');
+      console.warn('Database sync offline, updated in local CMS store.', err);
     }
 
-    setCMSData(STORAGE_KEYS.SETTINGS, updatedSettings);
     setSaving(false);
     setSaved(true);
     showNotification('Services page updated successfully.');
@@ -195,20 +198,17 @@ const AdminServicesCMS = () => {
     });
   };
 
-  const handleFileUpload = (e, callback) => {
+  const handleFileUpload = async (e, callback) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) {
       alert('Please upload a valid image file (JPG, PNG, WebP).');
       return;
     }
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      if (evt.target?.result) {
-        callback(evt.target.result);
-      }
-    };
-    reader.readAsDataURL(file);
+    const uploadedUrl = await uploadImageFile(file);
+    if (uploadedUrl) {
+      callback(uploadedUrl);
+    }
   };
 
   const handleAddService = () => {
@@ -332,7 +332,25 @@ const AdminServicesCMS = () => {
           <ImageIcon size={16} />
           <span>Edit Services Hero Banner</span>
         </button>
+        <button
+          onClick={() => setActiveTab('cta')}
+          className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-sans text-xs uppercase tracking-wider font-bold transition-all shadow-md ${
+            activeTab === 'cta'
+              ? 'bg-gold text-charcoal border border-gold shadow-[0_0_20px_rgba(201,169,110,0.3)]'
+              : 'bg-[#141518] text-white/70 hover:text-white hover:bg-white/5 border border-white/10'
+          }`}
+        >
+          <HelpCircle size={16} />
+          <span>CTA Section</span>
+        </button>
       </div>
+
+      {/* TAB: CTA SECTION EDITOR */}
+      {activeTab === 'cta' && (
+        <div className="bg-[#141518] border border-white/5 rounded-2xl p-6 md:p-8 max-w-4xl">
+          <CTASectionEditor pageKey="services" pageTitle="Services" />
+        </div>
+      )}
 
       {/* TAB 1: SERVICES HERO EDITOR */}
       {activeTab === 'hero' && (

@@ -28,6 +28,7 @@ const navItems = [
   { icon: HelpCircle, label: 'FAQ CMS', path: '/admin/faqs' },
   { icon: Mail, label: 'Contact CMS', path: '/admin/contact' },
   { icon: Star, label: 'Testimonials CMS', path: '/admin/testimonials' },
+  { icon: FileText, label: 'Footer CMS', path: '/admin/footer' },
   { icon: Mail, label: 'Enquiries', path: '/admin/enquiries' },
   { icon: Image, label: 'Gallery', path: '/admin/gallery' },
   { icon: Users, label: 'Admin Users', path: '/admin/users' },

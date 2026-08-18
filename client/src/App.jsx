@@ -25,24 +25,36 @@ import Products from './pages/Products';
 import ProductDetails from './pages/ProductDetails';
 import Contact from './pages/Contact';
 
-// Admin Components
-import AdminLogin from './pages/admin/AdminLogin';
-import AdminLayout, { AdminDashboardHome } from './pages/admin/AdminDashboard';
-import AdminHomeHeroCMS from './pages/admin/AdminHomeHeroCMS';
-import AdminServicesCMS from './pages/admin/AdminServicesCMS';
-import AdminSpacesCMS from './pages/admin/AdminSpacesCMS';
-import AdminMaterialsCMS from './pages/admin/AdminMaterialsCMS';
-import AdminAboutCMS from './pages/admin/AdminAboutCMS';
-import AdminFAQCMS from './pages/admin/AdminFAQCMS';
-import AdminContactCMS from './pages/admin/AdminContactCMS';
-import AdminTestimonialsCMS from './pages/admin/AdminTestimonialsCMS';
-import AdminPagesCMS from './pages/admin/AdminPagesCMS';
-import AdminEnquiries from './pages/admin/AdminEnquiries';
-import AdminProjects from './pages/admin/AdminProjects';
-import AdminProducts from './pages/admin/AdminProducts';
-import AdminUsers from './pages/admin/AdminUsers';
-import AdminAuditLogs from './pages/admin/AdminAuditLogs';
-import { AdminMedia, AdminSettings } from './pages/admin/AdminCMS';
+// Lazy-loaded Admin Components for Bundle & Performance Isolation
+const AdminLogin = React.lazy(() => import('./pages/admin/AdminLogin'));
+const AdminLayout = React.lazy(() => import('./pages/admin/AdminDashboard'));
+const AdminDashboardHome = React.lazy(() => import('./pages/admin/AdminDashboard').then(m => ({ default: m.AdminDashboardHome })));
+const AdminHomeHeroCMS = React.lazy(() => import('./pages/admin/AdminHomeHeroCMS'));
+const AdminServicesCMS = React.lazy(() => import('./pages/admin/AdminServicesCMS'));
+const AdminSpacesCMS = React.lazy(() => import('./pages/admin/AdminSpacesCMS'));
+const AdminMaterialsCMS = React.lazy(() => import('./pages/admin/AdminMaterialsCMS'));
+const AdminAboutCMS = React.lazy(() => import('./pages/admin/AdminAboutCMS'));
+const AdminFAQCMS = React.lazy(() => import('./pages/admin/AdminFAQCMS'));
+const AdminContactCMS = React.lazy(() => import('./pages/admin/AdminContactCMS'));
+const AdminTestimonialsCMS = React.lazy(() => import('./pages/admin/AdminTestimonialsCMS'));
+const AdminPagesCMS = React.lazy(() => import('./pages/admin/AdminPagesCMS'));
+const AdminFooterCMS = React.lazy(() => import('./pages/admin/AdminFooterCMS'));
+const AdminEnquiries = React.lazy(() => import('./pages/admin/AdminEnquiries'));
+const AdminProjects = React.lazy(() => import('./pages/admin/AdminProjects'));
+const AdminProducts = React.lazy(() => import('./pages/admin/AdminProducts'));
+const AdminUsers = React.lazy(() => import('./pages/admin/AdminUsers'));
+const AdminAuditLogs = React.lazy(() => import('./pages/admin/AdminAuditLogs'));
+const AdminMedia = React.lazy(() => import('./pages/admin/AdminCMS').then(m => ({ default: m.AdminMedia })));
+const AdminSettings = React.lazy(() => import('./pages/admin/AdminCMS').then(m => ({ default: m.AdminSettings })));
+
+const AdminLoaderFallback = () => (
+  <div className="min-h-screen bg-[#0E0F11] flex items-center justify-center">
+    <div className="flex flex-col items-center space-y-3">
+      <div className="w-8 h-8 border-2 border-gold border-t-transparent rounded-full animate-spin" />
+      <span className="font-sans text-xs text-white/50 uppercase tracking-widest">Loading Admin Portal...</span>
+    </div>
+  </div>
+);
 // ── Scroll to top on every route change ─────────────────────────────────────
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -60,23 +72,61 @@ const ScrollToTop = () => {
   return null;
 };
 
-// Floating Logo CTA Component
+// Floating CTA Triggers: Desktop Floating Button + Mobile Right-Edge Vertical "GET FREE ESTIMATE" Tab
 const FloatingLogo = () => {
+  const handleOpenModal = () => {
+    window.dispatchEvent(new CustomEvent('open-quote-modal'));
+  };
+
   return (
-    <motion.button
-      onClick={() => window.dispatchEvent(new CustomEvent('open-quote-modal'))}
-      whileHover={{ scale: 1.08 }}
-      whileTap={{ scale: 0.95 }}
-      initial={{ opacity: 0, scale: 0.8, y: 20 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      transition={{ delay: 1.5, duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
-      className="hidden lg:flex fixed bottom-6 right-6 z-[9999] w-14 h-14 rounded-full bg-bg-dark border border-white/10 shadow-2xl items-center justify-center cursor-pointer hover:border-gold/30 hover:shadow-[0_0_20px_rgba(201,169,110,0.25)] hover:bg-[#0c0c0f] select-none transition-all duration-300"
-      aria-label="Get Free Estimate"
-    >
-      <div className="scale-90 flex items-center justify-center w-full h-full">
-        <Logo showText={false} scrolled={false} size="small" />
+    <>
+      {/* DESKTOP ONLY: Fixed Floating Button with Continuous Rotating Icon */}
+      <div className="hidden lg:flex fixed bottom-6 right-6 z-[9999] pointer-events-auto">
+        <motion.button
+          onClick={handleOpenModal}
+          whileHover={{ scale: 1.04 }}
+          whileTap={{ scale: 0.95 }}
+          initial={{ opacity: 0, scale: 0.8, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ delay: 1.5, duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+          className="relative w-14 h-14 rounded-full bg-bg-dark border border-white/15 shadow-[0_4px_24px_rgba(0,0,0,0.6)] flex items-center justify-center cursor-pointer hover:border-gold/50 hover:shadow-[0_0_25px_rgba(201,169,110,0.35)] hover:bg-[#0c0c0f] select-none transition-all duration-300 group outline-none"
+          aria-label="Get Free Estimate"
+        >
+          <motion.div 
+            className="scale-90 flex items-center justify-center w-full h-full"
+            animate={{ rotate: 360 }}
+            transition={{
+              duration: 5,
+              repeat: Infinity,
+              ease: "linear"
+            }}
+          >
+            <Logo showText={false} scrolled={false} size="small" />
+          </motion.div>
+        </motion.button>
       </div>
-    </motion.button>
+
+      {/* MOBILE ONLY: Small Fixed Vertical "GET FREE ESTIMATE" Tab on Right Edge */}
+      <div className="lg:hidden fixed right-0 top-1/2 -translate-y-1/2 z-[9999] pointer-events-auto">
+        <motion.button
+          onClick={handleOpenModal}
+          whileTap={{ scale: 0.94 }}
+          initial={{ opacity: 0, x: 25 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 1, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          className="bg-[#121316]/95 backdrop-blur-md border-l border-t border-b border-gold/40 text-gold shadow-[0_4px_20px_rgba(0,0,0,0.6)] rounded-l-xl py-3.5 px-2 flex flex-col items-center justify-center gap-1.5 cursor-pointer hover:bg-[#1a1b20] active:bg-[#1f2026] transition-all select-none group outline-none"
+          aria-label="Get Free Estimate"
+        >
+          <span 
+            className="font-display text-[9.5px] font-bold tracking-[0.2em] text-gold uppercase whitespace-nowrap"
+            style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
+          >
+            Get Free Estimate
+          </span>
+          <span className="w-1.5 h-1.5 rounded-full bg-gold animate-pulse mt-0.5" />
+        </motion.button>
+      </div>
+    </>
   );
 };
 
@@ -154,44 +204,47 @@ function App() {
         <Router>
           <ScrollToTop />
           <CustomCursor />
-          <Routes>
-            {/* ── Public Routes (Animated) ────────────────────────── */}
-            <Route element={<MainLayout />}>
-              <Route path="/" element={<Home />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/services" element={<Services />} />
-              <Route path="/projects" element={<Projects />} />
-              <Route path="/projects/:slug" element={<ProjectDetails />} />
-              <Route path="/what-we-do" element={<WhatWeDo />} />
-              <Route path="/what-we-do/:slug" element={<WhatWeDo />} />
-              <Route path="/products" element={<Products />} />
-              <Route path="/products/:slug" element={<ProductDetails />} />
-              <Route path="/contact" element={<Contact />} />
-              
-              {/* 404 fallback */}
-              <Route path="*" element={<NotFound />} />
-            </Route>
+          <React.Suspense fallback={<AdminLoaderFallback />}>
+            <Routes>
+              {/* ── Public Routes (Animated) ────────────────────────── */}
+              <Route element={<MainLayout />}>
+                <Route path="/" element={<Home />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/services" element={<Services />} />
+                <Route path="/projects" element={<Projects />} />
+                <Route path="/projects/:slug" element={<ProjectDetails />} />
+                <Route path="/what-we-do" element={<WhatWeDo />} />
+                <Route path="/what-we-do/:slug" element={<WhatWeDo />} />
+                <Route path="/products" element={<Products />} />
+                <Route path="/products/:slug" element={<ProductDetails />} />
+                <Route path="/contact" element={<Contact />} />
+                
+                {/* 404 fallback */}
+                <Route path="*" element={<NotFound />} />
+              </Route>
 
-            {/* ── Admin Routes (No Navbar/Footer) ───────────────────── */}
-            <Route path="/admin" element={<AdminLogin />} />
-            <Route path="/admin/dashboard" element={<AdminLayout><AdminDashboardHome /></AdminLayout>} />
-            <Route path="/admin/hero" element={<AdminLayout><AdminHomeHeroCMS /></AdminLayout>} />
-            <Route path="/admin/services" element={<AdminLayout><AdminServicesCMS /></AdminLayout>} />
-            <Route path="/admin/spaces" element={<AdminLayout><AdminSpacesCMS /></AdminLayout>} />
-            <Route path="/admin/materials" element={<AdminLayout><AdminMaterialsCMS /></AdminLayout>} />
-            <Route path="/admin/about" element={<AdminLayout><AdminAboutCMS /></AdminLayout>} />
-            <Route path="/admin/faqs" element={<AdminLayout><AdminFAQCMS /></AdminLayout>} />
-            <Route path="/admin/contact" element={<AdminLayout><AdminContactCMS /></AdminLayout>} />
-            <Route path="/admin/testimonials" element={<AdminLayout><AdminTestimonialsCMS /></AdminLayout>} />
-            <Route path="/admin/pages" element={<AdminLayout><AdminPagesCMS /></AdminLayout>} />
-            <Route path="/admin/enquiries" element={<AdminLayout><AdminEnquiries /></AdminLayout>} />
-            <Route path="/admin/projects" element={<AdminLayout><AdminProjects /></AdminLayout>} />
-            <Route path="/admin/products" element={<AdminLayout><AdminMaterialsCMS /></AdminLayout>} />
-            <Route path="/admin/users" element={<AdminLayout><AdminUsers /></AdminLayout>} />
-            <Route path="/admin/audit" element={<AdminLayout><AdminAuditLogs /></AdminLayout>} />
-            <Route path="/admin/gallery" element={<AdminLayout><AdminMedia /></AdminLayout>} />
-            <Route path="/admin/settings" element={<AdminLayout><AdminSettings /></AdminLayout>} />
-          </Routes>
+              {/* ── Admin Routes (No Navbar/Footer) ───────────────────── */}
+              <Route path="/admin" element={<AdminLogin />} />
+              <Route path="/admin/dashboard" element={<AdminLayout><AdminDashboardHome /></AdminLayout>} />
+              <Route path="/admin/hero" element={<AdminLayout><AdminHomeHeroCMS /></AdminLayout>} />
+              <Route path="/admin/services" element={<AdminLayout><AdminServicesCMS /></AdminLayout>} />
+              <Route path="/admin/spaces" element={<AdminLayout><AdminSpacesCMS /></AdminLayout>} />
+              <Route path="/admin/materials" element={<AdminLayout><AdminMaterialsCMS /></AdminLayout>} />
+              <Route path="/admin/about" element={<AdminLayout><AdminAboutCMS /></AdminLayout>} />
+              <Route path="/admin/faqs" element={<AdminLayout><AdminFAQCMS /></AdminLayout>} />
+              <Route path="/admin/contact" element={<AdminLayout><AdminContactCMS /></AdminLayout>} />
+              <Route path="/admin/testimonials" element={<AdminLayout><AdminTestimonialsCMS /></AdminLayout>} />
+              <Route path="/admin/pages" element={<AdminLayout><AdminPagesCMS /></AdminLayout>} />
+              <Route path="/admin/footer" element={<AdminLayout><AdminFooterCMS /></AdminLayout>} />
+              <Route path="/admin/enquiries" element={<AdminLayout><AdminEnquiries /></AdminLayout>} />
+              <Route path="/admin/projects" element={<AdminLayout><AdminProjects /></AdminLayout>} />
+              <Route path="/admin/products" element={<AdminLayout><AdminMaterialsCMS /></AdminLayout>} />
+              <Route path="/admin/users" element={<AdminLayout><AdminUsers /></AdminLayout>} />
+              <Route path="/admin/audit" element={<AdminLayout><AdminAuditLogs /></AdminLayout>} />
+              <Route path="/admin/gallery" element={<AdminLayout><AdminMedia /></AdminLayout>} />
+              <Route path="/admin/settings" element={<AdminLayout><AdminSettings /></AdminLayout>} />
+            </Routes>
+          </React.Suspense>
         </Router>
       </AuthProvider>
     </HelmetProvider>

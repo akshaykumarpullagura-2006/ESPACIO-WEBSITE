@@ -95,7 +95,7 @@ export const createLog = async (req, res, next) => {
 
   try {
     const log = await ActivityLog.create({
-      user: req.user.id,
+      user: req.user?.id || 'admin',
       action,
       details,
       ipAddress: req.ip || req.connection.remoteAddress,

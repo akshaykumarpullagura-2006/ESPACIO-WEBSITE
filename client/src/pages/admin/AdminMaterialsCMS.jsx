@@ -3,9 +3,10 @@ import axios from 'axios';
 import {
   Package, Save, CheckCircle, Loader2, Plus, Trash2,
   Eye, Sliders, ArrowRight, ArrowUp, ArrowDown,
-  CheckCircle2, Search, SlidersHorizontal, Image as ImageIcon, Lock, Unlock
+  CheckCircle2, Search, SlidersHorizontal, Image as ImageIcon, Lock, Unlock, HelpCircle
 } from 'lucide-react';
 import { getCMSData, setCMSData, STORAGE_KEYS } from '../../utils/cmsStore';
+import CTASectionEditor from '../../components/admin/CTASectionEditor';
 
 const defaultMaterialsHeroSlides = [
   {
@@ -232,15 +233,17 @@ const AdminMaterialsCMS = () => {
       ...materialsHeroState
     };
 
+    // Immediately persist to local storage and broadcast live update
+    setCMSData(STORAGE_KEYS.SETTINGS, updatedSettings);
+    setCMSData(STORAGE_KEYS.PRODUCTS, materialsList);
+
     try {
       await axios.put('/settings', updatedSettings);
       await axios.put('/products', { products: materialsList });
     } catch (err) {
-      console.warn('Database sync offline, updated in local CMS store.');
+      console.warn('Database sync offline, updated in local CMS store.', err);
     }
 
-    setCMSData(STORAGE_KEYS.SETTINGS, updatedSettings);
-    setCMSData(STORAGE_KEYS.PRODUCTS, materialsList);
     setSaving(false);
     setSaved(true);
     showNotification('Materials page updated successfully.');
@@ -375,7 +378,25 @@ const AdminMaterialsCMS = () => {
           <SlidersHorizontal size={16} />
           <span>Transformation Hero Slides</span>
         </button>
+        <button
+          onClick={() => setActiveTab('cta')}
+          className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-sans text-xs uppercase tracking-wider font-bold transition-all shadow-md ${
+            activeTab === 'cta'
+              ? 'bg-gold text-charcoal border border-gold shadow-[0_0_20px_rgba(201,169,110,0.3)]'
+              : 'bg-[#141518] text-white/70 hover:text-white hover:bg-white/5 border border-white/10'
+          }`}
+        >
+          <HelpCircle size={16} />
+          <span>CTA Section</span>
+        </button>
       </div>
+
+      {/* TAB: CTA SECTION EDITOR */}
+      {activeTab === 'cta' && (
+        <div className="bg-[#141518] border border-white/5 rounded-2xl p-6 md:p-8 max-w-4xl">
+          <CTASectionEditor pageKey="materials" pageTitle="Materials" />
+        </div>
+      )}
 
       {/* TAB 1: TRANSFORMATION HERO SLIDES */}
       {activeTab === 'hero' && (

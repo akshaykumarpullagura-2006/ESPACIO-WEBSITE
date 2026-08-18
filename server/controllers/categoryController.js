@@ -74,7 +74,7 @@ export const createCategory = async (req, res, next) => {
       }
     }
 
-    categoryData.createdBy = req.user.id;
+    categoryData.createdBy = req.user?.id || 'admin';
 
     const category = await Category.create(categoryData);
 
@@ -121,7 +121,7 @@ export const updateCategory = async (req, res, next) => {
       }
     }
 
-    categoryData.updatedBy = req.user.id;
+    categoryData.updatedBy = req.user?.id || 'admin';
 
     category = await Category.findByIdAndUpdate(req.params.id, categoryData, {
       new: true,

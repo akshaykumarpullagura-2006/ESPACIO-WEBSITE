@@ -3,9 +3,10 @@ import axios from 'axios';
 import {
   Layers, Save, CheckCircle, Loader2, Plus, Trash2,
   Eye, Sliders, ArrowUpRight, Check, ImageIcon, ArrowUp, ArrowDown,
-  CheckCircle2, SlidersHorizontal
+  CheckCircle2, SlidersHorizontal, HelpCircle
 } from 'lucide-react';
 import { getCMSData, setCMSData, STORAGE_KEYS } from '../../utils/cmsStore';
+import CTASectionEditor from '../../components/admin/CTASectionEditor';
 
 const defaultSlides = [
   {
@@ -232,13 +233,15 @@ const AdminSpacesCMS = () => {
       spaces_list: spacesList
     };
 
+    // Immediately persist to local storage and broadcast live update
+    setCMSData(STORAGE_KEYS.SETTINGS, updatedSettings);
+
     try {
       await axios.put('/settings', updatedSettings);
     } catch (err) {
-      console.warn('Database sync offline, updated in local CMS store.');
+      console.warn('Database sync offline, updated in local CMS store.', err);
     }
 
-    setCMSData(STORAGE_KEYS.SETTINGS, updatedSettings);
     setSaving(false);
     setSaved(true);
     showNotification('Spaces page updated successfully.');
@@ -374,7 +377,25 @@ const AdminSpacesCMS = () => {
           <SlidersHorizontal size={16} />
           <span>Before / After Hero Slider</span>
         </button>
+        <button
+          onClick={() => setActiveTab('cta')}
+          className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-sans text-xs uppercase tracking-wider font-bold transition-all shadow-md ${
+            activeTab === 'cta'
+              ? 'bg-gold text-charcoal border border-gold shadow-[0_0_20px_rgba(201,169,110,0.3)]'
+              : 'bg-[#141518] text-white/70 hover:text-white hover:bg-white/5 border border-white/10'
+          }`}
+        >
+          <HelpCircle size={16} />
+          <span>CTA Section</span>
+        </button>
       </div>
+
+      {/* TAB: CTA SECTION EDITOR */}
+      {activeTab === 'cta' && (
+        <div className="bg-[#141518] border border-white/5 rounded-2xl p-6 md:p-8 max-w-4xl">
+          <CTASectionEditor pageKey="spaces" pageTitle="Spaces" />
+        </div>
+      )}
 
       {/* TAB 1: BEFORE/AFTER HERO SLIDER */}
       {activeTab === 'hero' && (

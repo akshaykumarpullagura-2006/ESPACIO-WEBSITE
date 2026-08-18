@@ -131,7 +131,7 @@ export const createProduct = async (req, res, next) => {
       }
     }
 
-    productData.createdBy = req.user.id;
+    productData.createdBy = req.user?.id || 'admin';
 
     // Save product
     const product = await Product.create(productData);
@@ -202,7 +202,7 @@ export const updateProduct = async (req, res, next) => {
       }
     }
 
-    productData.updatedBy = req.user.id;
+    productData.updatedBy = req.user?.id || 'admin';
 
     product = await Product.findByIdAndUpdate(req.params.id, productData, {
       new: true,

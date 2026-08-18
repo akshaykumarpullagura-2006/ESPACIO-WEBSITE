@@ -6,6 +6,7 @@ import {
   CheckCircle2, Search, SlidersHorizontal, Image as ImageIcon
 } from 'lucide-react';
 import { getCMSData, setCMSData, STORAGE_KEYS } from '../../utils/cmsStore';
+import CTASectionEditor from '../../components/admin/CTASectionEditor';
 
 const defaultFaqCategories = [
   { id: 'cat-1', name: 'TIMELINE', slug: 'timeline', visible: true, order: 1 },
@@ -561,7 +562,25 @@ const AdminFAQCMS = () => {
           <SlidersHorizontal size={16} />
           <span>FAQ Page Header Text</span>
         </button>
+        <button
+          onClick={() => setActiveTab('cta')}
+          className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-sans text-xs uppercase tracking-wider font-bold transition-all shadow-md ${
+            activeTab === 'cta'
+              ? 'bg-gold text-charcoal border border-gold shadow-[0_0_20px_rgba(201,169,110,0.3)]'
+              : 'bg-[#141518] text-white/70 hover:text-white hover:bg-white/5 border border-white/10'
+          }`}
+        >
+          <HelpCircle size={16} />
+          <span>CTA Section</span>
+        </button>
       </div>
+
+      {/* TAB: CTA SECTION EDITOR */}
+      {activeTab === 'cta' && (
+        <div className="bg-[#141518] border border-white/5 rounded-2xl p-6 md:p-8 max-w-4xl">
+          <CTASectionEditor pageKey="faqs" pageTitle="FAQs" />
+        </div>
+      )}
 
       {/* TAB 1: FAQ MANAGER (SHARED DATABASE) */}
       {activeTab === 'list' && (

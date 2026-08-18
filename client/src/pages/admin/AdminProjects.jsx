@@ -3,9 +3,12 @@ import axios from 'axios';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   Save, Trash2, Upload, X, Plus, Loader2, ArrowLeft,
-  Image as ImageIcon, CheckCircle
+  Image as ImageIcon, CheckCircle, HelpCircle
 } from 'lucide-react';
 import { getCMSData, setCMSData, STORAGE_KEYS } from '../../utils/cmsStore';
+import CTASectionEditor from '../../components/admin/CTASectionEditor';
+import MediaPickerModal from '../../components/admin/MediaPickerModal';
+import MediaInput from '../../components/admin/MediaInput';
 
 // ─── Shared Admin Form Components ─────────────────────────────────────────────
 const AdminFormField = ({ label, required, children, error }) => (
@@ -43,6 +46,7 @@ const AdminProjects = () => {
   const [view, setView] = useState(id ? 'form' : 'list'); // 'list' | 'form'
   const [editingProject, setEditingProject] = useState(null);
   const [showHeroModal, setShowHeroModal] = useState(false);
+  const [showCtaModal, setShowCtaModal] = useState(false);
   const [heroForm, setHeroForm] = useState({
     projects_hero_badge: 'Portfolio & Case Studies',
     projects_hero_title: 'Our Projects',
@@ -56,6 +60,7 @@ const AdminProjects = () => {
   });
 
   const [heroPreview, setHeroPreview] = useState(null);
+  const [projectGalleryPickerOpen, setProjectGalleryPickerOpen] = useState(false);
   const heroRef = useRef();
   const galleryRef = useRef();
 
@@ -578,14 +583,24 @@ const AdminProjects = () => {
                     Upload multiple high-resolution photos of rooms, elevations, and details for this project.
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => galleryRef.current.click()}
-                  className="flex items-center space-x-1.5 bg-gold/15 text-gold border border-gold/30 hover:bg-gold/25 px-3 py-2 rounded-lg text-xs font-sans font-bold uppercase transition-all"
-                >
-                  <Plus size={14} />
-                  <span>Upload Photos</span>
-                </button>
+                <div className="flex items-center space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => setProjectGalleryPickerOpen(true)}
+                    className="flex items-center space-x-1.5 bg-gold/15 text-gold border border-gold/40 hover:bg-gold/25 px-3 py-2 rounded-lg text-xs font-sans font-bold uppercase transition-all"
+                  >
+                    <ImageIcon size={14} />
+                    <span>Select from Gallery</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => galleryRef.current.click()}
+                    className="flex items-center space-x-1.5 bg-white/10 text-white border border-white/20 hover:bg-white/20 px-3 py-2 rounded-lg text-xs font-sans font-bold uppercase transition-all"
+                  >
+                    <Plus size={14} />
+                    <span>Upload</span>
+                  </button>
+                </div>
                 <input
                   ref={galleryRef}
                   type="file"
@@ -724,6 +739,13 @@ const AdminProjects = () => {
           >
             <ImageIcon size={14} className="text-gold" />
             <span>Edit Hero Section</span>
+          </button>
+          <button
+            onClick={() => setShowCtaModal(true)}
+            className="flex items-center space-x-2 bg-white/10 hover:bg-white/20 text-white font-sans text-xs uppercase tracking-widest font-bold py-3 px-4 rounded-lg transition-all border border-white/10"
+          >
+            <HelpCircle size={14} className="text-gold" />
+            <span>CTA Section</span>
           </button>
           <button onClick={handleNew} className="flex items-center space-x-2 bg-gold hover:bg-gold-hover text-charcoal font-sans text-xs uppercase tracking-widest font-bold py-3 px-5 rounded-lg transition-all">
             <Plus size={14} />
@@ -890,6 +912,41 @@ const AdminProjects = () => {
           </div>
         </div>
       )}
+
+      {/* CTA Section Modal */}
+      {showCtaModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div data-lenis-prevent className="bg-[#141518] border border-white/10 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6 md:p-8 relative scrollbar-thin scrollbar-thumb-gold/50 scrollbar-track-white/5">
+            <button
+              onClick={() => setShowCtaModal(false)}
+              className="absolute top-6 right-6 text-white/40 hover:text-white transition-colors"
+            >
+              <X size={20} />
+            </button>
+            <CTASectionEditor pageKey="projects" pageTitle="Projects" onSaveSuccess={() => setShowCtaModal(false)} />
+          </div>
+        </div>
+      )}
+
+      {/* Media Picker Modal for Project Gallery */}
+      <MediaPickerModal
+        isOpen={projectGalleryPickerOpen}
+        onClose={() => setProjectGalleryPickerOpen(false)}
+        multiple={true}
+        initialSelection={Array.isArray(form.gallery) ? form.gallery : []}
+        title="Select Project Photos from Gallery"
+        onSelect={(selectedUrls) => {
+          if (Array.isArray(selectedUrls)) {
+            const currentGallery = Array.isArray(form.gallery) ? form.gallery : [];
+            const combined = Array.from(new Set([...currentGallery, ...selectedUrls]));
+            setForm({ ...form, gallery: combined });
+            if (!form.heroImage && selectedUrls.length > 0) {
+              setForm(prev => ({ ...prev, heroImage: selectedUrls[0] }));
+              setHeroPreview(selectedUrls[0]);
+            }
+          }
+        }}
+      />
     </div>
   );
 };

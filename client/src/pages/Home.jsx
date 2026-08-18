@@ -10,6 +10,7 @@ import { StickyScroll } from '../components/ui/sticky-scroll-reveal';
 import { HeroParallax } from '../components/ui/hero-parallax';
 import Testimonials from '../components/ui/Testimonials';
 import { getCMSData, STORAGE_KEYS } from '../utils/cmsStore';
+import { USER_UPLOADED_BEDROOM_IMAGE } from '../assets/userUploadedBedroom';
 
 const Reveal = ({ children, delay = 0, className = '' }) => {
   const ref = useRef(null);
@@ -537,10 +538,11 @@ const faqItemVariants = {
 };
 
 const HERO_IMAGES = [
+  USER_UPLOADED_BEDROOM_IMAGE,
+  '/images/user_uploaded_bedroom.jpg',
+  'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?auto=format&fit=crop&w=1920&q=90',
   'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1920&q=90',
-  'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1920&q=90',
-  'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1920&q=90',
-  'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1920&q=90'
+  'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1920&q=90'
 ];
 
 const Home = () => {
@@ -589,16 +591,15 @@ const Home = () => {
   useEffect(() => {
     const loadHomeCMS = async () => {
       try {
-        const { getCMSData, STORAGE_KEYS } = await import('../utils/cmsStore');
         const stored = getCMSData(STORAGE_KEYS.SETTINGS);
-        if (stored) {
+        if (stored && stored.hero_bg_images && Array.isArray(stored.hero_bg_images) && stored.hero_bg_images.length > 0) {
           setHomeSettings((prev) => ({ ...prev, ...stored }));
         }
       } catch {}
 
       try {
         const res = await axios.get('/settings');
-        if (res.data.success && res.data.data) {
+        if (res.data && res.data.success && res.data.data && Object.keys(res.data.data).length > 0) {
           setHomeSettings((prev) => ({ ...prev, ...res.data.data }));
         }
       } catch {}
@@ -745,9 +746,13 @@ const Home = () => {
     };
   }, []);
 
-  const activeHeroBgImages = (Array.isArray(homeSettings.hero_bg_images) && homeSettings.hero_bg_images.length > 0)
+  const rawBgImages = (Array.isArray(homeSettings.hero_bg_images) && homeSettings.hero_bg_images.length > 0)
     ? homeSettings.hero_bg_images
     : HERO_IMAGES;
+
+  const activeHeroBgImages = rawBgImages.map(img => 
+    (!img || img === '/api/user-uploaded-bedroom.jpg') ? USER_UPLOADED_BEDROOM_IMAGE : img
+  );
 
   const activeHomeStats = [
     { val: homeSettings.hero_stat1_value || '25+', desc: homeSettings.hero_stat1_label || 'Projects Completed', visible: homeSettings.hero_stat1_visible !== false, order: Number(homeSettings.hero_stat1_order) || 1 },
@@ -1152,7 +1157,7 @@ const Home = () => {
                         <AnimatePresence initial={false}>
                           <motion.img
                             key={currentImageIdx}
-                            src={homeSettings.hero_card_image || activeHeroBgImages[currentImageIdx % activeHeroBgImages.length]}
+                            src={(!homeSettings.hero_card_image || homeSettings.hero_card_image === '/api/user-uploaded-bedroom.jpg') ? activeHeroBgImages[currentImageIdx % activeHeroBgImages.length] : homeSettings.hero_card_image}
                             alt="Luxury interior showcase"
                             initial={{ x: '15%', opacity: 0 }}
                             animate={{ x: 0, opacity: 1 }}

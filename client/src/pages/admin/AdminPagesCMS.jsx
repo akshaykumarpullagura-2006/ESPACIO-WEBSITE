@@ -6,9 +6,12 @@ import {
   Globe, Navigation, Share2, HelpCircle, AlertCircle
 } from 'lucide-react';
 import { getCMSData, setCMSData, STORAGE_KEYS } from '../../utils/cmsStore';
+import CTASectionEditor from '../../components/admin/CTASectionEditor';
+import AdminFooterCMS from './AdminFooterCMS';
 
 const AdminPagesCMS = () => {
   const [activeTab, setActiveTab] = useState('hero'); // 'hero' | 'about' | 'stats' | 'cta' | 'nav' | 'footer'
+  const [selectedCtaPage, setSelectedCtaPage] = useState('home');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -153,10 +156,14 @@ const AdminPagesCMS = () => {
   const handleSave = async (e) => {
     if (e) e.preventDefault();
     setSaving(true);
+    const existing = getCMSData(STORAGE_KEYS.SETTINGS) || {};
+    const updatedSettings = { ...existing, ...settings };
+    setCMSData(STORAGE_KEYS.SETTINGS, updatedSettings);
     try {
-      await axios.put('/settings', settings);
-    } catch {}
-    setCMSData(STORAGE_KEYS.SETTINGS, settings);
+      await axios.put('/settings', updatedSettings);
+    } catch (err) {
+      console.warn('API sync warning:', err);
+    }
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
     setSaving(false);
@@ -751,67 +758,41 @@ const AdminPagesCMS = () => {
           {/* TAB 4: CTA SECTION */}
           {activeTab === 'cta' && (
             <div className="space-y-6">
-              <div className="flex items-center justify-between border-b border-white/5 pb-4">
-                <h2 className="font-editorial text-xl font-bold text-white">Call To Action Banner</h2>
-                <label className="flex items-center space-x-3 cursor-pointer">
-                  <span className="font-sans text-xs text-white/50">Section Visible</span>
-                  <div
-                    onClick={() => updateSetting('cta_visible', !settings.cta_visible)}
-                    className={`w-10 h-5 rounded-full relative transition-colors duration-200 ${
-                      settings.cta_visible ? 'bg-gold' : 'bg-white/10'
-                    }`}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-4">
+                <div>
+                  <h2 className="font-editorial text-xl font-bold text-white">Page-Specific CTA Banners</h2>
+                  <p className="font-sans text-xs text-white/40 mt-1">
+                    Select a page below to edit its CTA heading, description, button label, link, background image, overlay opacity, and visibility.
+                  </p>
+                </div>
+                <div className="flex items-center space-x-2 shrink-0">
+                  <label className="font-sans text-xs text-white/60 font-bold uppercase tracking-wider">Select Page:</label>
+                  <select
+                    value={selectedCtaPage}
+                    onChange={(e) => setSelectedCtaPage(e.target.value)}
+                    className="bg-[#0E0F11] border border-gold/40 text-gold font-sans text-xs font-bold rounded-lg px-4 py-2.5 focus:outline-none cursor-pointer"
                   >
-                    <div
-                      className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200 ${
-                        settings.cta_visible ? 'translate-x-5' : 'translate-x-0.5'
-                      }`}
-                    />
-                  </div>
-                </label>
-              </div>
-
-              <div>
-                <label className={labelClass}>CTA Headline</label>
-                <input
-                  type="text"
-                  value={settings.cta_headline}
-                  onChange={(e) => updateSetting('cta_headline', e.target.value)}
-                  className={inpClass}
-                  placeholder="Ready to Transform Your Space?"
-                />
-              </div>
-
-              <div>
-                <label className={labelClass}>CTA Description</label>
-                <textarea
-                  rows={3}
-                  value={settings.cta_subtext}
-                  onChange={(e) => updateSetting('cta_subtext', e.target.value)}
-                  className={`${inpClass} resize-none`}
-                  placeholder="Schedule a private consultation..."
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className={labelClass}>Button Label</label>
-                  <input
-                    type="text"
-                    value={settings.cta_button_text}
-                    onChange={(e) => updateSetting('cta_button_text', e.target.value)}
-                    className={inpClass}
-                  />
-                </div>
-                <div>
-                  <label className={labelClass}>Contact Phone Number</label>
-                  <input
-                    type="text"
-                    value={settings.cta_phone}
-                    onChange={(e) => updateSetting('cta_phone', e.target.value)}
-                    className={inpClass}
-                  />
+                    {[
+                      { key: 'home', title: 'Home' },
+                      { key: 'services', title: 'Services' },
+                      { key: 'projects', title: 'Projects' },
+                      { key: 'materials', title: 'Materials' },
+                      { key: 'faqs', title: 'FAQs' },
+                      { key: 'spaces', title: 'Spaces' },
+                      { key: 'about', title: 'About' },
+                      { key: 'contact', title: 'Contact' },
+                    ].map((p) => (
+                      <option key={p.key} value={p.key}>{p.title} Page</option>
+                    ))}
+                  </select>
                 </div>
               </div>
+
+              <CTASectionEditor
+                key={selectedCtaPage}
+                pageKey={selectedCtaPage}
+                pageTitle={selectedCtaPage.toUpperCase()}
+              />
             </div>
           )}
 
@@ -893,72 +874,7 @@ const AdminPagesCMS = () => {
 
           {/* TAB 6: FOOTER & CONTACTS */}
           {activeTab === 'footer' && (
-            <div className="space-y-6">
-              <h2 className="font-editorial text-xl font-bold text-white border-b border-white/5 pb-4">
-                Footer & Contact Information
-              </h2>
-
-              <div>
-                <label className={labelClass}>Footer Brand Bio / Description</label>
-                <textarea
-                  rows={3}
-                  value={settings.footer_description}
-                  onChange={(e) => updateSetting('footer_description', e.target.value)}
-                  className={`${inpClass} resize-none`}
-                />
-              </div>
-
-              <div>
-                <label className={labelClass}>Physical Address</label>
-                <input
-                  type="text"
-                  value={settings.footer_address}
-                  onChange={(e) => updateSetting('footer_address', e.target.value)}
-                  className={inpClass}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className={labelClass}>Business Hours</label>
-                  <input
-                    type="text"
-                    value={settings.footer_hours}
-                    onChange={(e) => updateSetting('footer_hours', e.target.value)}
-                    className={inpClass}
-                  />
-                </div>
-                <div>
-                  <label className={labelClass}>Contact Email</label>
-                  <input
-                    type="email"
-                    value={settings.footer_email}
-                    onChange={(e) => updateSetting('footer_email', e.target.value)}
-                    className={inpClass}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className={labelClass}>Instagram Profile URL</label>
-                <input
-                  type="text"
-                  value={settings.footer_instagram}
-                  onChange={(e) => updateSetting('footer_instagram', e.target.value)}
-                  className={inpClass}
-                />
-              </div>
-
-              <div>
-                <label className={labelClass}>Footer Copyright Text</label>
-                <input
-                  type="text"
-                  value={settings.footer_copyright}
-                  onChange={(e) => updateSetting('footer_copyright', e.target.value)}
-                  className={inpClass}
-                />
-              </div>
-            </div>
+            <AdminFooterCMS />
           )}
 
         </div>

@@ -386,24 +386,36 @@ const QuotationCalculator = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!phone || phone.trim().length < 10) return;
+    if (!phone || phone.trim().replace(/\s+/g, '').length < 10) return;
     
     // Save to CMS enquiries
     try {
       import('../utils/cmsStore').then(({ getCMSData, setCMSData, STORAGE_KEYS, notifyCMSUpdate }) => {
         const existing = getCMSData(STORAGE_KEYS.ENQUIRIES) || [];
+        const count = existing.length + 1;
+        const enquiryId = `ESP-EST-${String(count).padStart(5, '0')}`;
+        const scopeLabel = scope === 'full' ? 'Turnkey Full Home' : scope === 'kitchen' ? 'Modular Kitchen' : 'Panelling & Louvers';
+        const propLabel = propertyType === '2bhk' ? '2 BHK' : propertyType === '3bhk' ? '3 BHK' : propertyType === 'villa' ? 'Villa' : 'Office';
+
         const newRecord = {
-          id: `ESP-EST-${Date.now()}`,
-          enquiryId: `ESP-EST-${Date.now()}`,
+          id: enquiryId,
+          enquiryId: enquiryId,
           type: 'INSTANT_ESTIMATE',
-          source: 'SERVICES_ESTIMATOR',
-          name: name || 'Valued Client',
-          phone: phone,
-          location: propertyType,
-          notes: `Property: ${propertyType}, Scope: ${scope}, Grade: ${finishGrade}`,
+          source: 'INSTANT_PROJECT_ESTIMATE',
+          requirementType: 'INSTANT_ESTIMATE',
+          name: name ? name.trim() : 'Valued Client',
+          phone: phone.trim(),
+          email: '',
+          location: `Property: ${propLabel}`,
+          propertyType: propLabel,
+          scopeOfWork: scopeLabel,
+          finishGrade: finishGrade,
+          notesText: `Instant Project Estimate Submission — Property: ${propLabel}, Scope: ${scopeLabel}, Grade: ${finishGrade}`,
+          notes: [{ id: `n-${Date.now()}`, text: `Captured via Instant Project Estimate calculator on Services page. Property: ${propLabel}, Scope: ${scopeLabel}.`, createdAt: new Date().toISOString() }],
           status: 'NEW',
           read: false,
-          submittedAt: new Date().toISOString()
+          submittedAt: new Date().toISOString(),
+          followUp: null
         };
         setCMSData(STORAGE_KEYS.ENQUIRIES, [newRecord, ...existing]);
         notifyCMSUpdate();
