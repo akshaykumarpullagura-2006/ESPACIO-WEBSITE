@@ -310,3 +310,40 @@ export const checkImageUsageInCMS = (imageUrl) => {
   return locations;
 };
 
+// Robust multi-key helper to read CTA settings across all possible admin keys
+export const getCtaDataForPage = (settings = {}, pageKey = 'home', defaultCta = {}) => {
+  const pk = (pageKey || 'home').toLowerCase();
+  const ctaObj = settings[`cta_${pk}`] || {};
+
+  const pageTitle = settings[`${pk}_cta_title`] || settings[`${pk}_cta_headline`] || settings.cta_headline;
+  const pageDesc  = settings[`${pk}_cta_desc`]  || settings[`${pk}_cta_subtext`]  || settings.cta_subtext;
+  const pageBtn   = settings[`${pk}_cta_btn_text`] || settings[`${pk}_cta_button_text`] || settings.cta_button_text;
+  const pageLink  = settings[`${pk}_cta_btn_link`] || settings[`${pk}_cta_button_link`];
+  const pageBg    = settings[`${pk}_cta_bgImage`] || settings[`${pk}_cta_image`];
+  const pageVis   = settings[`${pk}_cta_visible`];
+
+  const headline = ctaObj.heading || pageTitle || defaultCta.headline || defaultCta.heading || 'Ready to Transform Your Space?';
+  const subtext  = ctaObj.description || pageDesc || defaultCta.subtext || defaultCta.description || "Every great space starts with a single conversation. Let's talk about your vision and bring it to life together.";
+  const buttonText = ctaObj.buttonText || pageBtn || defaultCta.buttonText || "LET'S TALK ↗";
+  const buttonLink = ctaObj.buttonLink || pageLink || defaultCta.path || defaultCta.buttonLink || '/contact';
+  const bgImage    = ctaObj.bgImage || pageBg || defaultCta.bgImage || 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1920&q=80';
+  const opacity    = ctaObj.opacity !== undefined ? Number(ctaObj.opacity) : (defaultCta.opacity ?? 80);
+
+  let enabled = true;
+  if (ctaObj.enabled === false) enabled = false;
+  if (pageVis === false) enabled = false;
+  if (settings.cta_visible === false && !settings[`cta_${pk}`]) enabled = false;
+
+  return {
+    heading: headline,
+    headline,
+    description: subtext,
+    subtext,
+    buttonText,
+    buttonLink,
+    bgImage,
+    opacity,
+    enabled
+  };
+};
+

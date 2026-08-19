@@ -286,8 +286,6 @@ const Products = () => {
           </div>
         )}
       </section>
-
-
     </div>
   );
 };

@@ -156,8 +156,17 @@ const AdminPagesCMS = () => {
   const handleSave = async (e) => {
     if (e) e.preventDefault();
     setSaving(true);
-    const existing = getCMSData(STORAGE_KEYS.SETTINGS) || {};
-    const updatedSettings = { ...existing, ...settings };
+    const updatedSettings = {
+      ...existing,
+      ...settings,
+      cta_home: {
+        ...(existing.cta_home || {}),
+        heading: settings.cta_headline || existing.cta_home?.heading,
+        description: settings.cta_subtext || existing.cta_home?.description,
+        buttonText: settings.cta_button_text || existing.cta_home?.buttonText,
+        enabled: settings.cta_visible !== false
+      }
+    };
     setCMSData(STORAGE_KEYS.SETTINGS, updatedSettings);
     try {
       await axios.put('/settings', updatedSettings);

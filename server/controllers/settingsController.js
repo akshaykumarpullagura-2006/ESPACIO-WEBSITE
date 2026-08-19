@@ -22,8 +22,8 @@ export const getAllSettings = async (req, res, next) => {
       });
     }
 
-    // Master site_settings document takes priority over individual legacy keys
-    const finalMap = { ...settingsMap, ...(siteSettingsVal || {}) };
+    // Individual updated settings keys take priority over legacy site_settings object defaults
+    const finalMap = { ...(siteSettingsVal || {}), ...settingsMap };
 
     // Synchronize hero_bg_images and hero_images array references
     const heroBgImgs = (Array.isArray(finalMap.hero_bg_images) && finalMap.hero_bg_images.length > 0)

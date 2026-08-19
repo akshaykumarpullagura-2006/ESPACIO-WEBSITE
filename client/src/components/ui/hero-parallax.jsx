@@ -32,7 +32,7 @@ export const HeroParallax = ({ products }) => {
   useEffect(() => {
     let animId;
     const loop = () => {
-      autoMotionX.set((autoMotionX.get() + 1.2) % 3200);
+      autoMotionX.set((autoMotionX.get() + 1.56) % 3200);
       animId = requestAnimationFrame(loop);
     };
     animId = requestAnimationFrame(loop);

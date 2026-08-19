@@ -4,6 +4,7 @@ import { ArrowUpRight } from 'lucide-react';
 import { motion, useInView, useScroll, useTransform } from 'framer-motion';
 import { SocialLightButton } from '../ui/SocialLightButton';
 import { PAGE_CTAS } from '../../utils/siteData';
+import { getCMSData, STORAGE_KEYS, getCtaDataForPage } from '../../utils/cmsStore';
 
 const renderSocialIcon = (iconName) => {
   const iconLower = (iconName || '').toLowerCase();
@@ -78,23 +79,24 @@ const Footer = () => {
   const pageKey = getPageKey();
   const defaultCta = PAGE_CTAS[pageKey.toUpperCase()] || PAGE_CTAS.HOME;
 
-  const [cmsSettings, setCmsSettings] = React.useState({});
+  const [cmsSettings, setCmsSettings] = React.useState(() => {
+    return getCMSData(STORAGE_KEYS.SETTINGS) || {};
+  });
 
   React.useEffect(() => {
     const fetchFooterSettings = async () => {
-      try {
-        const { getCMSData, STORAGE_KEYS } = await import('../../utils/cmsStore');
-        const stored = getCMSData(STORAGE_KEYS.SETTINGS);
-        if (stored) {
-          setCmsSettings(stored);
-        }
-      } catch {}
+      const stored = getCMSData(STORAGE_KEYS.SETTINGS);
+      if (stored) {
+        setCmsSettings(stored);
+      }
 
       try {
         const { default: axios } = await import('axios');
         const res = await axios.get('/settings');
         if (res.data.success && res.data.data) {
-          setCmsSettings(res.data.data);
+          const merged = { ...(stored || {}), ...res.data.data };
+          setCmsSettings(merged);
+          setCMSData(STORAGE_KEYS.SETTINGS, merged);
         }
       } catch {}
     };
@@ -108,17 +110,17 @@ const Footer = () => {
       window.removeEventListener('espacio_cms_update', handleSync);
       window.removeEventListener('storage', handleSync);
     };
-  }, [year]);
+  }, [location.pathname]);
 
-  // Compute active page CTA settings
-  const activePageCta = cmsSettings[`cta_${pageKey}`] || {};
-  const ctaHeadline = activePageCta.heading || defaultCta.headline;
-  const ctaSubtext = activePageCta.description || defaultCta.subtext;
-  const ctaButtonText = activePageCta.buttonText || defaultCta.buttonText;
-  const ctaButtonLink = activePageCta.buttonLink || defaultCta.path || '/contact';
-  const ctaBgImage = activePageCta.bgImage || defaultCta.bgImage || 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1920&q=80';
-  const ctaOpacity = activePageCta.opacity !== undefined ? Number(activePageCta.opacity) : (defaultCta.opacity ?? 80);
-  const ctaEnabled = activePageCta.enabled !== false;
+  // Compute active page CTA settings cleanly across all Admin Panel keys
+  const activePageCta = getCtaDataForPage(cmsSettings, pageKey, defaultCta);
+  const ctaHeadline = activePageCta.headline;
+  const ctaSubtext = activePageCta.subtext;
+  const ctaButtonText = activePageCta.buttonText;
+  const ctaButtonLink = activePageCta.buttonLink;
+  const ctaBgImage = activePageCta.bgImage;
+  const ctaOpacity = activePageCta.opacity;
+  const ctaEnabled = activePageCta.enabled;
 
   const overlayOpacityVal = ctaOpacity / 100;
   const overlayGradient = `linear-gradient(to bottom, rgba(16, 16, 20, ${overlayOpacityVal}), rgba(16, 16, 20, ${Math.min(1, overlayOpacityVal + 0.12)}))`;
@@ -139,15 +141,15 @@ const Footer = () => {
   const contentY = useTransform(scrollYProgress, [0, 1], [50, 0]);
   const contentOpacity = useTransform(scrollYProgress, [0, 0.5, 1], [0, 0, 1]);
 
-  // Dynamic CMS fields with defaults
-  const locationTitle = cmsSettings.footer_location_title || 'LOCATION';
-  const locationAddress = cmsSettings.footer_address || cmsSettings.office_info?.address || '1st floor, H.No. 6-63/14B, Moinabad Road, Aziznagar, Hyderabad, Telangana 500075';
-  const locationMapUrl = cmsSettings.footer_map_url || 'https://maps.app.goo.gl/q3zbxWmEt5wvRKbZ6';
+  // Dynamic CMS fields with defaults (checking Footer, Contact, and Studio Card keys)
+  const locationTitle = cmsSettings.footer_location_title || cmsSettings.contact_location_title || cmsSettings.exp_eyebrow || 'LOCATION';
+  const locationAddress = cmsSettings.footer_address || cmsSettings.exp_card1_address || cmsSettings.contact_address || cmsSettings.office_info?.address || '1st floor, H.No. 6-63/14B, Moinabad Road, Aziznagar, Hyderabad, Telangana 500075';
+  const locationMapUrl = cmsSettings.footer_map_url || cmsSettings.contact_map_url || cmsSettings.exp_card1_map_url || 'https://maps.app.goo.gl/q3zbxWmEt5wvRKbZ6';
 
-  const contactTitle = cmsSettings.footer_contact_title || 'CONTACT';
-  const phoneText = cmsSettings.footer_phone || cmsSettings.cta_phone || '+91 95051 51116';
-  const whatsappText = cmsSettings.footer_whatsapp || '+91 95051 51116';
-  const emailText = cmsSettings.footer_email || cmsSettings.office_info?.email || 'Espacio.hyd@gmail.com';
+  const contactTitle = cmsSettings.footer_contact_title || cmsSettings.contact_section_title || 'CONTACT';
+  const phoneText = cmsSettings.footer_phone || cmsSettings.exp_card2_phone || cmsSettings.contact_phone || cmsSettings.cta_phone || '+91 95051 51116';
+  const whatsappText = cmsSettings.footer_whatsapp || cmsSettings.exp_card2_whatsapp || cmsSettings.contact_whatsapp || '+91 95051 51116';
+  const emailText = cmsSettings.footer_email || cmsSettings.exp_card2_email || cmsSettings.contact_email || cmsSettings.office_info?.email || 'Espacio.hyd@gmail.com';
 
   const exploreTitle = cmsSettings.footer_explore_title || 'EXPLORE';
   
@@ -194,7 +196,7 @@ const Footer = () => {
   const phoneHref = `tel:${phoneText.replace(/[^\d+]/g, '')}`;
   const whatsappHref = whatsappText.startsWith('http')
     ? whatsappText
-    : `https://wa.me/${whatsappText.replace(/[^\d]/g, '')}`;
+    : `https://wa.me/${whatsappText.replace(/[^\d]/g, '')}?text=${encodeURIComponent('Hello ESPACIO team, I would like to enquire about your interior design services.')}`;
   const emailHref = `mailto:${emailText}`;
 
   return (

@@ -284,7 +284,11 @@ const AdminProjects = () => {
   const handleSaveHero = async (e) => {
     e.preventDefault();
     const existing = getCMSData(STORAGE_KEYS.SETTINGS) || {};
-    const updatedSettings = { ...existing, ...heroForm };
+    const sanitizedHeroForm = {
+      ...heroForm,
+      projects_hero_images: Array.from(new Set((heroForm.projects_hero_images || []).filter(Boolean)))
+    };
+    const updatedSettings = { ...existing, ...sanitizedHeroForm };
     setCMSData(STORAGE_KEYS.SETTINGS, updatedSettings);
     try {
       await axios.put('/settings', updatedSettings);

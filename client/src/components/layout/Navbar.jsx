@@ -167,6 +167,7 @@ const Navbar = () => {
                 >
                   <Link 
                     to={link.path}
+                    onClick={() => setMobileMenuOpen(false)}
                     className="block font-display text-3xl font-semibold text-white hover:text-gold py-3 border-b border-white/10 transition-colors"
                   >
                     {link.name}

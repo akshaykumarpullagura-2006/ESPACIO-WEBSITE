@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Save, CheckCircle, Loader2, Image as ImageIcon, Sliders, Eye, EyeOff, Upload, HelpCircle } from 'lucide-react';
-import { getCMSData, setCMSData, STORAGE_KEYS, uploadImageFile } from '../../utils/cmsStore';
+import { getCMSData, setCMSData, STORAGE_KEYS, uploadImageFile, getCtaDataForPage } from '../../utils/cmsStore';
 import { PAGE_CTAS, DEFAULT_CTA_BG } from '../../utils/siteData';
 import MediaPickerModal from './MediaPickerModal';
 
@@ -31,31 +31,37 @@ const CTASectionEditor = ({ pageKey = 'home', pageTitle = 'Home', onSaveSuccess 
 
   useEffect(() => {
     const loadSettings = async () => {
-      const storageKey = `cta_${pageKey}`;
       const defaultData = getInitialCtaData(pageKey);
       
-      const storedSettings = getCMSData(STORAGE_KEYS.SETTINGS);
-      if (storedSettings && storedSettings[storageKey]) {
-        setCtaData({
-          ...defaultData,
-          ...storedSettings[storageKey],
-        });
-        setLoading(false);
-      }
+      const storedSettings = getCMSData(STORAGE_KEYS.SETTINGS) || {};
+      const activeData = getCtaDataForPage(storedSettings, pageKey, defaultData);
+      setCtaData({
+        heading: activeData.heading,
+        description: activeData.description,
+        buttonText: activeData.buttonText,
+        buttonLink: activeData.buttonLink,
+        bgImage: activeData.bgImage,
+        opacity: activeData.opacity,
+        enabled: activeData.enabled,
+      });
+      setLoading(false);
 
       try {
         const res = await axios.get('/settings');
         if (res.data.success && res.data.data) {
-          const apiVal = res.data.data[storageKey];
-          if (apiVal) {
-            setCtaData({
-              ...defaultData,
-              ...apiVal,
-            });
-            // sync with local store
-            const merged = { ...storedSettings, [storageKey]: apiVal };
-            setCMSData(STORAGE_KEYS.SETTINGS, merged);
-          }
+          const apiVal = res.data.data;
+          const activeApiData = getCtaDataForPage(apiVal, pageKey, defaultData);
+          setCtaData({
+            heading: activeApiData.heading,
+            description: activeApiData.description,
+            buttonText: activeApiData.buttonText,
+            buttonLink: activeApiData.buttonLink,
+            bgImage: activeApiData.bgImage,
+            opacity: activeApiData.opacity,
+            enabled: activeApiData.enabled,
+          });
+          const merged = { ...storedSettings, ...apiVal };
+          setCMSData(STORAGE_KEYS.SETTINGS, merged);
         }
       } catch (err) {
         console.warn(`Could not load API settings for cta_${pageKey}`, err);
@@ -89,10 +95,21 @@ const CTASectionEditor = ({ pageKey = 'home', pageTitle = 'Home', onSaveSuccess 
     setSaving(true);
 
     const storageKey = `cta_${pageKey}`;
+    const pk = (pageKey || 'home').toLowerCase();
     const existingSettings = getCMSData(STORAGE_KEYS.SETTINGS) || {};
     const updatedSettings = {
       ...existingSettings,
       [storageKey]: ctaData,
+      [`${pk}_cta_title`]: ctaData.heading,
+      [`${pk}_cta_headline`]: ctaData.heading,
+      [`${pk}_cta_desc`]: ctaData.description,
+      [`${pk}_cta_subtext`]: ctaData.description,
+      [`${pk}_cta_btn_text`]: ctaData.buttonText,
+      [`${pk}_cta_button_text`]: ctaData.buttonText,
+      [`${pk}_cta_btn_link`]: ctaData.buttonLink,
+      [`${pk}_cta_button_link`]: ctaData.buttonLink,
+      [`${pk}_cta_bgImage`]: ctaData.bgImage,
+      [`${pk}_cta_visible`]: ctaData.enabled,
     };
 
     // Immediately save to local CMS store and broadcast live event

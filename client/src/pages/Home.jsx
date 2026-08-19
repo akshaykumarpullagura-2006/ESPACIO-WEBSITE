@@ -9,6 +9,7 @@ import DecryptedText from '../components/ui/DecryptedText';
 import { StickyScroll } from '../components/ui/sticky-scroll-reveal';
 import { HeroParallax } from '../components/ui/hero-parallax';
 import Testimonials from '../components/ui/Testimonials';
+import PageCTASection from '../components/common/PageCTASection';
 import { getCMSData, STORAGE_KEYS } from '../utils/cmsStore';
 import { USER_UPLOADED_BEDROOM_IMAGE } from '../assets/userUploadedBedroom';
 
@@ -115,7 +116,7 @@ const AutoScrollingInteriorBox = ({ activeIdx, items }) => {
     const listLen = items && items.length > 0 ? items.length : 1;
     const interval = setInterval(() => {
       setIndex((prev) => (prev + 1) % listLen);
-    }, 4000);
+    }, 2200);
     return () => clearInterval(interval);
   }, [activeIdx, items]);
 
@@ -224,7 +225,7 @@ const TeamProjectsShowcase = ({ customSlides }) => {
   const [progress, setProgress] = useState(0);
   const timerRef = useRef(null);
   const progressRef = useRef(null);
-  const INTERVAL = 1981;
+  const INTERVAL = 3600;
 
   const startProgress = () => {
     setProgress(0);
@@ -785,7 +786,7 @@ const Home = () => {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentImageIdx((prev) => (prev + 1) % activeHeroBgImages.length);
-    }, 4000);
+    }, 2200);
     return () => clearInterval(timer);
   }, [activeHeroBgImages.length]);
 
@@ -1602,6 +1603,9 @@ const Home = () => {
           
         </div>
       </motion.section>
+
+      {/* Home CTA Section */}
+      <PageCTASection pageKey="home" />
 
       {/* Testimonials Marquee Section */}
       <Testimonials />

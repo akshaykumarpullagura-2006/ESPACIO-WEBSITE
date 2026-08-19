@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import SEO from '../components/common/SEO';
+import PageCTASection from '../components/common/PageCTASection';
 
 const faqItems = [
   {
@@ -600,32 +601,7 @@ const FAQ = () => {
             </div>
 
             {/* CTA at bottom */}
-            <motion.div
-              className="mt-8 text-center"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7, delay: 0.3 }}
-            >
-              <p className="font-sans text-[14px] text-ink-soft mb-5">
-                Still have questions? We're happy to help.
-              </p>
-              <motion.a
-                href="/contact"
-                className="inline-flex items-center gap-2 bg-ink text-bg font-sans text-[13px] font-semibold uppercase tracking-widest px-7 py-3.5 rounded-full"
-                whileHover={{ scale: 1.05, boxShadow: '0 0 0 4px rgba(197,165,114,0.3)' }}
-                whileTap={{ scale: 0.97 }}
-                transition={{ duration: 0.2 }}
-              >
-                Contact Us
-                <motion.span
-                  animate={{ x: [0, 4, 0] }}
-                  transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-                >
-                  →
-                </motion.span>
-              </motion.a>
-            </motion.div>
+            <PageCTASection pageKey="faqs" />
           </div>
         </div>
       </div>

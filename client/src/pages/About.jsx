@@ -590,24 +590,6 @@ const About = () => {
           </div>
         </div>
       </section>
-
-      {/* ── 7. FINAL CALL TO ACTION (CTA BANNER) ───────────────────────────── */}
-      <section className="py-20 px-6 md:px-12 bg-bg-dark text-white text-center">
-        <div className="max-w-[800px] mx-auto space-y-6">
-          <span className="font-sans text-xs uppercase tracking-widest text-gold font-bold">{aboutData.ctaBadge}</span>
-          <h2 className="font-editorial text-4xl md:text-5xl font-bold">{aboutData.ctaTitle}</h2>
-          <p className="font-sans text-sm text-white/70 max-w-[600px] mx-auto leading-relaxed">{aboutData.ctaDesc}</p>
-          <div className="pt-4">
-            <Link
-              to={aboutData.ctaBtnLink || '/contact'}
-              className="inline-flex items-center space-x-2 bg-gold hover:bg-gold-hover text-charcoal font-sans text-xs uppercase tracking-widest font-bold py-4 px-8 rounded-full transition-all duration-300 shadow-xl"
-            >
-              <span>{aboutData.ctaBtnText}</span>
-            </Link>
-          </div>
-        </div>
-      </section>
-
     </div>
   );
 };

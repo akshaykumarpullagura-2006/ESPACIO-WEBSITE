@@ -209,7 +209,7 @@ const Services = () => {
       <SEO title="Services — ESPACIO Interiors" description="Full home interiors, modular kitchens, commercial spaces, and renovations. Engineering-first luxury design executed by ESPACIO." url="/services" />
 
       {heroContent.visible !== false && (
-        <section ref={heroRef} className="relative h-[55vh] lg:h-[65vh] min-h-[440px] px-5 pt-5 pb-[10px] lg:px-12">
+        <section ref={heroRef} className="relative h-[66vh] lg:h-[78vh] min-h-[530px] px-5 pt-5 pb-[10px] lg:px-12">
           <div className="relative w-full h-full overflow-hidden will-change-transform rounded-[24px] lg:rounded-[40px]">
             <motion.div style={{ scale: bgScale, y: bgY }} className="absolute inset-0 will-change-transform overflow-hidden">
               <AnimatePresence initial={false}>
@@ -238,12 +238,12 @@ const Services = () => {
         </section>
       )}
 
-      <section className="py-20 px-6 md:px-10 overflow-hidden">
+      <section className="pt-6 md:pt-8 pb-16 md:pb-20 px-6 md:px-10 overflow-hidden">
         <div className="max-w-[1440px] mx-auto divide-y divide-ink-border">
           {servicesList.filter((s) => s.visible !== false).map((s, i) => {
             const isOdd = i % 2 === 1;
             return (
-              <div key={s.num || i} className="py-16 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              <div key={s.num || i} className="py-12 md:py-14 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                 <Reveal delay={0.05} direction={isOdd ? 'right' : 'left'} className={isOdd ? 'lg:order-2' : ''}>
                   <div className="aspect-[4/3] rounded-card overflow-hidden bg-bg-card">
                     <img src={s.img} alt={s.title} loading="lazy" decoding="async" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />

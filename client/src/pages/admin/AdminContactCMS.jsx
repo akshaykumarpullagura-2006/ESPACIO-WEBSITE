@@ -98,7 +98,15 @@ const AdminContactCMS = () => {
     const existingSettings = getCMSData(STORAGE_KEYS.SETTINGS) || {};
     const updatedSettings = {
       ...existingSettings,
-      ...form
+      ...form,
+      footer_address: form.exp_card1_address || existingSettings.footer_address,
+      footer_phone: form.exp_card2_phone || existingSettings.footer_phone,
+      footer_whatsapp: form.exp_card2_whatsapp || existingSettings.footer_whatsapp,
+      footer_email: form.exp_card2_email || existingSettings.footer_email,
+      contact_address: form.exp_card1_address || existingSettings.contact_address,
+      contact_phone: form.exp_card2_phone || existingSettings.contact_phone,
+      contact_whatsapp: form.exp_card2_whatsapp || existingSettings.contact_whatsapp,
+      contact_email: form.exp_card2_email || existingSettings.contact_email,
     };
 
     try {

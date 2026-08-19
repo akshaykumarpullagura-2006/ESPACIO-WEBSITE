@@ -268,7 +268,14 @@ const AdminAboutCMS = () => {
     const existingSettings = getCMSData(STORAGE_KEYS.SETTINGS) || {};
     const updatedSettings = {
       ...existingSettings,
-      ...aboutState
+      ...aboutState,
+      cta_about: {
+        ...(existingSettings.cta_about || {}),
+        heading: aboutState.about_cta_title,
+        description: aboutState.about_cta_desc,
+        buttonText: aboutState.about_cta_btn_text,
+        buttonLink: aboutState.about_cta_btn_link,
+      }
     };
 
     // Immediately persist to local storage and broadcast live update

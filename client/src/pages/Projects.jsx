@@ -35,11 +35,20 @@ const Projects = () => {
   const [currentImageIdx, setCurrentImageIdx] = useState(0);
   const heroRef = useRef(null);
 
-  // Auto-cycle hero images every 3s
+  const [heroContent, setHeroContent] = useState({
+    badge: 'Portfolio & Case Studies',
+    title: 'Our Projects',
+    subtitle: 'Every space reflects thoughtful layouts, structural precision, custom material procurement, and meticulous attention to detail.',
+    images: heroImages
+  });
+
+  // Auto-cycle hero images
   useEffect(() => {
-    const t = setInterval(() => setCurrentImageIdx(p => (p + 1) % heroImages.length), 3000);
+    const activeList = (heroContent.images && heroContent.images.length > 0) ? heroContent.images : heroImages;
+    const len = activeList.length > 0 ? activeList.length : 1;
+    const t = setInterval(() => setCurrentImageIdx(p => (p + 1) % len), 3000);
     return () => clearInterval(t);
-  }, []);
+  }, [heroContent.images]);
 
   // Page-level parallax (same as Home & Services)
   const { scrollYProgress } = useScroll();
@@ -59,13 +68,6 @@ const Projects = () => {
     { label: 'Luxury Homes',       value: 'luxury_home' },
   ];
 
-  const [heroContent, setHeroContent] = useState({
-    badge: 'Portfolio & Case Studies',
-    title: 'Our Projects',
-    subtitle: 'Every space reflects thoughtful layouts, structural precision, custom material procurement, and meticulous attention to detail.',
-    images: heroImages
-  });
-
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -77,13 +79,16 @@ const Projects = () => {
 
         const settings = getCMSData(STORAGE_KEYS.SETTINGS);
         if (settings) {
+          const rawImgs = (Array.isArray(settings.projects_hero_images) && settings.projects_hero_images.length > 0)
+            ? settings.projects_hero_images
+            : heroImages;
+          const uniqueImgs = Array.from(new Set(rawImgs.filter(Boolean)));
+
           setHeroContent({
             badge: settings.projects_hero_badge || 'Portfolio & Case Studies',
             title: settings.projects_hero_title || 'Our Projects',
             subtitle: settings.projects_hero_subtitle || 'Every space reflects thoughtful layouts, structural precision, custom material procurement, and meticulous attention to detail.',
-            images: (Array.isArray(settings.projects_hero_images) && settings.projects_hero_images.length > 0)
-              ? settings.projects_hero_images
-              : heroImages
+            images: uniqueImgs.length > 0 ? uniqueImgs : heroImages
           });
         }
       } catch {}

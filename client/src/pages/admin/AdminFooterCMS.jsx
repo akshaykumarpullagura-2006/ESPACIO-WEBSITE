@@ -214,7 +214,15 @@ const AdminFooterCMS = () => {
     const existingSettings = getCMSData(STORAGE_KEYS.SETTINGS) || {};
     const updatedSettings = {
       ...existingSettings,
-      ...footerState
+      ...footerState,
+      exp_card1_address: footerState.footer_address || existingSettings.exp_card1_address,
+      exp_card2_phone: footerState.footer_phone || existingSettings.exp_card2_phone,
+      exp_card2_whatsapp: footerState.footer_whatsapp || existingSettings.exp_card2_whatsapp,
+      exp_card2_email: footerState.footer_email || existingSettings.exp_card2_email,
+      contact_address: footerState.footer_address || existingSettings.contact_address,
+      contact_phone: footerState.footer_phone || existingSettings.contact_phone,
+      contact_whatsapp: footerState.footer_whatsapp || existingSettings.contact_whatsapp,
+      contact_email: footerState.footer_email || existingSettings.contact_email,
     };
 
     try {
