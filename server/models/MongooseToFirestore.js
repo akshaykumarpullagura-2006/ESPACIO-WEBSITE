@@ -1,5 +1,5 @@
 import { initializeApp, getApps } from 'firebase/app';
-import { getFirestore, collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, writeBatch } from 'firebase/firestore';
+import { getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, query, where, writeBatch } from 'firebase/firestore';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
@@ -204,6 +204,24 @@ export class FirestoreModelAdapter {
     const payload = sanitizePayload(rawPayload);
     const docRef = await addDoc(collection(db, this.collectionName), payload);
     return { _id: docRef.id, id: docRef.id, ...payload };
+  }
+
+  async saveOrUpdate(customId, data) {
+    if (!db) return data;
+    const docId = String(customId || data.id || `doc_${Date.now()}`);
+    const docRef = doc(db, this.collectionName, docId);
+    const rawPayload = {
+      ...data,
+      id: docId,
+      softDelete: false,
+      updatedAt: new Date().toISOString()
+    };
+    if (!rawPayload.createdAt) {
+      rawPayload.createdAt = new Date().toISOString();
+    }
+    const payload = sanitizePayload(rawPayload);
+    await setDoc(docRef, payload, { merge: true });
+    return { _id: docId, id: docId, ...payload };
   }
 
   async findByIdAndUpdate(id, data, options = {}) {

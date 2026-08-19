@@ -19,7 +19,7 @@ export const uploadImageFile = async (file) => {
       } catch (err) {
         console.warn('/upload-media endpoint warning:', err);
       }
-      resolve(`/uploads/${safeName}`);
+      resolve(base64);
     };
     reader.readAsDataURL(file);
   });
@@ -223,16 +223,29 @@ export const getMediaItems = () => {
   return items;
 };
 
-// Save media items locally and persist permanently to MongoDB Database
+// Save media items locally and persist permanently to Database (source of truth)
 export const saveMediaItems = async (items) => {
   setCMSData(STORAGE_KEYS.MEDIA, items);
+  const settings = getCMSData(STORAGE_KEYS.SETTINGS) || {};
+  const updatedSettings = { ...settings, media_gallery_items: items };
+  setCMSData(STORAGE_KEYS.SETTINGS, updatedSettings);
+
+  // Clean dataUrl Base64 string from network payload to keep document size < 1KB
+  const cleanPayload = (Array.isArray(items) ? items : [items]).map(item => {
+    if (!item || typeof item !== 'object') return item;
+    const copy = { ...item };
+    delete copy.dataUrl;
+    delete copy.base64;
+    return copy;
+  });
+
   try {
-    const settings = getCMSData(STORAGE_KEYS.SETTINGS) || {};
-    const updatedSettings = { ...settings, media_gallery_items: items };
-    setCMSData(STORAGE_KEYS.SETTINGS, updatedSettings);
-    await axios.put('/settings', { media_gallery_items: items });
+    await Promise.all([
+      axios.post('/media', cleanPayload).catch(() => {}),
+      axios.put('/settings', { media_gallery_items: cleanPayload }).catch(() => {})
+    ]);
   } catch (err) {
-    console.warn('Database settings media save warning:', err);
+    console.warn('Database sync error:', err);
   }
 };
 

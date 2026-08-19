@@ -748,16 +748,36 @@ const Home = () => {
 
   const rawBgImages = (Array.isArray(homeSettings.hero_bg_images) && homeSettings.hero_bg_images.length > 0)
     ? homeSettings.hero_bg_images
-    : HERO_IMAGES;
+    : (Array.isArray(homeSettings.hero_images) && homeSettings.hero_images.length > 0)
+      ? homeSettings.hero_images
+      : HERO_IMAGES;
 
   const activeHeroBgImages = rawBgImages.map(img => 
     (!img || img === '/api/user-uploaded-bedroom.jpg') ? USER_UPLOADED_BEDROOM_IMAGE : img
   );
 
   const activeHomeStats = [
-    { val: homeSettings.hero_stat1_value || '25+', desc: homeSettings.hero_stat1_label || 'Projects Completed', visible: homeSettings.hero_stat1_visible !== false, order: Number(homeSettings.hero_stat1_order) || 1 },
-    { val: homeSettings.hero_stat2_value || '100+', desc: homeSettings.hero_stat2_label || 'Happy Clients', visible: homeSettings.hero_stat2_visible !== false, order: Number(homeSettings.hero_stat2_order) || 2 },
-    { val: homeSettings.hero_stat3_value || '40+', desc: homeSettings.hero_stat3_label || 'Years Legacy', visible: homeSettings.hero_stat3_visible !== false, order: Number(homeSettings.hero_stat3_order) || 3 },
+    { 
+      val: homeSettings.hero_stat1_value || homeSettings.stats_item1_value || '25+', 
+      desc: homeSettings.hero_stat1_label || homeSettings.stats_item1_label || 'Projects Completed', 
+      hoverLabel: homeSettings.hero_stat1_hover || homeSettings.hero_stat1_label || homeSettings.stats_item1_label || 'Projects Completed',
+      visible: homeSettings.hero_stat1_visible !== false, 
+      order: Number(homeSettings.hero_stat1_order) || 1 
+    },
+    { 
+      val: homeSettings.hero_stat2_value || homeSettings.stats_item2_value || '100+', 
+      desc: homeSettings.hero_stat2_label || homeSettings.stats_item2_label || 'Happy Clients', 
+      hoverLabel: homeSettings.hero_stat2_hover || homeSettings.hero_stat2_label || homeSettings.stats_item2_label || 'Happy Clients',
+      visible: homeSettings.hero_stat2_visible !== false, 
+      order: Number(homeSettings.hero_stat2_order) || 2 
+    },
+    { 
+      val: homeSettings.hero_stat3_value || homeSettings.stats_item3_value || '40+', 
+      desc: homeSettings.hero_stat3_label || homeSettings.stats_item3_label || 'Years Legacy', 
+      hoverLabel: homeSettings.hero_stat3_hover || homeSettings.hero_stat3_label || homeSettings.stats_item3_label || 'Years Legacy',
+      visible: homeSettings.hero_stat3_visible !== false, 
+      order: Number(homeSettings.hero_stat3_order) || 3 
+    },
   ].filter(s => s.visible).sort((a, b) => a.order - b.order);
 
   const [currentImageIdx, setCurrentImageIdx] = useState(0);
@@ -1221,7 +1241,7 @@ const Home = () => {
                   >
                   
                   {/* Stats Row */}
-                  <div className="hidden sm:flex flex-row gap-3 md:gap-4 justify-center lg:justify-end items-center h-26 translate-y-0 lg:-translate-y-10 mt-2 lg:mt-0">
+                  <div className="flex flex-row flex-wrap gap-3 md:gap-4 justify-center lg:justify-end items-center min-h-[70px] sm:h-26 translate-y-0 lg:-translate-y-10 mt-2 lg:mt-0">
                     {activeHomeStats.map((s, index) => {
                       const isHovered = hoveredStatIdx === index;
                       return (
@@ -1291,8 +1311,8 @@ const Home = () => {
                                   {s.val}
                                 </span>
                                 <div className="flex-1 flex justify-end">
-                                  <div className="bg-white text-bg-dark rounded-[14px] px-3 py-1 sm:px-4 sm:py-1.5 text-[9px] sm:text-[11px] md:text-[12px] font-semibold text-center leading-tight shadow-md flex items-center justify-center max-w-[110px] sm:max-w-[130px] md:max-w-[150px]">
-                                    {s.hoverLabel}
+                                  <div className="bg-white text-bg-dark rounded-[14px] px-3 py-1 sm:px-4 sm:py-1.5 text-[9px] sm:text-[11px] md:text-[12px] font-semibold text-center leading-tight shadow-md flex items-center justify-center max-w-[120px] sm:max-w-[145px] md:max-w-[165px]">
+                                    {s.hoverLabel || s.desc}
                                   </div>
                                 </div>
                               </motion.div>

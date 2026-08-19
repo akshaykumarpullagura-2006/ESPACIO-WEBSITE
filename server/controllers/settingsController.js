@@ -23,13 +23,23 @@ export const getAllSettings = async (req, res, next) => {
     }
 
     // Master site_settings document takes priority over individual legacy keys
-    if (siteSettingsVal) {
-      Object.assign(settingsMap, siteSettingsVal);
+    const finalMap = { ...settingsMap, ...(siteSettingsVal || {}) };
+
+    // Synchronize hero_bg_images and hero_images array references
+    const heroBgImgs = (Array.isArray(finalMap.hero_bg_images) && finalMap.hero_bg_images.length > 0)
+      ? finalMap.hero_bg_images
+      : (Array.isArray(finalMap.hero_images) && finalMap.hero_images.length > 0)
+        ? finalMap.hero_images
+        : undefined;
+
+    if (heroBgImgs) {
+      finalMap.hero_bg_images = heroBgImgs;
+      finalMap.hero_images = heroBgImgs;
     }
 
     res.status(200).json({
       success: true,
-      data: settingsMap,
+      data: finalMap,
     });
   } catch (err) {
     console.warn('Settings getAll warning:', err.message);
@@ -121,6 +131,13 @@ export const updateAllSettings = async (req, res, next) => {
   }
 
   try {
+    // Keep hero_bg_images and hero_images synchronized
+    if (Array.isArray(settingsObj.hero_bg_images)) {
+      settingsObj.hero_images = [...settingsObj.hero_bg_images];
+    } else if (Array.isArray(settingsObj.hero_images)) {
+      settingsObj.hero_bg_images = [...settingsObj.hero_images];
+    }
+
     // 1. Update master site_settings document instantly in a single atomic database write
     let mainSettings = await Settings.findOne({ key: 'site_settings' });
     if (mainSettings && mainSettings._id) {
@@ -138,15 +155,9 @@ export const updateAllSettings = async (req, res, next) => {
       });
     }
 
-    // 2. Respond immediately to browser in 200ms so no request is aborted
-    res.status(200).json({
-      success: true,
-      message: 'All settings updated successfully',
-    });
-
-    // 3. Asynchronously sync individual keys in background without blocking response
+    // 2. Synchronously update individual keys
     const keys = Object.keys(settingsObj);
-    Promise.all(keys.map(async (key) => {
+    await Promise.all(keys.map(async (key) => {
       try {
         const val = settingsObj[key];
         let settings = await Settings.findOne({ key });
@@ -158,7 +169,12 @@ export const updateAllSettings = async (req, res, next) => {
       } catch (e) {
         // Background sync warning
       }
-    })).catch(() => {});
+    }));
+
+    res.status(200).json({
+      success: true,
+      message: 'All settings updated successfully',
+    });
 
   } catch (err) {
     console.error('updateAllSettings error:', err);

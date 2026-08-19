@@ -84,8 +84,21 @@ const AdminHomeHeroCMS = () => {
           const apiData = res.data.data;
           setHeroState((prev) => {
             const merged = { ...prev, ...apiData };
-            setCMSData(STORAGE_KEYS.SETTINGS, merged);
-            return merged;
+            const bgImgs = (Array.isArray(apiData.hero_bg_images) && apiData.hero_bg_images.length > 0)
+              ? apiData.hero_bg_images
+              : (Array.isArray(apiData.hero_images) && apiData.hero_images.length > 0)
+                ? apiData.hero_images
+                : (Array.isArray(prev.hero_bg_images) && prev.hero_bg_images.length > 0)
+                  ? prev.hero_bg_images
+                  : merged.hero_bg_images;
+
+            const finalMerged = {
+              ...merged,
+              hero_bg_images: bgImgs,
+              hero_images: bgImgs
+            };
+            setCMSData(STORAGE_KEYS.SETTINGS, finalMerged);
+            return finalMerged;
           });
         }
       } catch (err) {
@@ -106,9 +119,22 @@ const AdminHomeHeroCMS = () => {
     if (e) e.preventDefault();
     setSaving(true);
     
+    // Clean up empty strings or invalid items from hero_bg_images while preserving full URLs and query params
+    const cleanedBgImages = (heroState.hero_bg_images || [])
+      .map(url => (typeof url === 'string' ? url.trim() : ''))
+      .filter(Boolean);
+
+    const updatedHeroState = {
+      ...heroState,
+      hero_bg_images: cleanedBgImages,
+      hero_images: cleanedBgImages
+    };
+
+    setHeroState(updatedHeroState);
+
     // Merge with any existing settings in store
     const existing = getCMSData(STORAGE_KEYS.SETTINGS) || {};
-    const updatedSettings = { ...existing, ...heroState };
+    const updatedSettings = { ...existing, ...updatedHeroState };
 
     // Immediately persist to local storage and broadcast to open tabs
     setCMSData(STORAGE_KEYS.SETTINGS, updatedSettings);

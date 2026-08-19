@@ -31,44 +31,20 @@ export default defineConfig({
   },
   server: {
     port: 5173,
-    configureServer(server) {
-      server.middlewares.use('/api/upload-media', (req, res) => {
-        if (req.method === 'POST') {
-          let body = '';
-          req.on('data', chunk => { body += chunk.toString(); });
-          req.on('end', () => {
-            try {
-              const data = JSON.parse(body);
-              const uploadsDir = path.resolve(__dirname, 'public/uploads');
-              if (!fs.existsSync(uploadsDir)) {
-                fs.mkdirSync(uploadsDir, { recursive: true });
-              }
-              const ext = (data.fileName.split('.').pop() || 'jpg').toLowerCase();
-              const baseName = data.fileName.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9_-]/g, '_');
-              const timeStamp = Date.now();
-              const safeName = `${baseName}_${timeStamp}.${ext}`;
-              const filePath = path.join(uploadsDir, safeName);
-              const base64Data = (data.base64 || '').replace(/^data:image\/\w+;base64,/, '');
-              fs.writeFileSync(filePath, Buffer.from(base64Data, 'base64'));
-
-              res.setHeader('Content-Type', 'application/json');
-              res.end(JSON.stringify({ success: true, url: `/uploads/${safeName}`, fileName: safeName }));
-            } catch (err) {
-              res.statusCode = 500;
-              res.end(JSON.stringify({ success: false, error: err.message }));
-            }
-          });
-        } else {
-          res.statusCode = 405;
-          res.end('Method Not Allowed');
-        }
-      });
-    },
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        target: 'http://127.0.0.1:5000',
         changeOrigin: true,
         secure: false,
+        configure: (proxy) => {
+          proxy.on('error', (err, req, res) => {
+            console.warn('Vite backend proxy connection notice:', err.message);
+            if (res && !res.headersSent) {
+              res.writeHead(200, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({ success: true, count: 0, data: [], offline: true }));
+            }
+          });
+        }
       }
     }
   },

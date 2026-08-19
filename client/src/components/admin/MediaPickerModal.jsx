@@ -32,8 +32,22 @@ const MediaPickerModal = ({
   useEffect(() => {
     if (isOpen) {
       const fetchMediaModal = async () => {
-        const items = getMediaItems();
-        setMediaList(items);
+        const localItems = getMediaItems();
+        setMediaList(localItems);
+
+        try {
+          const mediaRes = await axios.get('/media');
+          if (mediaRes.data && mediaRes.data.success && Array.isArray(mediaRes.data.data) && mediaRes.data.data.length > 0) {
+            const dbItems = mediaRes.data.data;
+            const itemMap = new Map();
+            localItems.forEach(i => itemMap.set(i.id || i.imageUrl, i));
+            dbItems.forEach(i => itemMap.set(i.id || i.imageUrl, i));
+            const merged = Array.from(itemMap.values());
+            setMediaList(merged);
+            setCMSData(STORAGE_KEYS.MEDIA, merged);
+            return;
+          }
+        } catch {}
 
         try {
           const res = await axios.get('/settings');
@@ -41,7 +55,7 @@ const MediaPickerModal = ({
             const dbItems = res.data.data.media_gallery_items;
             if (dbItems.length > 0) {
               const itemMap = new Map();
-              items.forEach(i => itemMap.set(i.id || i.imageUrl, i));
+              localItems.forEach(i => itemMap.set(i.id || i.imageUrl, i));
               dbItems.forEach(i => itemMap.set(i.id || i.imageUrl, i));
               const merged = Array.from(itemMap.values());
               setMediaList(merged);
@@ -107,61 +121,74 @@ const MediaPickerModal = ({
       return;
     }
 
-    setUploading(true);
+    try {
+      const newMediaItems = [];
 
-    const newMediaItems = await Promise.all(
-      validFiles.map((file) => {
-        return new Promise((resolve) => {
+      for (const file of validFiles) {
+        const dataUrl = await new Promise((resolve) => {
           const reader = new FileReader();
-          reader.onload = async (e) => {
-            const dataUrl = e.target.result;
-            const ext = file.name.split('.').pop().toUpperCase();
-            let finalUrl = dataUrl;
-            let finalName = file.name.replace(/\s+/g, '_');
-
-            try {
-              const res = await axios.post('/upload-media', { fileName: file.name, base64: dataUrl });
-              if (res.data && res.data.success && res.data.url) {
-                finalUrl = res.data.url;
-                if (res.data.fileName) finalName = res.data.fileName;
-              } else {
-                finalUrl = `/uploads/${finalName}`;
-              }
-            } catch (err) {
-              console.warn('Backend image upload endpoint fallback:', err);
-              finalUrl = `/uploads/${finalName}`;
-            }
-
-            const newItem = {
-              id: 'media-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5),
-              fileName: finalName,
-              originalName: file.name,
-              imageUrl: finalUrl,
-              thumbnailUrl: finalUrl,
-              altText: file.name.replace(/\.[^/.]+$/, "").replace(/_/g, ' '),
-              caption: 'Uploaded file: ' + file.name,
-              category: selectedCategory === 'All' ? 'General' : selectedCategory,
-              fileType: ext,
-              fileSize: (file.size / 1024).toFixed(1) + ' KB',
-              width: 1920,
-              height: 1080,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString()
-            };
-            resolve(newItem);
-          };
+          reader.onload = (e) => resolve(e.target.result);
           reader.readAsDataURL(file);
         });
-      })
-    );
 
-    const updatedList = [...newMediaItems, ...mediaList];
-    setMediaList(updatedList);
-    saveMediaItems(updatedList);
+        // 1. Upload image file to Cloudinary permanent storage via backend
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('fileName', file.name);
 
-    try {
-      logAuditEvent('Uploaded Images to Media Library', 'Gallery', `Uploaded ${newMediaItems.length} file(s)`);
-    } catch {}
+        let res;
+        try {
+          res = await axios.post('/upload-media', formData);
+        } catch (pErr) {
+          res = await axios.post('http://127.0.0.1:5000/api/upload-media', formData);
+        }
+
+        if (!res.data || !res.data.success || !res.data.url) {
+          throw new Error(`Storage upload failed for "${file.name}".`);
+        }
+
+        const permanentUrl = res.data.url;
+        const savedFileName = res.data.fileName || file.name.replace(/\s+/g, '_');
+        const ext = (file.name.split('.').pop() || 'JPG').toUpperCase();
+
+        const newItem = {
+          id: 'media-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),
+          fileName: savedFileName,
+          originalName: file.name,
+          imageUrl: permanentUrl,
+          thumbnailUrl: permanentUrl,
+          storagePath: permanentUrl,
+          dataUrl: dataUrl,
+          altText: file.name.replace(/\.[^/.]+$/, "").replace(/_/g, ' '),
+          caption: 'Uploaded file: ' + file.name,
+          category: selectedCategory === 'All' ? 'General' : selectedCategory,
+          fileType: ext,
+          fileSize: (file.size / 1024).toFixed(1) + ' KB',
+          width: 1920,
+          height: 1080,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+
+        newMediaItems.push(newItem);
+      }
+
+      const updatedList = [...newMediaItems, ...mediaList];
+      
+      // 2. Persist media records to Database as source of truth
+      await saveMediaItems(updatedList);
+
+      setMediaList(updatedList);
+
+      try {
+        logAuditEvent('Uploaded Images to Media Library', 'Gallery', `Uploaded ${newMediaItems.length} file(s)`);
+      } catch {}
+    } catch (err) {
+      console.error('MediaPickerModal upload / database insertion error:', err);
+      alert(`Upload Failed: ${err.message || 'Could not register image in database.'}`);
+    } finally {
+      setUploading(false);
+    }
 
     setUploading(false);
     showToast(`Successfully uploaded ${newMediaItems.length} image(s)!`);
@@ -306,10 +333,18 @@ const MediaPickerModal = ({
                     {/* Thumbnail Container */}
                     <div className="aspect-[4/3] relative overflow-hidden bg-black/40">
                       <img
-                        src={item.imageUrl}
+                        src={item.imageUrl || item.thumbnailUrl || item.dataUrl}
                         alt={item.altText || item.fileName}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         loading="lazy"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          if (item.dataUrl && e.currentTarget.src !== item.dataUrl) {
+                            e.currentTarget.src = item.dataUrl;
+                          } else {
+                            e.currentTarget.src = 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80';
+                          }
+                        }}
                       />
                       
                       {/* Badge Selection Overlay */}

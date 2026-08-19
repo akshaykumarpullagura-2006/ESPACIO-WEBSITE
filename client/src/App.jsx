@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, Outlet } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { HelmetProvider } from 'react-helmet-async';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import Lenis from 'lenis';
 
 // Layout Components
@@ -74,14 +74,41 @@ const ScrollToTop = () => {
 
 // Floating CTA Triggers: Desktop Floating Button + Mobile Right-Edge Vertical "GET FREE ESTIMATE" Tab
 const FloatingLogo = () => {
+  const shouldReduceMotion = useReducedMotion();
+
   const handleOpenModal = () => {
     window.dispatchEvent(new CustomEvent('open-quote-modal'));
   };
 
   return (
     <>
-      {/* DESKTOP ONLY: Fixed Floating Button with Continuous Rotating Icon */}
-      <div className="hidden lg:flex fixed bottom-6 right-6 z-[9999] pointer-events-auto">
+      {/* DESKTOP ONLY: Fixed Floating Button with Continuous Rotating Icon & Animated "CLICK HERE" Tag */}
+      <div className="hidden lg:flex fixed bottom-6 right-6 z-[9999] pointer-events-auto items-center gap-2.5">
+        {/* CLICK HERE Tag (Desktop Only) */}
+        {!shouldReduceMotion && (
+          <motion.div
+            initial={{ opacity: 0, x: 25 }}
+            animate={{
+              x: [25, 0, 0, 14, 25, 25],
+              opacity: [0, 1, 1, 0.7, 0, 0]
+            }}
+            transition={{
+              duration: 4.5,
+              times: [0, 0.267, 0.444, 0.667, 0.778, 1],
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+            className="pointer-events-none select-none flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#101014]/90 backdrop-blur-md border border-gold/40 text-gold shadow-[0_4px_20px_rgba(0,0,0,0.5)]"
+          >
+            <span className="font-sans text-[10px] font-bold tracking-[0.18em] uppercase whitespace-nowrap text-gold">
+              CLICK HERE
+            </span>
+            <span className="text-xs text-gold font-bold transition-transform duration-300">
+              →
+            </span>
+          </motion.div>
+        )}
+
         <motion.button
           onClick={handleOpenModal}
           whileHover={{ scale: 1.04 }}

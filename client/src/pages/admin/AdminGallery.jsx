@@ -27,27 +27,47 @@ const AdminGallery = () => {
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    const fetchMedia = async () => {
-      const items = getMediaItems();
-      setMediaItems(items);
+    const fetchMediaFromDB = async () => {
+      const localItems = getMediaItems();
 
       try {
-        const res = await axios.get('/settings');
-        if (res.data && res.data.success && res.data.data && Array.isArray(res.data.data.media_gallery_items)) {
-          const dbItems = res.data.data.media_gallery_items;
+        const mediaRes = await axios.get('/media');
+        if (mediaRes.data && mediaRes.data.success && Array.isArray(mediaRes.data.data) && mediaRes.data.data.length > 0) {
+          const dbItems = mediaRes.data.data;
+          const itemMap = new Map();
+          localItems.forEach(i => itemMap.set(i.id || i.imageUrl, i));
+          dbItems.forEach(i => itemMap.set(i.id || i.imageUrl, i));
+          const merged = Array.from(itemMap.values());
+          setMediaItems(merged);
+          setCMSData(STORAGE_KEYS.MEDIA, merged);
+          return;
+        }
+      } catch (err) {
+        console.warn('Database /api/media query fallback:', err);
+      }
+
+      try {
+        const settingsRes = await axios.get('/settings');
+        if (settingsRes.data && settingsRes.data.success && settingsRes.data.data && Array.isArray(settingsRes.data.data.media_gallery_items)) {
+          const dbItems = settingsRes.data.data.media_gallery_items;
           if (dbItems.length > 0) {
             const itemMap = new Map();
-            items.forEach(i => itemMap.set(i.id || i.imageUrl, i));
+            localItems.forEach(i => itemMap.set(i.id || i.imageUrl, i));
             dbItems.forEach(i => itemMap.set(i.id || i.imageUrl, i));
             const merged = Array.from(itemMap.values());
             setMediaItems(merged);
             setCMSData(STORAGE_KEYS.MEDIA, merged);
+            return;
           }
         }
-      } catch {}
+      } catch (err) {
+        console.warn('Database /api/settings query fallback:', err);
+      }
+
+      setMediaItems(localItems);
     };
 
-    fetchMedia();
+    fetchMediaFromDB();
   }, []);
 
   const showToast = (msg) => {
@@ -61,7 +81,7 @@ const AdminGallery = () => {
     showToast('Image URL copied successfully.');
   };
 
-  // Upload Processing
+  // Upload Processing with permanent storage & database persistence
   const processUploadFiles = async (files) => {
     const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/jpg'];
     const validFiles = Array.from(files).filter(f => validTypes.includes(f.type) || /\.(jpg|jpeg|png|webp|avif)$/i.test(f.name));
@@ -73,62 +93,111 @@ const AdminGallery = () => {
 
     setUploading(true);
 
-    const newItems = await Promise.all(
-      validFiles.map((file) => {
-        return new Promise((resolve) => {
+    try {
+      const uploadedItems = [];
+
+      for (const file of validFiles) {
+        const dataUrl = await new Promise((resolve) => {
           const reader = new FileReader();
-          reader.onload = async (e) => {
-            const dataUrl = e.target.result;
-            const ext = file.name.split('.').pop().toUpperCase();
-            let finalUrl = dataUrl;
-            let finalName = file.name.replace(/\s+/g, '_');
-
-            try {
-              const res = await axios.post('/upload-media', { fileName: file.name, base64: dataUrl });
-              if (res.data && res.data.success && res.data.url) {
-                finalUrl = res.data.url;
-                if (res.data.fileName) finalName = res.data.fileName;
-              } else {
-                finalUrl = `/uploads/${finalName}`;
-              }
-            } catch (err) {
-              console.warn('Backend image upload endpoint fallback:', err);
-              finalUrl = `/uploads/${finalName}`;
-            }
-
-            const newItem = {
-              id: 'media-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5),
-              fileName: finalName,
-              originalName: file.name,
-              imageUrl: finalUrl,
-              thumbnailUrl: finalUrl,
-              altText: file.name.replace(/\.[^/.]+$/, "").replace(/_/g, ' '),
-              caption: 'Uploaded photo: ' + file.name,
-              category: selectedCategory === 'All' ? 'General' : selectedCategory,
-              fileType: ext,
-              fileSize: (file.size / 1024).toFixed(1) + ' KB',
-              width: 1920,
-              height: 1080,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString()
-            };
-            resolve(newItem);
-          };
+          reader.onload = (e) => resolve(e.target.result);
           reader.readAsDataURL(file);
         });
-      })
-    );
 
-    const updated = [...newItems, ...mediaItems];
-    setMediaItems(updated);
-    saveMediaItems(updated);
+        let permanentUrl = dataUrl;
+        let savedFileName = file.name.replace(/\s+/g, '_');
+        let cloudMeta = {};
 
-    try {
-      logAuditEvent('Uploaded Media to Gallery', 'Media Library', `Uploaded ${newItems.length} new image(s)`);
-    } catch {}
+        // 1. Upload to Cloudinary permanent storage via secure backend endpoint
+        try {
+          console.log('[STAGE 1: UPLOAD_START]');
+          console.log('[STAGE 2: FILE_SELECTED]', file.name, 'Size:', file.size, 'Type:', file.type);
 
-    setUploading(false);
-    showToast(`Successfully uploaded ${newItems.length} image(s) to Media Library!`);
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('fileName', file.name);
+          console.log('[STAGE 3: FORM_DATA_CREATED]');
+
+          console.log('[STAGE 4: API_REQUEST_STARTED]', '/upload-media');
+          let res;
+          try {
+            res = await axios.post('/upload-media', formData);
+          } catch (pErr) {
+            console.warn('[STAGE 4 NOTICE: Direct backend connect to http://127.0.0.1:5000/api/upload-media]', pErr.message);
+            res = await axios.post('http://127.0.0.1:5000/api/upload-media', formData);
+          }
+          console.log('[STAGE 17: FRONTEND_RESPONSE_RECEIVED]', res.status, res.data);
+
+          if (res.data && res.data.success && res.data.url) {
+            permanentUrl = res.data.url;
+            if (res.data.fileName) savedFileName = res.data.fileName;
+            cloudMeta = {
+              cloudinaryPublicId: res.data.cloudinaryPublicId || null,
+              cloudinaryAssetId: res.data.cloudinaryAssetId || null,
+              storageProvider: res.data.storageProvider || 'cloudinary',
+              resourceType: res.data.resourceType || 'image',
+              format: res.data.format || (file.name.split('.').pop() || 'jpg'),
+              width: res.data.width || 1920,
+              height: res.data.height || 1080,
+              fileSize: res.data.fileSize || (file.size / 1024).toFixed(1) + ' KB',
+            };
+          } else {
+            throw new Error(res.data?.error || 'Cloudinary upload failed');
+          }
+        } catch (err) {
+          console.error('[FRONTEND ERROR STAGE]', err);
+          alert(`Cloudinary Upload Notice: ${err?.response?.data?.error || err.message || 'Upload error'}`);
+          setUploading(false);
+          return;
+        }
+
+        const ext = (file.name.split('.').pop() || 'JPG').toUpperCase();
+
+        // 2. Build complete schema-compliant metadata record
+        const newItem = {
+          id: 'media-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6),
+          fileName: savedFileName,
+          originalName: file.name,
+          imageUrl: permanentUrl,
+          thumbnailUrl: permanentUrl,
+          storagePath: permanentUrl,
+          category: selectedCategory === 'All' ? 'General' : selectedCategory,
+          fileType: ext,
+          fileSize: cloudMeta.fileSize || (file.size / 1024).toFixed(1) + ' KB',
+          width: cloudMeta.width || 1920,
+          height: cloudMeta.height || 1080,
+          cloudinaryPublicId: cloudMeta.cloudinaryPublicId,
+          cloudinaryAssetId: cloudMeta.cloudinaryAssetId,
+          storageProvider: cloudMeta.storageProvider || 'cloudinary',
+          resourceType: cloudMeta.resourceType || 'image',
+          format: cloudMeta.format || ext,
+          altText: file.name.replace(/\.[^/.]+$/, "").replace(/_/g, ' '),
+          caption: 'Uploaded photo: ' + file.name,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+
+        uploadedItems.push(newItem);
+      }
+
+      // 3. Prepend new records to active list
+      const updatedList = [...uploadedItems, ...mediaItems];
+
+      // 4. Save image records to Database as source of truth
+      await saveMediaItems(updatedList);
+
+      setMediaItems(updatedList);
+
+      try {
+        logAuditEvent('Uploaded Media to Gallery', 'Media Library', `Uploaded ${uploadedItems.length} image(s) to storage & registered in database`);
+      } catch {}
+
+      showToast(`Successfully uploaded ${uploadedItems.length} image(s) to Media Library & Database!`);
+    } catch (err) {
+      console.error('Upload & DB Registration error:', err);
+      alert(`Upload Notice: ${err.message || 'Could not register image.'}`);
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleDrop = (e) => {
@@ -150,31 +219,39 @@ const AdminGallery = () => {
         locations: usage
       });
     } else {
-      if (window.confirm(`Are you sure you want to delete "${item.fileName}" from the Media Library?`)) {
+      if (window.confirm(`Are you sure you want to delete "${item.fileName}" from the Media Library & Database?`)) {
         performDelete(item.id);
       }
     }
   };
 
-  const performDelete = (id) => {
-    const updated = mediaItems.filter(i => i.id !== id);
-    setMediaItems(updated);
-    saveMediaItems(updated);
-    showToast('Image deleted successfully.');
-    setDeleteWarningModal({ open: false, item: null, locations: [] });
-    if (previewItem?.id === id) setPreviewItem(null);
+  const performDelete = async (id) => {
+    try {
+      const updated = mediaItems.filter(i => i.id !== id);
+      await saveMediaItems(updated);
+      setMediaItems(updated);
+      showToast('Image record removed from database successfully.');
+      setDeleteWarningModal({ open: false, item: null, locations: [] });
+      if (previewItem?.id === id) setPreviewItem(null);
+    } catch (err) {
+      alert(`Delete failed: ${err.message || 'Could not remove database record.'}`);
+    }
   };
 
   // Save Metadata Edits
-  const handleSaveMetadata = (e) => {
+  const handleSaveMetadata = async (e) => {
     e.preventDefault();
     if (!editingItem) return;
 
-    const updated = mediaItems.map(i => i.id === editingItem.id ? { ...editingItem, updatedAt: new Date().toISOString() } : i);
-    setMediaItems(updated);
-    saveMediaItems(updated);
-    showToast('Image metadata updated!');
-    setEditingItem(null);
+    try {
+      const updated = mediaItems.map(i => i.id === editingItem.id ? { ...editingItem, updatedAt: new Date().toISOString() } : i);
+      await saveMediaItems(updated);
+      setMediaItems(updated);
+      showToast('Image metadata updated in database!');
+      setEditingItem(null);
+    } catch (err) {
+      alert(`Update failed: ${err.message || 'Could not save metadata to database.'}`);
+    }
   };
 
   // Filter List
@@ -306,10 +383,18 @@ const AdminGallery = () => {
             {/* Thumbnail */}
             <div className="aspect-[4/3] relative overflow-hidden bg-black/40 cursor-pointer" onClick={() => setPreviewItem(item)}>
               <img
-                src={item.imageUrl}
+                src={item.imageUrl || item.thumbnailUrl || item.dataUrl}
                 alt={item.altText || item.fileName}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 loading="lazy"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  if (item.dataUrl && e.currentTarget.src !== item.dataUrl) {
+                    e.currentTarget.src = item.dataUrl;
+                  } else {
+                    e.currentTarget.src = 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80';
+                  }
+                }}
               />
 
               {/* Format Badge */}
