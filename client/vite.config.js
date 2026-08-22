@@ -15,12 +15,11 @@ try {
   if (fs.existsSync(sourcePath)) {
     const fileBuffer = fs.readFileSync(sourcePath);
     fs.writeFileSync(targetPublicPath, fileBuffer);
-    const base64Str = fileBuffer.toString('base64');
-    const jsContent = `export const USER_UPLOADED_BEDROOM_IMAGE = "data:image/jpeg;base64,${base64Str}";\nexport default USER_UPLOADED_BEDROOM_IMAGE;\n`;
+    const jsContent = `export const USER_UPLOADED_BEDROOM_IMAGE = "/images/user_uploaded_bedroom.jpg";\nexport default USER_UPLOADED_BEDROOM_IMAGE;\n`;
     fs.writeFileSync(targetAssetJsPath, jsContent);
   }
 } catch (e) {
-  console.warn('Image sync error:', e);
+  console.warn('Image sync notice:', e);
 }
 
 // https://vite.dev/config/
@@ -58,16 +57,27 @@ export default defineConfig({
     exclude: ['@use-gesture/react'],
   },
   build: {
-    chunkSizeWarningLimit: 2000,
+    target: 'es2020',
+    chunkSizeWarningLimit: 1000,
+    cssCodeSplit: true,
     rollupOptions: {
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom') || id.includes('react-helmet-async')) {
               return 'vendor-react';
             }
-            if (id.includes('framer-motion') || id.includes('lucide-react')) {
-              return 'vendor-ui';
+            if (id.includes('framer-motion') || id.includes('lenis')) {
+              return 'vendor-motion';
+            }
+            if (id.includes('lucide-react')) {
+              return 'vendor-icons';
+            }
+            if (id.includes('firebase')) {
+              return 'vendor-firebase';
+            }
+            if (id.includes('axios') || id.includes('@tanstack/react-query')) {
+              return 'vendor-query';
             }
             return 'vendor';
           }

@@ -545,11 +545,10 @@ const faqItemVariants = {
 };
 
 const HERO_IMAGES = [
-  USER_UPLOADED_BEDROOM_IMAGE,
   '/images/user_uploaded_bedroom.jpg',
-  'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?auto=format&fit=crop&w=1920&q=90',
-  'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1920&q=90',
-  'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1920&q=90'
+  'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?auto=format&fit=crop&w=1400&q=75&fm=webp',
+  'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1400&q=75&fm=webp',
+  'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1400&q=75&fm=webp'
 ];
 
 const Home = () => {
@@ -1061,7 +1060,37 @@ const Home = () => {
 
   return (
     <div className="bg-bg overflow-x-clip">
-      <SEO title="Premium Interior Design, Hyderabad" description="ESPACIO is Hyderabad's premier interior design studio. Full-home interiors, modular kitchens, commercial offices, and premium material supply." url="/" />
+      <SEO
+        title="Luxury Interior Design & Architecture Studio, Hyderabad"
+        description="ESPACIO is Hyderabad's premier luxury interior design studio. Delivering turnkey full-home interiors, modular kitchens, commercial fitouts, and premium material supply."
+        url="/"
+        schema={{
+          '@context': 'https://schema.org',
+          '@type': 'LocalBusiness',
+          '@id': 'https://www.theespacio.in/#business',
+          name: 'ESPACIO Interiors & Modular',
+          url: 'https://www.theespacio.in',
+          logo: 'https://www.theespacio.in/favicon.svg',
+          image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80',
+          description: "ESPACIO is Hyderabad's premier luxury interior design studio. Full-home interiors, modular kitchens, commercial offices, and material supply.",
+          address: {
+            '@type': 'PostalAddress',
+            streetAddress: 'Jubilee Hills / Gachibowli',
+            addressLocality: 'Hyderabad',
+            addressRegion: 'Telangana',
+            postalCode: '500033',
+            addressCountry: 'IN'
+          },
+          geo: {
+            '@type': 'GeoCoordinates',
+            latitude: 17.4399,
+            longitude: 78.3989
+          },
+          telephone: '+91 90000 00000',
+          priceRange: '₹₹₹',
+          sameAs: ['https://www.instagram.com/theespacio.in']
+        }}
+      />
 
       {/* Premium Fullscreen Logo Intro Preloader */}
       <AnimatePresence>

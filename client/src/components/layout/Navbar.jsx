@@ -105,6 +105,7 @@ const Navbar = () => {
           {/* Logo */}
           <Link 
             to="/" 
+            aria-label="ESPACIO Home"
             className={`hover:opacity-90 transition-opacity ${isNavLight ? '' : 'drop-shadow-[0_1px_3px_rgba(0,0,0,0.55)]'}`}
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           >
