@@ -9,10 +9,12 @@ import Lenis from 'lenis';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
 import CustomCursor from './components/common/CustomCursor';
-import QuoteModal from './components/common/QuoteModal';
-import PrivacyModal from './components/common/PrivacyModal';
-import TermsModal from './components/common/TermsModal';
 import Logo from './components/common/Logo';
+
+// Dynamic imports for modals to isolate initial bundle
+const QuoteModal = React.lazy(() => import('./components/common/QuoteModal'));
+const PrivacyModal = React.lazy(() => import('./components/common/PrivacyModal'));
+const TermsModal = React.lazy(() => import('./components/common/TermsModal'));
 
 // Public Pages (Lazy-loaded for code-splitting & optimal performance)
 const Home = React.lazy(() => import('./pages/Home'));
@@ -119,17 +121,11 @@ const FloatingLogo = () => {
           className="relative w-14 h-14 rounded-full bg-bg-dark border border-white/15 shadow-[0_4px_24px_rgba(0,0,0,0.6)] flex items-center justify-center cursor-pointer hover:border-gold/50 hover:shadow-[0_0_25px_rgba(201,169,110,0.35)] hover:bg-[#0c0c0f] select-none transition-all duration-300 group outline-none"
           aria-label="Get Free Estimate"
         >
-          <motion.div 
-            className="scale-90 flex items-center justify-center w-full h-full"
-            animate={{ rotate: 360 }}
-            transition={{
-              duration: 5,
-              repeat: Infinity,
-              ease: "linear"
-            }}
+          <div 
+            className="scale-90 flex items-center justify-center w-full h-full animate-[spin_6s_linear_infinite] will-change-transform"
           >
             <Logo showText={false} scrolled={false} size="small" />
-          </motion.div>
+          </div>
         </motion.button>
       </div>
 
@@ -191,9 +187,11 @@ const MainLayout = () => {
         <Outlet />
       </main>
       {!isContactSuccess && <Footer />}
-      <QuoteModal />
-      <PrivacyModal />
-      <TermsModal />
+      <React.Suspense fallback={null}>
+        <QuoteModal />
+        <PrivacyModal />
+        <TermsModal />
+      </React.Suspense>
       <FloatingLogo />
     </div>
   );

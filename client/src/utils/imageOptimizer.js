@@ -21,10 +21,10 @@ export const getOptimizedImageUrl = (url, width = 1200, quality = 75) => {
 
   // Unsplash image URL optimization
   if (url.includes('images.unsplash.com')) {
-    if (!url.includes('fm=webp')) {
-      const hasQuery = url.includes('?');
-      return `${url}${hasQuery ? '&' : '?'}fm=webp&q=${quality}&w=${width}`;
-    }
+    // Strip out previous w=, q=, fm= parameters to avoid conflicts
+    let cleanUrl = url.replace(/([?&])w=\d+/g, '').replace(/([?&])q=\d+/g, '').replace(/([?&])fm=[a-zA-Z0-9]+/g, '');
+    const separator = cleanUrl.includes('?') ? '&' : '?';
+    return `${cleanUrl}${separator}fm=webp&q=${quality}&w=${width}&auto=format&fit=crop`;
   }
 
   return url;

@@ -5,7 +5,6 @@ import { ArrowUpRight } from 'lucide-react';
 import axios from 'axios';
 import SEO from '../components/common/SEO';
 import Logo from '../components/common/Logo';
-import DecryptedText from '../components/ui/DecryptedText';
 import HeroSlideshow from '../components/common/HeroSlideshow';
 import { getCMSData, STORAGE_KEYS } from '../utils/cmsStore';
 import { USER_UPLOADED_BEDROOM_IMAGE } from '../assets/userUploadedBedroom';
@@ -387,16 +386,23 @@ const TeamProjectsShowcase = ({ customSlides }) => {
       </div>
 
       {/* ── Dot indicators ── */}
-      <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
+      <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 flex gap-1 z-20">
         {slides.map((_, i) => (
-          <motion.button
+          <button
             key={i}
+            aria-label={`Show slide ${i + 1}`}
             onClick={() => { setDirection(i > idx ? 1 : -1); setIdx(i); resetTimer(); }}
-            className="rounded-full bg-ink/20 transition-all"
-            animate={{ width: i === idx ? 20 : 6, background: i === idx ? '#c5a572' : 'rgba(0,0,0,0.18)' }}
-            style={{ height: 6 }}
-            transition={{ duration: 0.35 }}
-          />
+            className="p-2 flex items-center justify-center cursor-pointer bg-transparent border-0 outline-none"
+          >
+            <span
+              className="block rounded-full transition-all duration-300"
+              style={{
+                width: i === idx ? '20px' : '6px',
+                height: '6px',
+                background: i === idx ? '#c5a572' : 'rgba(0,0,0,0.18)'
+              }}
+            />
+          </button>
         ))}
       </div>
 
@@ -558,7 +564,7 @@ const Home = () => {
   const heroRef = useRef(null);
   const faqSectionRef = useRef(null);
   const [openFaqIdx, setOpenFaqIdx] = useState(null);
-  const [showIntro, setShowIntro] = useState(() => !sessionStorage.getItem('espacio_intro_played'));
+  const [showIntro, setShowIntro] = useState(false);
   const [hoveredStatIdx, setHoveredStatIdx] = useState(null);
 
   const [homeSettings, setHomeSettings] = useState({
@@ -600,8 +606,9 @@ const Home = () => {
     const loadHomeCMS = async () => {
       try {
         const stored = getCMSData(STORAGE_KEYS.SETTINGS);
-        if (stored && stored.hero_bg_images && Array.isArray(stored.hero_bg_images) && stored.hero_bg_images.length > 0) {
+        if (stored && Object.keys(stored).length > 0) {
           setHomeSettings((prev) => ({ ...prev, ...stored }));
+          return;
         }
       } catch {}
 
@@ -893,6 +900,7 @@ const Home = () => {
         </p>
         <Link 
           to={`/projects/${p.slug}`}
+          aria-label={`View Case Study: ${p.title}`}
           className="inline-flex items-center gap-2 font-sans text-[13px] lg:text-[14px] font-bold uppercase tracking-wider text-gold hover:text-gold/80 transition-colors pt-2"
         >
           View Case Study <ArrowUpRight size={15} />
@@ -1510,9 +1518,9 @@ const Home = () => {
               </div>
 
               <h2 className="font-display text-[clamp(28px,3.5vw,44px)] font-medium leading-[1.12] tracking-tight text-ink mb-5 text-center">
-                <DecryptedText text="Got Questions?" animateOn="view" revealDirection="center" />
+                Got Questions?
                 <br />
-                <DecryptedText text="We Have Answers." animateOn="view" revealDirection="center" />
+                We Have Answers.
               </h2>
 
               <p className="font-sans text-[14px] text-ink-soft leading-relaxed mb-2 max-w-[400px] mx-auto text-center">

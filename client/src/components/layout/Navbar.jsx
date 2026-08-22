@@ -55,7 +55,10 @@ const Navbar = () => {
           const cmsLinks = stored.nav_items
             .filter((item) => item.visible)
             .map((item) => ({ name: item.label, path: item.path }));
-          if (cmsLinks.length > 0) setNavLinks(cmsLinks);
+          if (cmsLinks.length > 0) {
+            setNavLinks(cmsLinks);
+            return;
+          }
         }
       } catch {}
 
@@ -152,6 +155,7 @@ const Navbar = () => {
               </Link>
               <button 
                 onClick={() => setMobileMenuOpen(false)} 
+                aria-label="Close navigation menu"
                 className="text-white/60 hover:text-white transition-colors p-2"
               >
                 <X size={22} />
@@ -260,7 +264,7 @@ const Navbar = () => {
         </Link>
 
         {/* Tab: Menu Toggle */}
-        <button onClick={() => setMobileMenuOpen(true)} className="flex flex-col items-center gap-1 text-ink-soft hover:text-ink transition-colors flex-1 py-2 bg-transparent border-0 cursor-pointer">
+        <button aria-label="Open navigation menu" onClick={() => setMobileMenuOpen(true)} className="flex flex-col items-center gap-1 text-ink-soft hover:text-ink transition-colors flex-1 py-2 bg-transparent border-0 cursor-pointer">
           <Menu size={22} className="text-ink-soft" />
           <span className="font-sans text-[10px] uppercase tracking-wider font-bold text-ink-soft">Menu</span>
         </button>

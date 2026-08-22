@@ -5,6 +5,9 @@ const CustomCursor = () => {
   const [hovered, setHovered] = useState(false);
 
   useEffect(() => {
+    if (typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches) {
+      return;
+    }
     let rafId = null;
 
     const handleMouseMove = (e) => {

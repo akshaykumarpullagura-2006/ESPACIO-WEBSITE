@@ -293,17 +293,22 @@ const Projects = () => {
                 </p>
 
                 {/* Image dot indicators */}
-                <div className="flex items-center gap-2 mt-1">
+                <div className="flex items-center gap-1 mt-1">
                   {(heroContent.images || heroImages).map((_, i) => (
                     <button
                       key={i}
+                      aria-label={`Show project image ${i + 1}`}
                       onClick={() => setCurrentImageIdx(i)}
-                      className={`rounded-full transition-all duration-500 ${
-                        i === currentImageIdx
-                          ? 'w-6 h-1.5 bg-gold'
-                          : 'w-1.5 h-1.5 bg-white/40 hover:bg-white/70'
-                      }`}
-                    />
+                      className="p-2 flex items-center justify-center cursor-pointer bg-transparent border-0 outline-none"
+                    >
+                      <span
+                        className={`block rounded-full transition-all duration-300 ${
+                          i === currentImageIdx
+                            ? 'w-6 h-1.5 bg-gold'
+                            : 'w-1.5 h-1.5 bg-white/40 hover:bg-white/70'
+                        }`}
+                      />
+                    </button>
                   ))}
                 </div>
               </motion.div>

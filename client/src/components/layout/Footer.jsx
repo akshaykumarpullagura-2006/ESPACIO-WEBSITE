@@ -86,8 +86,9 @@ const Footer = () => {
   React.useEffect(() => {
     const fetchFooterSettings = async () => {
       const stored = getCMSData(STORAGE_KEYS.SETTINGS);
-      if (stored) {
+      if (stored && Object.keys(stored).length > 0) {
         setCmsSettings(stored);
+        return;
       }
 
       try {
@@ -265,28 +266,27 @@ const Footer = () => {
           </div>
 
           {/* B. Contact Info */}
-          <div>
-            <p className="font-sans text-[13px] text-white/40 mb-1 select-none uppercase tracking-wider">
+          <div>            <p className="font-sans text-[13px] text-white/70 mb-1 select-none uppercase tracking-wider">
               {contactTitle}
             </p>
             <div className="space-y-1">
               <a 
                 href={phoneHref} 
-                className="font-sans text-[15px] text-bg/60 hover:text-bg transition-colors block hover:underline decoration-white/20 underline-offset-4"
+                className="font-sans text-[15px] text-bg/80 hover:text-bg transition-colors block hover:underline decoration-white/20 underline-offset-4"
               >
                 {phoneText}
               </a>
               <a 
                 href={whatsappHref} 
                 target="_blank" 
-                rel="noopener noreferrer"
-                className="font-sans text-[15px] text-bg/60 hover:text-bg transition-colors block hover:underline decoration-white/20 underline-offset-4"
+                rel="noopener noreferrer" 
+                className="font-sans text-[15px] text-bg/80 hover:text-bg transition-colors block hover:underline decoration-white/20 underline-offset-4"
               >
                 WhatsApp: {whatsappText}
               </a>
               <a 
                 href={emailHref} 
-                className="font-sans text-[15px] text-bg/60 hover:text-bg transition-colors block hover:underline decoration-white/20 underline-offset-4"
+                className="font-sans text-[15px] text-bg/80 hover:text-bg transition-colors block hover:underline decoration-white/20 underline-offset-4"
               >
                 {emailText}
               </a>
@@ -295,12 +295,12 @@ const Footer = () => {
 
           {/* C. Explore Links (Desktop-only inside this column) */}
           <div className="hidden lg:block w-full">
-            <p className="font-sans text-[13px] text-white/40 mb-3 select-none uppercase tracking-wider">
+            <p className="font-sans text-[13px] text-white/70 mb-3 select-none uppercase tracking-wider">
               {exploreTitle}
             </p>
             <div className="flex flex-row flex-wrap gap-x-5 gap-y-2">
               {navLinks.map((link, i) => (
-                <Link key={i} to={link.path || link.href || '/'} className="font-sans text-[14px] font-medium text-bg/60 hover:text-bg transition-colors">
+                <Link key={i} to={link.path || link.href || '/'} className="font-sans text-[14px] font-medium text-bg/80 hover:text-bg transition-colors">
                   {link.label || link.name}
                 </Link>
               ))}
@@ -315,7 +315,7 @@ const Footer = () => {
           <div>
             <div className="flex flex-col gap-3">
               {navLinks.map((link, i) => (
-                <Link key={i} to={link.path || link.href || '/'} className="font-sans text-[14px] font-medium text-bg/60 hover:text-bg transition-colors">
+                <Link key={i} to={link.path || link.href || '/'} className="font-sans text-[14px] font-medium text-bg/80 hover:text-bg transition-colors">
                   {link.label || link.name}
                 </Link>
               ))}
@@ -325,7 +325,7 @@ const Footer = () => {
           {/* Right Column: Social text links (right-aligned) */}
           <div className="flex flex-col items-end gap-3 text-right">
             {socialItems.map((s, i) => (
-              <a key={i} href={s.href || '#'} target="_blank" rel="noopener noreferrer" className="font-sans text-[14px] font-medium text-bg/60 hover:text-bg transition-colors">
+              <a key={i} href={s.href || '#'} target="_blank" rel="noopener noreferrer" className="font-sans text-[14px] font-medium text-bg/80 hover:text-bg transition-colors">
                 {s.label || s.name}
               </a>
             ))}
@@ -347,64 +347,60 @@ const Footer = () => {
         </div>
       </div>
 
-      {/* 4. Massive Animated ESPACIO Typography */}
-      <div ref={espRef} className="w-full select-none overflow-hidden flex items-center justify-center mt-6 mb-2">
-        <div className="flex items-center justify-center gap-[3px] sm:gap-[10px]" style={{ transform: 'translateX(-0.35em)' }}>
-          {/* Left Group - slides in dynamically from LEFT */}
+      {/* 4. Giant Cinematic Typography Wordmark */}
+      <div 
+        ref={brandRef} 
+        className="w-full flex justify-center overflow-hidden border-t border-white/5 py-4 select-none relative z-10 px-4"
+      >
+        <div 
+          className="font-sans font-black tracking-[-0.04em] uppercase text-white/10 leading-[0.8] whitespace-nowrap text-center"
+          style={{ 
+            fontSize: 'clamp(60px, 14vw, 240px)',
+            fontFamily: 'Montserrat, sans-serif'
+          }}
+        >
+          {/* LEFT HALF */}
           <motion.span
-            className="text-[clamp(55px,11vw,235px)] leading-none uppercase text-white flex flex-row items-center gap-[6px] sm:gap-[20px]"
-            style={{
-              fontFamily: "'Gotham Medium', 'Gotham Book', 'Gotham', 'Montserrat', sans-serif",
-              fontWeight: brandWeight,
-              opacity: brandOpacity,
-              marginRight: 'var(--logo-kerning)'
-            }}
+            className="inline-block"
             initial={{ x: '-85%', opacity: 0, scale: 0.95 }}
-            animate={inView ? { x: 0, opacity: 1, scale: 1 } : { x: '-85%', opacity: 0, scale: 0.95 }}
-            transition={{ duration: 2.0, ease: [0.16, 1, 0.3, 1] }}
-          >
-            {brandLeft.split('').map((char, i) => (
-              <span key={i}>{char}</span>
-            ))}
-          </motion.span>
-          
-          {/* Right Group — Slides in from Right */}
-          <motion.span
-            className="text-[clamp(55px,11vw,235px)] leading-none uppercase text-white flex flex-row items-center gap-[6px] sm:gap-[20px]"
-            style={{
-              fontFamily: "'Gotham Medium', 'Gotham Book', 'Gotham', 'Montserrat', sans-serif",
-              fontWeight: brandWeight,
-              opacity: brandOpacity,
+            animate={inView ? { 
+              x: 0, 
+              opacity: 1, 
+              scale: 1 
+            } : { x: '-85%', opacity: 0, scale: 0.95 }}
+            transition={{ 
+              duration: 2.0, 
+              ease: [0.16, 1, 0.3, 1] 
             }}
+          >
+            {brandLeft}
+          </motion.span>
+
+          {/* RIGHT HALF */}
+          <motion.span
+            className="inline-block"
             initial={{ x: '85%', opacity: 0, scale: 0.95 }}
             animate={inView ? { 
               x: 0, 
               opacity: 1, 
-              scale: 1
+              scale: 1 
             } : { x: '85%', opacity: 0, scale: 0.95 }}
             transition={{ 
               duration: 2.0, 
-              ease: [0.16, 1, 0.3, 1]
+              ease: [0.16, 1, 0.3, 1] 
             }}
           >
-            {brandRight.split('').map((char, i) => {
-              if (char === '.') {
-                return (
-                  <span key={i} style={{ fontSize: '0.45em', display: 'inline-block', verticalAlign: 'baseline' }}>.</span>
-                );
-              }
-              return <span key={i}>{char}</span>;
-            })}
+            {brandRight}
           </motion.span>
         </div>
       </div>
 
       {/* 5. Copyright Strip */}
       <div className="max-w-[1440px] mx-auto px-6 md:px-12 flex flex-col items-center justify-center gap-2 pt-6 pb-4 border-t border-white/5 text-center">
-        <p className="font-sans text-[12px] text-bg/40">
+        <p className="font-sans text-[12px] text-bg/80">
           {copyrightText}
         </p>
-        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-1 text-[12px] text-bg/40 mt-1">
+        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-1 text-[12px] text-bg/80 mt-1">
           <button
             onClick={(e) => {
               e.preventDefault();

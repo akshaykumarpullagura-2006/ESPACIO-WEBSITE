@@ -170,9 +170,9 @@ const TestimonialCard = ({ t }) => (
         )}
       </div>
 
-      <h4 className="font-editorial text-[17px] md:text-[20px] font-medium text-[#101014] leading-[1.3] m-0">
+      <h3 className="font-editorial text-[17px] md:text-[20px] font-medium text-[#101014] leading-[1.3] m-0">
         "{t.title}"
-      </h4>
+      </h3>
       <p className="font-sans text-[12.5px] md:text-[13.5px] font-normal text-[#4a4a55] leading-[1.65] m-0 line-clamp-2">
         {t.body}
       </p>
@@ -190,7 +190,7 @@ const TestimonialCard = ({ t }) => (
         <p className="font-sans text-[12px] md:text-[13px] font-bold text-[#101014] m-0 leading-tight truncate">
           {t.name}
         </p>
-        <p className="font-sans text-[11px] font-normal text-[#80808e] m-0 leading-tight mt-0.5 truncate">{t.role || t.designation}</p>
+        <p className="font-sans text-[11px] font-normal text-[#545460] m-0 leading-tight mt-0.5 truncate">{t.role || t.designation}</p>
       </div>
     </div>
   </div>
@@ -202,13 +202,21 @@ const MarqueeRow = ({ items, speed = 1.2, reverse = false }) => {
   const startX = useRef(0);
   const scrollLeftStart = useRef(0);
   const animationFrameId = useRef(null);
+  const halfWidthRef = useRef(0);
 
   React.useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
 
+    // Cache measurement once instead of reading on every RAF frame
+    const measure = () => {
+      if (el) halfWidthRef.current = el.scrollWidth / 2;
+    };
+    measure();
+    window.addEventListener('resize', measure, { passive: true });
+
     if (reverse && el.scrollLeft === 0) {
-      el.scrollLeft = el.scrollWidth / 2;
+      el.scrollLeft = halfWidthRef.current || 1000;
     }
 
     let isVisible = true;
@@ -217,8 +225,11 @@ const MarqueeRow = ({ items, speed = 1.2, reverse = false }) => {
       (entries) => {
         const [entry] = entries;
         isVisible = entry.isIntersecting;
-        if (isVisible && !animationFrameId.current) {
-          animationFrameId.current = requestAnimationFrame(autoScroll);
+        if (isVisible) {
+          measure();
+          if (!animationFrameId.current) {
+            animationFrameId.current = requestAnimationFrame(autoScroll);
+          }
         }
       },
       { threshold: 0.05 }
@@ -230,7 +241,7 @@ const MarqueeRow = ({ items, speed = 1.2, reverse = false }) => {
         return;
       }
       if (!isDragging.current && el) {
-        const halfWidth = el.scrollWidth / 2;
+        const halfWidth = halfWidthRef.current || 1000;
         if (reverse) {
           if (el.scrollLeft <= 0) {
             el.scrollLeft = halfWidth;

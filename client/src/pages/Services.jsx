@@ -6,6 +6,7 @@ import SEO from '../components/common/SEO';
 import HeroSlideshow from '../components/common/HeroSlideshow';
 import { Button as MovingBorderButton } from '../components/ui/moving-border';
 import { BorderDrawingCard } from '../components/ui/BorderDrawingCard';
+import { getOptimizedImageUrl } from '../utils/imageOptimizer';
 
 const Reveal = ({ children, delay = 0, className = '', direction = 'up' }) => {
   const ref = useRef(null);
@@ -244,7 +245,7 @@ const Services = () => {
               <div key={s.num || i} className="py-12 md:py-14 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                 <Reveal delay={0.05} direction={isOdd ? 'right' : 'left'} className={isOdd ? 'lg:order-2' : ''}>
                   <div className="aspect-[4/3] rounded-card overflow-hidden bg-bg-card">
-                    <img src={s.img} alt={s.title} loading="lazy" decoding="async" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
+                    <img src={getOptimizedImageUrl(s.img, 800, 75)} alt={s.title} loading="lazy" decoding="async" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
                   </div>
                 </Reveal>
                 <Reveal delay={0.15} direction={isOdd ? 'left' : 'right'} className={`space-y-6 ${isOdd ? 'lg:order-1' : ''}`}>

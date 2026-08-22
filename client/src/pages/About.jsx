@@ -4,6 +4,7 @@ import { motion, useInView, AnimatePresence } from 'framer-motion';
 import { ArrowUpRight, ShieldCheck, Layers, Award, Sparkles, DraftingCompass, CheckCircle2 } from 'lucide-react';
 import SEO from '../components/common/SEO';
 import { getCMSData, STORAGE_KEYS } from '../utils/cmsStore';
+import { getOptimizedImageUrl } from '../utils/imageOptimizer';
 
 const defaultStats = [
   { value: '25+', label: 'Projects Completed' },
@@ -344,8 +345,10 @@ const About = () => {
           <Reveal className="lg:col-span-5 lg:sticky lg:top-28">
             <div className="relative aspect-[4/3] rounded-[24px] overflow-hidden shadow-xl border border-ink-border group">
               <img
-                src={aboutData.storyImage}
+                src={getOptimizedImageUrl(aboutData.storyImage, 800, 75)}
                 alt="ESPACIO Studio Craft"
+                loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
@@ -433,8 +436,10 @@ const About = () => {
                       className="absolute inset-0 pointer-events-none"
                     >
                       <img
-                        src={item.image || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1000&q=80'}
+                        src={getOptimizedImageUrl(item.image || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=60&fm=webp', 600, 60)}
                         alt="Background Texture"
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover"
                       />
                     </motion.div>

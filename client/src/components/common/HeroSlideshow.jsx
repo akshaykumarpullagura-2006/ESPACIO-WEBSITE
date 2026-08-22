@@ -31,12 +31,17 @@ const HeroSlideshow = memo(({
   const [currentIndex, setCurrentIndex] = useState(0);
   const timerRef = useRef(null);
 
-  // Preload all images whenever the list changes
+  // Lazily preload only the next image after initial render
   useEffect(() => {
-    if (activeImages.length > 0) {
-      preloadImages(activeImages);
+    if (activeImages.length > 1) {
+      const nextIdx = (currentIndex + 1) % activeImages.length;
+      const nextUrl = getOptimizedImageUrl(activeImages[nextIdx], 1000, 70);
+      const timer = setTimeout(() => {
+        preloadImages([nextUrl]);
+      }, 2000);
+      return () => clearTimeout(timer);
     }
-  }, [activeImages]);
+  }, [currentIndex, activeImages]);
 
   // Main slideshow timer with tab visibility pause
   useEffect(() => {
@@ -74,7 +79,7 @@ const HeroSlideshow = memo(({
   if (activeImages.length === 0) return null;
 
   const rawSrc = activeImages[currentIndex % activeImages.length];
-  const currentSrc = getOptimizedImageUrl(rawSrc, 1400, 75);
+  const currentSrc = getOptimizedImageUrl(rawSrc, 1000, 70);
 
   return (
     <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none select-none">
@@ -84,6 +89,7 @@ const HeroSlideshow = memo(({
           src={currentSrc}
           alt="ESPACIO Hero Showcase"
           decoding="async"
+          fetchPriority={currentIndex === 0 ? "high" : "auto"}
           initial={{ opacity: 0, scale: 1.03 }}
           animate={{ opacity: 1, scale: 1.0 }}
           exit={{ opacity: 0, scale: 0.98 }}

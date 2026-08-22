@@ -457,15 +457,23 @@ const FAQ = () => {
               </TiltCard>
 
               {/* Progress dots */}
-              <div className="flex justify-center gap-1.5 mt-6">
+              <div className="flex justify-center gap-1 mt-6">
                 {showcaseSlides.map((_, i) => (
-                  <motion.button
+                  <button
                     key={i}
+                    aria-label={`Go to slide ${i + 1}`}
                     onClick={() => { setActiveImageIdx(i); if (openIndex !== i) setOpenIndex(null); }}
-                    className="h-1.5 rounded-full bg-ink/20 transition-all"
-                    animate={{ width: activeImageIdx === i ? 24 : 6, background: activeImageIdx === i ? '#c5a572' : 'rgba(0,0,0,0.15)' }}
-                    transition={{ duration: 0.4 }}
-                  />
+                    className="p-2 flex items-center justify-center cursor-pointer bg-transparent border-0 outline-none"
+                  >
+                    <span
+                      className="block rounded-full transition-all duration-300"
+                      style={{
+                        width: activeImageIdx === i ? '24px' : '6px',
+                        height: '6px',
+                        background: activeImageIdx === i ? '#c5a572' : 'rgba(0,0,0,0.15)'
+                      }}
+                    />
+                  </button>
                 ))}
               </div>
 
