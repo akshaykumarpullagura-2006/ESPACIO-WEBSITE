@@ -9,7 +9,7 @@ import DecryptedText from '../components/ui/DecryptedText';
 import { StickyScroll } from '../components/ui/sticky-scroll-reveal';
 import { HeroParallax } from '../components/ui/hero-parallax';
 import Testimonials from '../components/ui/Testimonials';
-import PageCTASection from '../components/common/PageCTASection';
+import HeroSlideshow from '../components/common/HeroSlideshow';
 import { getCMSData, STORAGE_KEYS } from '../utils/cmsStore';
 import { USER_UPLOADED_BEDROOM_IMAGE } from '../assets/userUploadedBedroom';
 
@@ -136,10 +136,15 @@ const AutoScrollingInteriorBox = ({ activeIdx, items }) => {
             key={index}
             src={activeImg}
             alt={activeCaption || 'ESPACIO Showcase'}
-            initial={{ opacity: 0, scale: 1.08, filter: 'blur(8px)' }}
-            animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-            exit={{ opacity: 0, scale: 0.96, filter: 'blur(6px)' }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            decoding="async"
+            initial={{ opacity: 0, scale: 1.05 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.97 }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+            style={{
+              willChange: 'transform, opacity',
+              transform: 'translate3d(0,0,0)',
+            }}
             className="absolute inset-0 w-full h-full object-cover"
           />
         </AnimatePresence>
@@ -222,18 +227,20 @@ const TeamProjectsShowcase = ({ customSlides }) => {
   const slides = (Array.isArray(customSlides) && customSlides.length > 0) ? customSlides : teamProjectsData;
   const [idx, setIdx] = useState(0);
   const [direction, setDirection] = useState(1);
-  const [progress, setProgress] = useState(0);
+  const progressBarRef = useRef(null);
   const timerRef = useRef(null);
   const progressRef = useRef(null);
   const INTERVAL = 3600;
 
   const startProgress = () => {
-    setProgress(0);
+    if (progressBarRef.current) progressBarRef.current.style.width = '0%';
     let start = null;
     const tick = (ts) => {
       if (!start) start = ts;
       const pct = Math.min(((ts - start) / INTERVAL) * 100, 100);
-      setProgress(pct);
+      if (progressBarRef.current) {
+        progressBarRef.current.style.width = `${pct}%`;
+      }
       if (pct < 100) progressRef.current = requestAnimationFrame(tick);
     };
     if (progressRef.current) cancelAnimationFrame(progressRef.current);
@@ -256,7 +263,7 @@ const TeamProjectsShowcase = ({ customSlides }) => {
       if (timerRef.current) clearInterval(timerRef.current);
       if (progressRef.current) cancelAnimationFrame(progressRef.current);
     };
-  }, [slides]);
+  }, [slides.length]);
 
   const handleNext = (e) => {
     if (e) e.stopPropagation();
@@ -276,22 +283,19 @@ const TeamProjectsShowcase = ({ customSlides }) => {
 
   const slideVariants = {
     enter: (dir) => ({
-      x: dir > 0 ? '60%' : '-60%',
+      x: dir > 0 ? '50%' : '-50%',
       opacity: 0,
-      scale: 1.08,
-      filter: 'blur(6px)',
+      scale: 1.05,
     }),
     center: {
       x: 0,
       opacity: 1,
       scale: 1,
-      filter: 'blur(0px)',
     },
     exit: (dir) => ({
-      x: dir < 0 ? '40%' : '-40%',
+      x: dir < 0 ? '35%' : '-35%',
       opacity: 0,
-      scale: 0.96,
-      filter: 'blur(4px)',
+      scale: 0.97,
     }),
   };
 
@@ -300,7 +304,7 @@ const TeamProjectsShowcase = ({ customSlides }) => {
 
       {/* ── Main Card ── */}
       <div className="w-full h-full rounded-[24px] overflow-hidden shadow-2xl border border-ink-border/10 relative z-10">
-        <AnimatePresence custom={direction} initial={false}>
+        <AnimatePresence custom={direction} mode="popLayout" initial={false}>
           <motion.div
             key={`proj-${idx}`}
             custom={direction}
@@ -312,8 +316,8 @@ const TeamProjectsShowcase = ({ customSlides }) => {
               duration: 0.35,
               ease: [0.25, 0.46, 0.45, 0.94],
               opacity: { duration: 0.25 },
-              filter: { duration: 0.3 },
             }}
+            style={{ willChange: 'transform, opacity' }}
             drag="x"
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={0.5}
@@ -327,9 +331,10 @@ const TeamProjectsShowcase = ({ customSlides }) => {
             <motion.img
               src={current.projectImg}
               alt={current.projectLabel}
+              decoding="async"
               className="w-full h-full object-cover select-none pointer-events-none"
               draggable="false"
-              initial={{ scale: 1.12, x: '2%' }}
+              initial={{ scale: 1.1, x: '2%' }}
               animate={{ scale: 1.0, x: '0%' }}
               transition={{ duration: INTERVAL / 1000 + 0.5, ease: 'linear' }}
             />
@@ -370,9 +375,10 @@ const TeamProjectsShowcase = ({ customSlides }) => {
 
         {/* Progress bar */}
         <div className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-white/10 z-30">
-          <motion.div
-            className="h-full bg-gold"
-            style={{ width: `${progress}%` }}
+          <div
+            ref={progressBarRef}
+            className="h-full bg-gold transition-none"
+            style={{ width: '0%' }}
             transition={{ duration: 0 }}
           />
         </div>
@@ -783,12 +789,6 @@ const Home = () => {
 
   const [currentImageIdx, setCurrentImageIdx] = useState(0);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentImageIdx((prev) => (prev + 1) % activeHeroBgImages.length);
-    }, 2200);
-    return () => clearInterval(timer);
-  }, [activeHeroBgImages.length]);
 
   // Page-level scroll for subtle parallax on the background image
   const { scrollYProgress } = useScroll();
@@ -1114,19 +1114,12 @@ const Home = () => {
             animate={showIntro ? { opacity: 0, scale: 1.15 } : { opacity: 1, scale: 1.05 }}
             transition={{ duration: 1.6, ease: [0.16, 1, 0.3, 1] }}
           >
-            <AnimatePresence initial={false}>
-              <motion.img
-                key={currentImageIdx}
-                src={activeHeroBgImages[currentImageIdx % activeHeroBgImages.length]}
-                alt="ESPACIO Luxury Background"
-                initial={{ x: '15%', opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                exit={{ x: '-15%', opacity: 0 }}
-                transition={{ duration: 1.6, ease: [0.25, 1, 0.5, 1] }}
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-            </AnimatePresence>
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/15 to-black/5 z-10" />
+            <HeroSlideshow 
+              images={activeHeroBgImages}
+              intervalMs={3800}
+              transitionDuration={1.2}
+              onIndexChange={setCurrentImageIdx}
+            />
           </motion.div>
 
           {/* ─── Foreground Glass Cards (pinned to bottom) ─── */}
@@ -1180,10 +1173,16 @@ const Home = () => {
                             key={currentImageIdx}
                             src={(!homeSettings.hero_card_image || homeSettings.hero_card_image === '/api/user-uploaded-bedroom.jpg') ? activeHeroBgImages[currentImageIdx % activeHeroBgImages.length] : homeSettings.hero_card_image}
                             alt="Luxury interior showcase"
-                            initial={{ x: '15%', opacity: 0 }}
-                            animate={{ x: 0, opacity: 1 }}
-                            exit={{ x: '-15%', opacity: 0 }}
-                            transition={{ duration: 1.6, ease: [0.25, 1, 0.5, 1] }}
+                            initial={{ opacity: 0, scale: 1.04 }}
+                            animate={{ opacity: 1, scale: 1.0 }}
+                            exit={{ opacity: 0, scale: 0.98 }}
+                            transition={{ duration: 1.2, ease: [0.25, 1, 0.5, 1] }}
+                            style={{
+                              willChange: 'transform, opacity',
+                              transform: 'translate3d(0,0,0)',
+                              WebkitBackfaceVisibility: 'hidden',
+                              backfaceVisibility: 'hidden'
+                            }}
                             className="absolute inset-0 w-full h-full object-cover"
                           />
                         </AnimatePresence>
@@ -1603,9 +1602,6 @@ const Home = () => {
           
         </div>
       </motion.section>
-
-      {/* Home CTA Section */}
-      <PageCTASection pageKey="home" />
 
       {/* Testimonials Marquee Section */}
       <Testimonials />

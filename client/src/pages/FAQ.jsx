@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import SEO from '../components/common/SEO';
-import PageCTASection from '../components/common/PageCTASection';
 
 const faqItems = [
   {
@@ -600,8 +599,6 @@ const FAQ = () => {
               })}
             </div>
 
-            {/* CTA at bottom */}
-            <PageCTASection pageKey="faqs" />
           </div>
         </div>
       </div>

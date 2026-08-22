@@ -14,16 +14,16 @@ import PrivacyModal from './components/common/PrivacyModal';
 import TermsModal from './components/common/TermsModal';
 import Logo from './components/common/Logo';
 
-// Public Pages
-import Home from './pages/Home';
-import About from './pages/About';
-import Services from './pages/Services';
-import Projects from './pages/Projects';
-import ProjectDetails from './pages/ProjectDetails';
-import WhatWeDo from './pages/WhatWeDo';
-import Products from './pages/Products';
-import ProductDetails from './pages/ProductDetails';
-import Contact from './pages/Contact';
+// Public Pages (Lazy-loaded for code-splitting & optimal performance)
+const Home = React.lazy(() => import('./pages/Home'));
+const About = React.lazy(() => import('./pages/About'));
+const Services = React.lazy(() => import('./pages/Services'));
+const Projects = React.lazy(() => import('./pages/Projects'));
+const ProjectDetails = React.lazy(() => import('./pages/ProjectDetails'));
+const WhatWeDo = React.lazy(() => import('./pages/WhatWeDo'));
+const Products = React.lazy(() => import('./pages/Products'));
+const ProductDetails = React.lazy(() => import('./pages/ProductDetails'));
+const Contact = React.lazy(() => import('./pages/Contact'));
 
 // Lazy-loaded Admin Components for Bundle & Performance Isolation
 const AdminLogin = React.lazy(() => import('./pages/admin/AdminLogin'));
@@ -201,7 +201,7 @@ const MainLayout = () => {
 
 function App() {
   useEffect(() => {
-    // Initialize Lenis smooth scrolling
+    // Initialize Lenis smooth scrolling with optimized settings
     const lenis = new Lenis({
       duration: 1.1,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // easeOutExpo
@@ -213,14 +213,16 @@ function App() {
       infinite: false,
     });
 
+    let rafId;
     function raf(time) {
       lenis.raf(time);
-      requestAnimationFrame(raf);
+      rafId = requestAnimationFrame(raf);
     }
 
-    requestAnimationFrame(raf);
+    rafId = requestAnimationFrame(raf);
 
     return () => {
+      if (rafId) cancelAnimationFrame(rafId);
       lenis.destroy();
     };
   }, []);

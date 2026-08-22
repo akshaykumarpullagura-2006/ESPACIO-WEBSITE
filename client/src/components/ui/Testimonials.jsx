@@ -211,7 +211,24 @@ const MarqueeRow = ({ items, speed = 1.2, reverse = false }) => {
       el.scrollLeft = el.scrollWidth / 2;
     }
 
+    let isVisible = true;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        isVisible = entry.isIntersecting;
+        if (isVisible && !animationFrameId.current) {
+          animationFrameId.current = requestAnimationFrame(autoScroll);
+        }
+      },
+      { threshold: 0.05 }
+    );
+
     const autoScroll = () => {
+      if (!isVisible) {
+        animationFrameId.current = null;
+        return;
+      }
       if (!isDragging.current && el) {
         const halfWidth = el.scrollWidth / 2;
         if (reverse) {
@@ -231,8 +248,13 @@ const MarqueeRow = ({ items, speed = 1.2, reverse = false }) => {
       animationFrameId.current = requestAnimationFrame(autoScroll);
     };
 
+    observer.observe(el);
     animationFrameId.current = requestAnimationFrame(autoScroll);
-    return () => cancelAnimationFrame(animationFrameId.current);
+
+    return () => {
+      observer.disconnect();
+      if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
+    };
   }, [speed, reverse]);
 
   const onMouseDown = (e) => {

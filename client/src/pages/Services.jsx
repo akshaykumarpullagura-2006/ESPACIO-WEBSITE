@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence, useInView, useScroll, useTransform } from 'framer-motion';
 import { ArrowUpRight, CheckCircle2, MessageSquare, Compass, Layers, Palette, Settings } from 'lucide-react';
 import SEO from '../components/common/SEO';
+import HeroSlideshow from '../components/common/HeroSlideshow';
 import { Button as MovingBorderButton } from '../components/ui/moving-border';
 import { BorderDrawingCard } from '../components/ui/BorderDrawingCard';
 
@@ -193,12 +194,6 @@ const Services = () => {
     };
   }, []);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentImageIdx((prev) => (prev + 1) % ((heroContent.images || heroImages).length));
-    }, 5000);
-    return () => clearInterval(timer);
-  }, [heroContent.images]);
 
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end end'] });
   const bgScale = useTransform(scrollYProgress, [0, 1], [1.05, 0.95]);
@@ -212,9 +207,12 @@ const Services = () => {
         <section ref={heroRef} className="relative h-[66vh] lg:h-[78vh] min-h-[530px] px-5 pt-5 pb-[10px] lg:px-12">
           <div className="relative w-full h-full overflow-hidden will-change-transform rounded-[24px] lg:rounded-[40px]">
             <motion.div style={{ scale: bgScale, y: bgY }} className="absolute inset-0 will-change-transform overflow-hidden">
-              <AnimatePresence initial={false}>
-                <motion.img key={currentImageIdx} src={(heroContent.images && heroContent.images[currentImageIdx % heroContent.images.length]) || heroImages[0]} alt="ESPACIO Services" initial={{ x: '15%', opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: '-15%', opacity: 0 }} transition={{ duration: 1.6, ease: [0.25, 1, 0.5, 1] }} className="absolute inset-0 w-full h-full object-cover" />
-              </AnimatePresence>
+              <HeroSlideshow
+                images={heroContent.images && heroContent.images.length > 0 ? heroContent.images : heroImages}
+                intervalMs={3800}
+                transitionDuration={1.2}
+                showGradient={false}
+              />
             </motion.div>
             <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/75 z-10 pointer-events-none" />
             <div className="absolute inset-0 bg-gradient-to-r from-black/25 to-transparent z-10 pointer-events-none" />

@@ -4,6 +4,7 @@ import { motion, AnimatePresence, useInView, useScroll, useTransform } from 'fra
 import axios from 'axios';
 import { Search, ArrowUpRight } from 'lucide-react';
 import SEO from '../components/common/SEO';
+import HeroSlideshow from '../components/common/HeroSlideshow';
 import GooeyInput from '../components/ui/gooey-input';
 
 const Reveal = ({ children, delay = 0, className = '' }) => {
@@ -42,13 +43,6 @@ const Projects = () => {
     images: heroImages
   });
 
-  // Auto-cycle hero images
-  useEffect(() => {
-    const activeList = (heroContent.images && heroContent.images.length > 0) ? heroContent.images : heroImages;
-    const len = activeList.length > 0 ? activeList.length : 1;
-    const t = setInterval(() => setCurrentImageIdx(p => (p + 1) % len), 3000);
-    return () => clearInterval(t);
-  }, [heroContent.images]);
 
   // Page-level parallax (same as Home & Services)
   const { scrollYProgress } = useScroll();
@@ -255,18 +249,12 @@ const Projects = () => {
             style={{ scale: bgScale, y: bgY }}
             className="absolute inset-0 will-change-transform overflow-hidden"
           >
-            <AnimatePresence initial={false}>
-              <motion.img
-                key={currentImageIdx}
-                src={(heroContent.images && heroContent.images[currentImageIdx % heroContent.images.length]) || heroImages[0]}
-                alt="ESPACIO Projects"
-                initial={{ x: '15%', opacity: 0 }}
-                animate={{ x: 0,     opacity: 1 }}
-                exit={{ x: '-15%',   opacity: 0 }}
-                transition={{ duration: 0.8, ease: [0.25, 1, 0.5, 1] }}
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-            </AnimatePresence>
+            <HeroSlideshow
+              images={heroContent.images && heroContent.images.length > 0 ? heroContent.images : heroImages}
+              intervalMs={3800}
+              transitionDuration={1.2}
+              showGradient={false}
+            />
           </motion.div>
 
           {/* Gradient overlays */}

@@ -31,12 +31,34 @@ export const HeroParallax = ({ products }) => {
 
   useEffect(() => {
     let animId;
+    let isVisible = true;
+
+    const el = ref.current;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isVisible = entry.isIntersecting;
+        if (isVisible && !animId) {
+          animId = requestAnimationFrame(loop);
+        }
+      },
+      { threshold: 0.05 }
+    );
+
+    if (el) observer.observe(el);
+
     const loop = () => {
+      if (!isVisible) {
+        animId = null;
+        return;
+      }
       autoMotionX.set((autoMotionX.get() + 1.56) % 3200);
       animId = requestAnimationFrame(loop);
     };
     animId = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(animId);
+    return () => {
+      if (el) observer.unobserve(el);
+      if (animId) cancelAnimationFrame(animId);
+    };
   }, [autoMotionX]);
 
   const combinedX1 = useTransform(
@@ -222,6 +244,8 @@ export const ProductCard = ({ product, translate, index }) => {
       >
         <img
           src={product.thumbnail}
+          loading="lazy"
+          decoding="async"
           onError={(e) => {
             e.currentTarget.src = "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=900&q=80";
           }}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { Search, ArrowRight, ChevronRight, ArrowUpRight } from 'lucide-react';
@@ -172,6 +172,19 @@ const Products = () => {
     '/images/materials/ash_gen2.png'
   ];
 
+  const domeImages = useMemo(() => {
+    const seen = new Set();
+    const uniqueImages = [];
+    sourceData.forEach((p, idx) => {
+      const src = p.heroImage || fallbacks[idx % fallbacks.length];
+      if (src && !seen.has(src)) {
+        seen.add(src);
+        uniqueImages.push({ src, alt: p.title });
+      }
+    });
+    return uniqueImages;
+  }, [sourceData]);
+
   return (
     <div className="bg-bg min-h-screen pb-24">
       <SEO title="Premium Material Library — WPC, Fluted, Acrylic Panels" description="Explore ESPACIO's curated material library. WPC wall panels, fluted panels, polygranite, acrylic sheets, mosaic tiles and more. Request samples and catalogue." url="/products" />
@@ -183,18 +196,7 @@ const Products = () => {
         {/* Dome Gallery Container */}
         <div className="absolute inset-0 w-full h-full z-0">
           <DomeGallery 
-            images={(() => {
-              const seen = new Set();
-              const uniqueImages = [];
-              sourceData.forEach((p, idx) => {
-                const src = p.heroImage || fallbacks[idx % fallbacks.length];
-                if (src && !seen.has(src)) {
-                  seen.add(src);
-                  uniqueImages.push({ src, alt: p.title });
-                }
-              });
-              return uniqueImages;
-            })()}
+            images={domeImages}
             fit={0.45}
             fitBasis="auto"
             overlayBlurColor="#120F17"
@@ -239,6 +241,7 @@ const Products = () => {
                 className="group block rounded-card overflow-hidden bg-offwhite border border-walnut/5 hover:-translate-y-2 transition-all duration-400 shadow-sm">
                 <div className="relative aspect-[4/3] overflow-hidden">
                   <img src={product.heroImage || fallbacks[idx % fallbacks.length]} alt={product.title}
+                    loading="lazy" decoding="async"
                     className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700" />
                   <div className="absolute inset-0 bg-gradient-to-t from-charcoal/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   {/* Feature badges */}
