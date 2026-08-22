@@ -18,7 +18,7 @@ export const SITE_STATS = [
   }
 ];
 
-export const DEFAULT_CTA_BG = 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1920&q=80';
+export const DEFAULT_CTA_BG = 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1000&q=70&fm=webp';
 
 export const PAGE_CTAS = {
   HOME: {

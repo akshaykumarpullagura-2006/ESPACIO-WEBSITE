@@ -6,12 +6,13 @@ import axios from 'axios';
 import SEO from '../components/common/SEO';
 import Logo from '../components/common/Logo';
 import DecryptedText from '../components/ui/DecryptedText';
-import { StickyScroll } from '../components/ui/sticky-scroll-reveal';
-import { HeroParallax } from '../components/ui/hero-parallax';
-import Testimonials from '../components/ui/Testimonials';
 import HeroSlideshow from '../components/common/HeroSlideshow';
 import { getCMSData, STORAGE_KEYS } from '../utils/cmsStore';
 import { USER_UPLOADED_BEDROOM_IMAGE } from '../assets/userUploadedBedroom';
+
+const StickyScroll = React.lazy(() => import('../components/ui/sticky-scroll-reveal').then(m => ({ default: m.StickyScroll })));
+const HeroParallax = React.lazy(() => import('../components/ui/hero-parallax').then(m => ({ default: m.HeroParallax })));
+const Testimonials = React.lazy(() => import('../components/ui/Testimonials'));
 
 const Reveal = ({ children, delay = 0, className = '' }) => {
   const ref = useRef(null);
@@ -635,7 +636,7 @@ const Home = () => {
     // Safety fallback timer if onComplete doesn't fire (e.g. background tab)
     const timer = setTimeout(() => {
       handleIntroComplete();
-    }, 6000);
+    }, 800);
     return () => clearTimeout(timer);
   }, []);
 
@@ -1139,9 +1140,9 @@ const Home = () => {
           <motion.div 
             style={{ scale: bgScale, y: bgY }}
             className="absolute inset-0 will-change-transform overflow-hidden"
-            initial={{ opacity: 0, scale: 1.15 }}
-            animate={showIntro ? { opacity: 0, scale: 1.15 } : { opacity: 1, scale: 1.05 }}
-            transition={{ duration: 1.6, ease: [0.16, 1, 0.3, 1] }}
+            initial={{ opacity: 1, scale: 1.05 }}
+            animate={{ opacity: 1, scale: 1.05 }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           >
             <HeroSlideshow 
               images={activeHeroBgImages}
@@ -1157,8 +1158,8 @@ const Home = () => {
               
               <motion.div 
                 className="flex flex-col lg:flex-row items-end gap-4 lg:gap-6"
-                initial="hidden"
-                animate={showIntro ? "hidden" : "visible"}
+                initial="visible"
+                animate="visible"
                 variants={{
                   hidden: { opacity: 0 },
                   visible: {
@@ -1459,14 +1460,18 @@ const Home = () => {
         </div>
 
         <Reveal>
-          <StickyScroll content={stickyContent} />
+          <React.Suspense fallback={<div className="min-h-[300px]" />}>
+            <StickyScroll content={stickyContent} />
+          </React.Suspense>
         </Reveal>
       </section>
 
 
       {/* ── 5. SERVICES PARALLAX ────────────────────────────────────────────── */}
       <section className="border-t border-ink-border bg-bg-card/10">
-        <HeroParallax products={parallaxProducts} />
+        <React.Suspense fallback={<div className="min-h-[400px]" />}>
+          <HeroParallax products={parallaxProducts} />
+        </React.Suspense>
       </section>
 
 
@@ -1633,7 +1638,9 @@ const Home = () => {
       </motion.section>
 
       {/* Testimonials Marquee Section */}
-      <Testimonials />
+      <React.Suspense fallback={<div className="min-h-[200px]" />}>
+        <Testimonials />
+      </React.Suspense>
 
     </div>
   );

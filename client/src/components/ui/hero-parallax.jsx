@@ -247,7 +247,7 @@ export const ProductCard = ({ product, translate, index }) => {
           loading="lazy"
           decoding="async"
           onError={(e) => {
-            e.currentTarget.src = "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=900&q=80";
+            e.currentTarget.src = "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=65&fm=webp";
           }}
           className="object-cover absolute h-full w-full inset-0 transition-transform duration-700 group-hover/product:scale-105 select-none pointer-events-none"
           draggable="false"

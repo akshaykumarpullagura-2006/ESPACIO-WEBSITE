@@ -347,7 +347,7 @@ const Testimonials = () => {
 
       {/* Background */}
       <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
-        <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1800&q=80" alt="bg" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }} />
+        <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1000&q=70&fm=webp" loading="lazy" decoding="async" alt="ESPACIO Luxury Interior Background" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }} />
         <div style={{ position: "absolute", inset: 0, background: "rgba(16,16,20,0.82)", backdropFilter: "blur(2px)" }} />
       </div>
 
