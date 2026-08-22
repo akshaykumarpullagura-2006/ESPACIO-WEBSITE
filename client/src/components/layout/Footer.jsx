@@ -61,6 +61,7 @@ const Footer = () => {
   const location = useLocation();
   const year = new Date().getFullYear();
   const espRef = useRef(null);
+  const brandRef = espRef;
   const inView = useInView(espRef, { once: false, margin: '-60px' });
 
   // Get current page key for page-specific CTA
