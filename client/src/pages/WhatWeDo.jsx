@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { motion, useInView, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { ArrowUpRight } from 'lucide-react';
 import SEO from '../components/common/SEO';
+import { getOptimizedImageUrl } from '../utils/imageOptimizer';
 
 const Reveal = ({ children, delay = 0, className = '' }) => {
   const ref = useRef(null);
@@ -819,8 +820,10 @@ const WhatWeDo = () => {
               className="absolute inset-0 w-full h-full will-change-transform overflow-hidden pointer-events-none"
             >
               <img
-                src={spacesHeroState.afterImage || (activeSlides[0] && activeSlides[0].after) || 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1920&q=90'}
+                src={getOptimizedImageUrl(spacesHeroState.afterImage || (activeSlides[0] && activeSlides[0].after) || 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1200&q=75&fm=webp', 1200, 75)}
                 alt="After Transformation"
+                loading="lazy"
+                decoding="async"
                 className="absolute inset-0 w-full h-full object-cover"
               />
             </motion.div>
@@ -843,8 +846,10 @@ const WhatWeDo = () => {
                   className="absolute inset-0 w-full h-full will-change-transform overflow-hidden pointer-events-none"
                 >
                   <img
-                    src={spacesHeroState.beforeImage || (activeSlides[0] && activeSlides[0].before) || 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1920&q=90'}
+                    src={getOptimizedImageUrl(spacesHeroState.beforeImage || (activeSlides[0] && activeSlides[0].before) || 'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1200&q=75&fm=webp', 1200, 75)}
                     alt="Before Transformation"
+                    loading="lazy"
+                    decoding="async"
                     className="absolute inset-0 w-full h-full object-cover"
                   />
                 </motion.div>

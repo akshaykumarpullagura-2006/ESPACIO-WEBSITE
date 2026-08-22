@@ -6,6 +6,7 @@ import { Search, ArrowUpRight } from 'lucide-react';
 import SEO from '../components/common/SEO';
 import HeroSlideshow from '../components/common/HeroSlideshow';
 import GooeyInput from '../components/ui/gooey-input';
+import { getOptimizedImageUrl } from '../utils/imageOptimizer';
 
 const Reveal = ({ children, delay = 0, className = '' }) => {
   const ref = useRef(null);
@@ -21,10 +22,10 @@ const Reveal = ({ children, delay = 0, className = '' }) => {
 };
 
 const heroImages = [
-  'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1920&q=90',
-  'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1920&q=90',
-  'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1920&q=90',
-  'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1920&q=90',
+  'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=75&fm=webp',
+  'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1200&q=75&fm=webp',
+  'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=75&fm=webp',
+  'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1200&q=75&fm=webp',
 ];
 
 const Projects = () => {
@@ -352,7 +353,9 @@ const Projects = () => {
                     >
                       <div className="relative overflow-hidden aspect-[4/3]">
                         <img
-                          src={project.heroImage}
+                          src={getOptimizedImageUrl(project.heroImage, 600, 70)}
+                          loading="lazy"
+                          decoding="async"
                           alt={project.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-expo-out"
                         />

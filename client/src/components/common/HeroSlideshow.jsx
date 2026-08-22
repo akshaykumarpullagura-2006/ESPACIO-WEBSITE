@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getOptimizedImageUrl } from '../../utils/imageOptimizer';
 
 /**
  * Preloads image URLs into browser memory and pre-decodes bitmap assets
@@ -72,7 +73,8 @@ const HeroSlideshow = memo(({
   // Safety check for empty image array
   if (activeImages.length === 0) return null;
 
-  const currentSrc = activeImages[currentIndex % activeImages.length];
+  const rawSrc = activeImages[currentIndex % activeImages.length];
+  const currentSrc = getOptimizedImageUrl(rawSrc, 1400, 75);
 
   return (
     <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none select-none">

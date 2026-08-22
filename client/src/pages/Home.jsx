@@ -9,6 +9,7 @@ import DecryptedText from '../components/ui/DecryptedText';
 import HeroSlideshow from '../components/common/HeroSlideshow';
 import { getCMSData, STORAGE_KEYS } from '../utils/cmsStore';
 import { USER_UPLOADED_BEDROOM_IMAGE } from '../assets/userUploadedBedroom';
+import { getOptimizedImageUrl } from '../utils/imageOptimizer';
 
 const StickyScroll = React.lazy(() => import('../components/ui/sticky-scroll-reveal').then(m => ({ default: m.StickyScroll })));
 const HeroParallax = React.lazy(() => import('../components/ui/hero-parallax').then(m => ({ default: m.HeroParallax })));
@@ -901,8 +902,8 @@ const Home = () => {
     content: (
       <div className="h-full w-full relative overflow-hidden rounded-[24px]">
         <img
-          src={p.heroImage}
-          loading="eager"
+          src={getOptimizedImageUrl(p.heroImage, 800, 70)}
+          loading="lazy"
           decoding="async"
           className="h-full w-full object-cover transition-transform duration-700 ease-out"
           alt={p.title}
@@ -911,153 +912,157 @@ const Home = () => {
     )
   }));
 
-
-  const parallaxProducts = [
+  const rawParallaxProducts = [
     {
       title: "Lakeside Villa Interior",
       category: "Residential Villa",
       link: "/projects/lakeside-sanctuary",
-      thumbnail: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=900&q=80",
+      thumbnail: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=65&fm=webp",
     },
     {
       title: "Italian Modular Kitchen",
       category: "Modular Kitchen",
       link: "/what-we-do/modular-kitchen",
-      thumbnail: "https://images.unsplash.com/photo-1618219908412-a29a1bb7b86e?auto=format&fit=crop&w=900&q=80",
+      thumbnail: "https://images.unsplash.com/photo-1618219908412-a29a1bb7b86e?auto=format&fit=crop&w=600&q=65&fm=webp",
     },
     {
       title: "Jubilee Hills Penthouse",
       category: "Penthouse Apartment",
       link: "/projects/modernist-penthouse",
-      thumbnail: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=900&q=80",
+      thumbnail: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=600&q=65&fm=webp",
     },
     {
       title: "Corporate Office Hub",
       category: "Commercial Fitout",
       link: "/projects/exec-office",
-      thumbnail: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=900&q=80",
+      thumbnail: "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=65&fm=webp",
     },
     {
       title: "Bespoke Dining Hall",
       category: "Residential Space",
       link: "/what-we-do",
-      thumbnail: "https://images.unsplash.com/photo-1615874959474-d609969a20ed?auto=format&fit=crop&w=900&q=80",
+      thumbnail: "https://images.unsplash.com/photo-1615874959474-d609969a20ed?auto=format&fit=crop&w=600&q=65&fm=webp",
     },
     {
       title: "The Lumen Suite",
       category: "Luxury Apartment",
       link: "/projects/lumen-apartment",
-      thumbnail: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=900&q=80",
+      thumbnail: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=600&q=65&fm=webp",
     },
     {
       title: "Slate Living Room",
       category: "Residential Living",
       link: "/projects/slate-residence",
-      thumbnail: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=900&q=80",
+      thumbnail: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?auto=format&fit=crop&w=600&q=65&fm=webp",
     },
     {
       title: "Executive Conference Room",
       category: "Commercial Office",
       link: "/projects/exec-office",
-      thumbnail: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=900&q=80",
+      thumbnail: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=600&q=65&fm=webp",
     },
     {
       title: "Contemporary Bedroom Design",
       category: "Bespoke Bedroom",
       link: "/what-we-do",
-      thumbnail: "https://images.unsplash.com/photo-1616594039964-ae9021a400a0?auto=format&fit=crop&w=900&q=80",
+      thumbnail: "https://images.unsplash.com/photo-1616594039964-ae9021a400a0?auto=format&fit=crop&w=600&q=65&fm=webp",
     },
     {
       title: "Cozy Open Floor Studio",
       category: "Luxury Apartment",
       link: "/projects",
-      thumbnail: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=900&q=80",
+      thumbnail: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&w=600&q=65&fm=webp",
     },
     {
       title: "Fluted Panel Accent Hall",
       category: "Residential Space",
       link: "/what-we-do",
-      thumbnail: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=900&q=80",
+      thumbnail: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?auto=format&fit=crop&w=600&q=65&fm=webp",
     },
     {
       title: "Luxury Washroom Suite",
       category: "Bespoke Bath",
       link: "/what-we-do",
-      thumbnail: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=900&q=80",
+      thumbnail: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=600&q=65&fm=webp",
     },
     {
       title: "Corporate Reception Lounge",
       category: "Commercial Space",
       link: "/projects",
-      thumbnail: "https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=900&q=80",
+      thumbnail: "https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=600&q=65&fm=webp",
     },
     {
       title: "Vibrant Lounge Living Room",
       category: "Residential Space",
       link: "/what-we-do",
-      thumbnail: "https://images.unsplash.com/photo-1618219908412-a29a1bb7b86e?auto=format&fit=crop&w=900&q=80",
+      thumbnail: "https://images.unsplash.com/photo-1618219908412-a29a1bb7b86e?auto=format&fit=crop&w=600&q=65&fm=webp",
     },
     {
       title: "Panoramic Penthouse Lounge",
       category: "Luxury Penthouse",
       link: "/projects",
-      thumbnail: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=900&q=80",
+      thumbnail: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=600&q=65&fm=webp",
     },
     {
       title: "Luxury Living Room",
       category: "Luxury Apartment",
       link: "/projects/lumen-apartment",
-      thumbnail: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=900&q=80",
+      thumbnail: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=600&q=65&fm=webp",
     },
     {
       title: "Marble Dining Area",
       category: "Residential Dining",
       link: "/what-we-do",
-      thumbnail: "https://images.unsplash.com/photo-1617103996702-96ff29b1c467?auto=format&fit=crop&w=900&q=80",
+      thumbnail: "https://images.unsplash.com/photo-1617103996702-96ff29b1c467?auto=format&fit=crop&w=600&q=65&fm=webp",
     },
     {
       title: "Master Suite Sanctuary",
       category: "Bespoke Bedroom",
       link: "/what-we-do",
-      thumbnail: "https://images.unsplash.com/photo-1616594039964-ae9021a400a0?auto=format&fit=crop&w=900&q=80",
+      thumbnail: "https://images.unsplash.com/photo-1616594039964-ae9021a400a0?auto=format&fit=crop&w=600&q=65&fm=webp",
     },
     {
       title: "Sleek Workspace Studio",
       category: "Commercial Office",
       link: "/projects/exec-office",
-      thumbnail: "https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=900&q=80",
+      thumbnail: "https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=600&q=65&fm=webp",
     },
     {
       title: "Minimalist Walk-in Closet",
       category: "Residential Space",
       link: "/what-we-do",
-      thumbnail: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=900&q=80",
+      thumbnail: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=600&q=65&fm=webp",
     },
     {
       title: "Designer Penthouse Terrace",
       category: "Luxury Penthouse",
       link: "/projects",
-      thumbnail: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=900&q=80",
+      thumbnail: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=600&q=65&fm=webp",
     },
     {
       title: "Cozy Fireplace Den",
       category: "Residential Space",
       link: "/what-we-do",
-      thumbnail: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=900&q=80",
+      thumbnail: "https://images.unsplash.com/photo-160058515526-990dced4db0d?auto=format&fit=crop&w=600&q=65&fm=webp",
     },
     {
       title: "Bespoke Wine Cellar",
       category: "Luxury Home",
       link: "/projects",
-      thumbnail: "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=900&q=80",
+      thumbnail: "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=600&q=65&fm=webp",
     },
     {
       title: "Luxury Bathroom Oasis",
       category: "Bespoke Bath",
       link: "/what-we-do",
-      thumbnail: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=900&q=80",
+      thumbnail: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=600&q=65&fm=webp",
     },
   ];
+
+  const parallaxProducts = rawParallaxProducts.map(item => ({
+    ...item,
+    thumbnail: getOptimizedImageUrl(item.thumbnail, 600, 65)
+  }));
 
   return (
     <div className="bg-bg overflow-x-clip">
@@ -1201,7 +1206,7 @@ const Home = () => {
                         <AnimatePresence initial={false}>
                           <motion.img
                             key={currentImageIdx}
-                            src={(!homeSettings.hero_card_image || homeSettings.hero_card_image === '/api/user-uploaded-bedroom.jpg') ? activeHeroBgImages[currentImageIdx % activeHeroBgImages.length] : homeSettings.hero_card_image}
+                            src={getOptimizedImageUrl((!homeSettings.hero_card_image || homeSettings.hero_card_image === '/api/user-uploaded-bedroom.jpg') ? activeHeroBgImages[currentImageIdx % activeHeroBgImages.length] : homeSettings.hero_card_image, 600)}
                             alt="Luxury interior showcase"
                             initial={{ opacity: 0, scale: 1.04 }}
                             animate={{ opacity: 1, scale: 1.0 }}
@@ -1545,7 +1550,7 @@ const Home = () => {
                     className="border-b border-ink-border/20 px-4 py-6 cursor-pointer transition-all duration-300 relative"
                     onClick={() => setOpenFaqIdx(isOpen ? null : idx)}
                   >
-                    <button className="w-full flex items-start gap-4 text-left group bg-transparent border-0 cursor-pointer py-1">
+                    <button aria-label={faq.q} className="w-full flex items-start gap-4 text-left group bg-transparent border-0 cursor-pointer py-1">
                       {/* Animated badge */}
                       <Badge num={idx} isOpen={isOpen} />
 

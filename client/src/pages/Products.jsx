@@ -7,6 +7,7 @@ import SEO from '../components/common/SEO';
 import DomeGallery from '../components/ui/DomeGallery';
 import GooeyInput from '../components/ui/gooey-input';
 import { getCMSData, STORAGE_KEYS } from '../utils/cmsStore';
+import { getOptimizedImageUrl } from '../utils/imageOptimizer';
 
 const Reveal = ({ children, delay = 0, className = '' }) => {
   const ref = useRef(null);
@@ -240,7 +241,7 @@ const Products = () => {
               <Link key={product.slug || idx} to={`/products/${product.slug}`}
                 className="group block rounded-card overflow-hidden bg-offwhite border border-walnut/5 hover:-translate-y-2 transition-all duration-400 shadow-sm">
                 <div className="relative aspect-[4/3] overflow-hidden">
-                  <img src={product.heroImage || fallbacks[idx % fallbacks.length]} alt={product.title}
+                  <img src={getOptimizedImageUrl(product.heroImage || fallbacks[idx % fallbacks.length], 600, 70)} alt={product.title}
                     loading="lazy" decoding="async"
                     className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700" />
                   <div className="absolute inset-0 bg-gradient-to-t from-charcoal/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
